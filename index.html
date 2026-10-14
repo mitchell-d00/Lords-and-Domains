@@ -83,6 +83,17 @@ button,select,input{font:inherit}
 .seg button{background:#101c58;color:#fff;border:0;padding:4px 10px;cursor:pointer;min-height:32px}
 .seg button.on{background:var(--gold);color:#2a1800}
 .kbd{font-size:.8rem;color:var(--win-muted)}
+.corner{position:fixed;right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));z-index:80;display:flex;gap:6px}
+.corner .btn{box-shadow:0 3px 0 rgba(0,0,0,.35),inset 0 -3px 0 rgba(0,0,0,.3)}
+.coach{border-color:var(--gold);box-shadow:inset 0 0 0 1px #c08020,var(--shadow)}
+.coach .cstep{font-size:.8rem;color:var(--win-muted);letter-spacing:.06em;text-transform:uppercase}
+.modes2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mcard{display:grid;gap:4px;padding:10px;border:2px solid var(--edge2);border-radius:8px;cursor:pointer;background:rgba(0,0,0,.18)}
+.mcard:has(input:checked){border-color:var(--gold);background:rgba(255,224,112,.12)}
+.mcard input{accent-color:#ffd860;width:18px;height:18px}
+.mcard span{font-size:.86rem;color:var(--win-muted);line-height:1.3}
+@media (max-width:560px){.modes2{grid-template-columns:1fr}}
+body{padding-bottom:64px}
 @media (max-width:900px){.layout{grid-template-columns:1fr}.brand{font-size:1.1rem}}
 @media (max-width:520px){.titlemenu{bottom:10px}.titlemenu .btn{padding:4px 8px;min-height:32px;font-size:.85rem}.seat{grid-template-columns:20px 1fr 130px}}
 </style>
@@ -108,10 +119,12 @@ button,select,input{font:inherit}
         <div class="titlemenu" id="titleMenu">
           <button class="btn gold" id="tNew">New game</button>
           <button class="btn" id="tCont" hidden>Continue</button>
+          <button class="btn" id="tWalk">Walkthrough</button>
           <button class="btn" id="tRules">How to play</button>
           <button class="btn" id="tSet">Settings</button>
         </div>
       </div>
+      <div class="win coach" id="coach" hidden></div>
       <div class="win" id="turnBox"><h3>Welcome</h3><p>Five domains. Five hidden Lords. Press <b>New game</b> to begin.</p></div>
     </div>
     <div class="side">
@@ -122,6 +135,7 @@ button,select,input{font:inherit}
     </div>
   </div>
 </div>
+<div class="corner" id="corner" aria-label="Sound and music"></div>
 <div class="modal-bg" id="modalBg" hidden><div class="win modal" id="modal" role="dialog" aria-modal="true"></div></div>
 
 <script>
@@ -132,39 +146,44 @@ const N=13, TILE=16;
 const RANK_NAME={9:'Lord',8:'Marshal',7:'Knight',6:'Captain',5:'Guard',4:'Raider',3:'Scout',2:'Spy',1:'Sapper',0:'Keep'};
 const RANK_SHORT={9:'L',8:'8',7:'7',6:'6',5:'5',4:'4',3:'3',2:'2',1:'1',0:'K'};
 const RANK_TIP={
- 9:'Your ruler and your strongest piece. It beats every rank, and a Lord who attacks another Lord wins. An attacking Spy kills it, and attacking a Keep destroys it. If it falls, your whole domain falls.',
+ 9:'Your ruler and your strongest piece. It beats every rank, and a Lord who attacks another Lord wins. A Spy kills it whenever they meet, whoever attacks. Attacking a Keep destroys it. If it falls, your whole domain falls.',
  8:'The strongest fighter. Loses only to the Lord, a Keep, or another Marshal (both fall).',
  7:'Heavy cavalry. Beats every rank below 7.',
  6:'A veteran officer. Beats every rank below 6.',
  5:'Steady infantry. Beats every rank below 5.',
  4:'A fast striker. Beats every rank below 4.',
  3:'Moves any number of open squares in a straight line. Good for probing unknown pieces.',
- 2:'Weak in a fair fight, but kills a Lord when the Spy attacks first.',
- 1:'The only piece that can break a Keep.',
- 0:'A fortified tower. It never moves. Anything that attacks it is destroyed, except a Sapper.'};
+ 2:'Weak in a fair fight, but kills a Lord whenever they meet, whoever attacks. Every domain has two.',
+ 1:'The only piece that can break a Keep, and breaking a Keep topples that whole domain.',
+ 0:'Your fortress. It never moves. Anything that attacks it is destroyed, except a Sapper. If a Sapper breaks it, your whole domain falls.'};
 const VALUE={9:40,8:9,7:7,6:5.5,5:4,4:3.2,3:2.6,2:3.4,1:3,0:2.2};
+const ARMY=[9,8,7,6,5,4,3,2,2,1,0];
+const countOf=k=>ARMY.filter(x=>x===k).length;
 const DOMAINS=[
  {name:'Crimson',banner:'the Ember Crown'},
  {name:'Azure',banner:'the Tide Throne'},
  {name:'Verdant',banner:'the Greenwood Seat'},
  {name:'Golden',banner:'the Sun Court'},
  {name:'Violet',banner:'the Dusk Spire'}];
-// Five homes roughly evenly spaced around the board. Each: 3x3 block on the edge + one forward square.
+// Five homes roughly evenly spaced around the board. Each: 3x3 block on the edge + two forward squares.
 const HOMES=[
- {block:[10,5],front:[9,6]},
- {block:[6,0],front:[7,3]},
- {block:[0,1],front:[3,2]},
- {block:[0,9],front:[3,10]},
- {block:[6,10],front:[7,9]}];
+ {block:[10,5],front:[[9,5],[9,7]]},
+ {block:[6,0],front:[[6,3],[8,3]]},
+ {block:[0,1],front:[[3,1],[3,3]]},
+ {block:[0,9],front:[[3,9],[3,11]]},
+ {block:[6,10],front:[[6,9],[8,9]]}];
 // home cells ordered back-to-front so setup index 0 is the safest corner
 function homeCells(p){
   const h=HOMES[p],[br,bc]=h.block,cells=[];
   for(let r=br;r<br+3;r++)for(let c=bc;c<bc+3;c++)cells.push([r,c]);
   const cr=6,cc=6;const d=([r,c])=>Math.abs(r-cr)+Math.abs(c-cc);
-  cells.sort((a,b)=>d(b)-d(a));cells.push(h.front);return cells;
+  cells.sort((a,b)=>d(b)-d(a));cells.push(...h.front);return cells;
 }
 const WATER=new Set(['6,6','5,4','5,8','8,4','8,8']);
 const isWater=(r,c)=>WATER.has(r+','+c);
+// lakes, plus (in Decisive mode) squares the sea has swallowed or the seabed has filled
+let CURG=null;
+const blocked=(r,c,G)=>{G=G||CURG;const t=G&&G.sunk&&G.sunk[r+','+c];return t==='sea'||(t!=='land'&&WATER.has(r+','+c))};
 const inB=(r,c)=>r>=0&&c>=0&&r<N&&c<N;
 const PERSONAS=[
  {name:'Honourable',honor:.9,greed:.3,deceit:.1,aggr:.5,blurb:'keeps its word, mostly'},
@@ -190,10 +209,10 @@ function newGame(opts){
     persona:personas.map(p=>p.name),trust:[...Array(5)].map(()=>Array(5).fill(50)),pacts:[...Array(5)].map(()=>Array(5).fill(0)),
     rep:[0,0,0,0,0],accused:[0,0,0,0,0],grudge:[...Array(5)].map(()=>Array(5).fill(0)),kills:[0,0,0,0,0],
     offers:[],log:[],lastCapture:1,over:false,winner:null,fallenBy:[null,null,null,null,null],actedDiplo:false,
-    stats:{clashes:0,betrayals:0},ready:[false,false,false,false,false]};
+    stats:{clashes:0,betrayals:0},ready:[false,false,false,false,false],decisive:!!opts.decisive,sunk:{},quakes:0,lastQuake:null};
   for(let p=0;p<5;p++){
     const cells=homeCells(p);
-    const ranks=ctrl[p]==='ai'?aiSetup():shuffle([9,8,7,6,5,4,3,2,1,0]);
+    const ranks=ctrl[p]==='ai'?aiSetup():shuffle(ARMY.slice());
     cells.forEach(([r,c],i)=>G.pieces.push({id:G.pieces.length,p,rank:ranks[i],r,c,alive:true,moves:0,revealed:false,known:[],rumor:false,prev:null,lastMoved:0}));
   }
   addLog(G,'The five domains take the field. Each Lord is hidden among its own.');
@@ -201,13 +220,14 @@ function newGame(opts){
 }
 // AI setup: Lord in the back, a Keep beside it, Spy and Scouts forward.
 function aiSetup(){
-  const order=[9,0,5,8,1,6,7,2,4,3]; // index 0 = safest
+  const order=[9,0,5,8,1,6,7,2,4,3,2]; // index 0 = safest; the last two are the forward squares
   const r=order.slice();
   // a little variety so the Lord is not always in the same corner
   if(rnd()<.5){[r[0],r[2]]=[r[2],r[0]]}
   if(rnd()<.35){[r[0],r[3]]=[r[3],r[0]]}
   if(rnd()<.5){[r[4],r[6]]=[r[6],r[4]]}
   if(rnd()<.5){[r[7],r[9]]=[r[9],r[7]]}
+  if(rnd()<.5){[r[8],r[9]]=[r[9],r[8]]}
   return r;
 }
 function addLog(G,t,p){G.log.push({t,p:p==null?-1:p,round:G.round});if(G.log.length>200)G.log.shift()}
@@ -228,7 +248,7 @@ function movesFor(G,x){
   for(const [dr,dc] of [[1,0],[-1,0],[0,1],[0,-1]]){
     for(let s=1;s<=max;s++){
       const r=x.r+dr*s,c=x.c+dc*s;
-      if(!inB(r,c)||isWater(r,c))break;
+      if(!inB(r,c)||blocked(r,c,G))break;
       const t=at(G,r,c);
       if(!t){out.push({r,c,attack:false});continue}
       if(t.p!==x.p)out.push({r,c,attack:true,target:t.id});
@@ -241,7 +261,8 @@ function allMoves(G,p){const o=[];for(const x of alivePieces(G,p))for(const m of
 // combat: 1 attacker wins, -1 defender wins, 0 both fall
 function resolve(a,d){
   if(d===0)return a===1?1:-1;          // Keep: only a Sapper breaks it
-  if(a===2&&d===9)return 1;            // Spy strikes the Lord
+  if(a===2&&d===9)return 1;            // a Spy kills a Lord whenever they meet
+  if(a===9&&d===2)return -1;
   if(a===9&&d===9)return 1;            // a Lord who strikes first wins the duel
   if(a>d)return 1; if(a<d)return -1; return 0;
 }
@@ -266,21 +287,23 @@ function doMove(G,id,r,c){
     const nm=(q)=>`${DOMAINS[q.p].name} ${RANK_NAME[q.rank]}`;
     let line=`${nm(x)} attacks ${nm(t)}. `;
     if(res>0){t.alive=false;x.r=r;x.c=c;G.kills[x.p]++;
-      line+=t.rank===0?'The Sapper breaks the Keep.':x.rank===2&&t.rank===9?'The Spy strikes down the Lord!':`${DOMAINS[x.p].name} wins.`}
-    else if(res<0){x.alive=false;G.kills[t.p]++;line+=t.rank===0?'The Keep holds. The attacker is destroyed.':`${DOMAINS[t.p].name} holds.`}
+      line+=t.rank===0?'The Sapper breaks the Keep!':x.rank===2&&t.rank===9?'The Spy strikes down the Lord!':`${DOMAINS[x.p].name} wins.`}
+    else if(res<0){x.alive=false;G.kills[t.p]++;line+=t.rank===0?'The Keep holds. The attacker is destroyed.':x.rank===9&&t.rank===2?'The Spy was waiting. The Lord is slain!':`${DOMAINS[t.p].name} holds.`}
     else{x.alive=false;t.alive=false;line+='Both fall.'}
     addLog(G,line,x.p);G.lastCapture=G.round;
     // a fallen Lord takes the domain with it
     for(const q of [t,x])if(!q.alive&&q.rank===9&&G.alive[q.p]){fallDomain(G,q.p,q===t?x.p:t.p,ev)}
+    // a broken Keep topples its domain too
+    if(res>0&&t.rank===0&&G.alive[t.p])fallDomain(G,t.p,x.p,ev,'keep');
   }
   return ev;
 }
-function fallDomain(G,p,by,ev){
+function fallDomain(G,p,by,ev,how){
   G.alive[p]=false;G.fallenBy[p]=by;
   for(const q of G.pieces)if(q.p===p&&q.alive){q.alive=false;q.revealed=true}
   for(let b=0;b<5;b++){G.pacts[p][b]=0;G.pacts[b][p]=0}
-  addLog(G,`The Lord of ${DOMAINS[p].name} has fallen${by!=null&&by!==p?' to '+DOMAINS[by].name:''}. The domain collapses.`,p);
-  ev.push({type:'fall',p,by});
+  addLog(G,how==='keep'?`The Keep of ${DOMAINS[p].name} is breached${by!=null?' by '+DOMAINS[by].name:''}. The domain collapses.`:`The Lord of ${DOMAINS[p].name} has fallen${by!=null&&by!==p?' to '+DOMAINS[by].name:''}. The domain collapses.`,p);
+  ev.push({type:'fall',p,by,how:how||'lord'});
 }
 function breakPact(G,a,b,ev){
   G.pacts[a][b]=0;G.pacts[b][a]=0;G.rep[a]++;G.stats.betrayals++;
@@ -293,7 +316,9 @@ function nextTurn(G){
   const al=G.alive.filter(Boolean).length;
   if(al<=1){G.over=true;G.winner=G.alive.indexOf(true);addLog(G,`${DOMAINS[G.winner].name} claims every domain.`,G.winner);return}
   // stalemate: long quiet stretch or round limit
-  if(G.round-G.lastCapture>=40||G.round>=200){
+  // in Decisive mode the quiet clock only runs once the island has stopped sinking
+  const quietFrom=G.decisive?Math.max(G.lastCapture,G.islandDone?G.doneSince:G.round):G.lastCapture;
+  if(G.round-quietFrom>=(G.decisive?25:40)||G.round>=200){
     let best=-1,bv=-1;for(let p=0;p<5;p++)if(G.alive[p]){const v=alivePieces(G,p).reduce((s,x)=>s+(x.rank===9?0:VALUE[x.rank]),0);if(v>bv){bv=v;best=p}}
     G.over=true;G.winner=best;G.stalemate=true;addLog(G,`The war grinds to a halt. ${DOMAINS[best].name} holds the strongest army and is named High Lord.`,best);return;
   }
@@ -304,11 +329,88 @@ function nextTurn(G){
 }
 function endRound(G){
   G.round++;
+  quake(G);
   for(let p=0;p<5;p++){G.accused[p]=Math.max(0,G.accused[p]-.12);for(let q=0;q<5;q++)G.grudge[p][q]*=.93}
   for(let a=0;a<5;a++)for(let b=a+1;b<5;b++)if(G.pacts[a][b]&&G.pacts[a][b]===G.round-1){
     G.pacts[a][b]=G.pacts[b][a]=0;G.trust[a][b]=clamp(G.trust[a][b]+10,0,100);G.trust[b][a]=clamp(G.trust[b][a]+10,0,100);
     if(G.alive[a]&&G.alive[b])addLog(G,`The pact between ${DOMAINS[a].name} and ${DOMAINS[b].name} ends honourably.`);
   }
+}
+
+// ---------- Decisive mode: the restless island ----------
+// From round QUAKE_START the island reshapes itself every round. Empty, out-of-the-way land sinks into the sea and
+// seabed rises elsewhere as new land. The island is neutral: it treats every pair of rival domains the same and only
+// wants the war to finish, so it raises land that shortens the routes between rivals and sinks the places armies
+// could hide. It never sinks an occupied square or cuts any piece off; once nothing more can go, it only keeps the
+// roads between the Lords. It sinks a little more than it raises, so the island slowly shrinks.
+const QUAKE_START=6,D4=[[1,0],[-1,0],[0,1],[0,-1]];
+function landConnected(G,skip,lordsOnly){
+  const alive=G.pieces.filter(x=>x.alive&&(!lordsOnly||x.rank===9));if(alive.length<2)return true;
+  const seen=new Set([alive[0].r+','+alive[0].c]);const st=[[alive[0].r,alive[0].c]];
+  while(st.length){const [r,c]=st.pop();for(const [dr,dc] of D4){const rr=r+dr,cc=c+dc,k=rr+','+cc;if(!inB(rr,cc)||seen.has(k)||k===skip||blocked(rr,cc,G))continue;seen.add(k);st.push([rr,cc])}}
+  return alive.every(x=>seen.has(x.r+','+x.c));
+}
+// breadth-first distances over land from a set of start squares
+function bfs(G,starts){
+  const d=new Array(N*N).fill(999);const q=[];
+  for(const [r,c] of starts){d[r*N+c]=0;q.push(r*N+c)}
+  for(let h=0;h<q.length;h++){const i=q[h],r=(i/N)|0,c=i%N;for(const [dr,dc] of D4){const rr=r+dr,cc=c+dc;if(!inB(rr,cc)||blocked(rr,cc,G))continue;const j=rr*N+cc;if(d[j]>d[i]+1){d[j]=d[i]+1;q.push(j)}}}
+  return d;
+}
+// how far apart the rival armies are: for every pair of living domains, the shortest route between them
+function separation(G){
+  const al=[0,1,2,3,4].filter(p=>G.alive[p]);const ds={};
+  for(const p of al)ds[p]=bfs(G,alivePieces(G,p).map(x=>[x.r,x.c]));
+  let F=0;for(let i=0;i<al.length;i++)for(let j=i+1;j<al.length;j++){const a=al[i],b=al[j];let m=999;for(const x of alivePieces(G,b))m=Math.min(m,ds[a][x.r*N+x.c]);F+=Math.min(m,60)}
+  return F;
+}
+function quake(G){
+  if(!G.decisive||G.round<QUAKE_START)return;
+  G.sunk=G.sunk||{};
+  const occ=new Set(G.pieces.filter(x=>x.alive).map(x=>x.r+','+x.c));
+  const step=Math.floor((G.round-QUAKE_START)/10);
+  const nSink=Math.min(5,2+step),nRise=Math.max(1,nSink-1);
+  const all=[];for(let r=0;r<N;r++)for(let c=0;c<N;c++)all.push([r,c]);
+  const near=bfs(G,G.pieces.filter(x=>x.alive).map(x=>[x.r,x.c]));
+  const tiles=[];const F0=separation(G);
+  // sink: empty land far from everyone, which changes rival routes the least
+  for(let i=0;i<nSink;i++){
+    let done=false;
+    for(const lordsOnly of [false,true]){
+      if(done||(lordsOnly&&!G.islandDone&&i>0))break;
+      const cands=all.filter(([r,c])=>!blocked(r,c,G)&&!occ.has(r+','+c)).map(t=>({t,s:Math.min(near[t[0]*N+t[1]],12)+rnd()*2.5})).sort((a,b)=>b.s-a.s).slice(0,10);
+      let best=null,bs=Infinity;
+      for(const {t:[r,c],s:far} of cands){const k=r+','+c;if(!landConnected(G,k,lordsOnly))continue;
+        const prev=G.sunk[k];G.sunk[k]='sea';const F=separation(G);if(prev)G.sunk[k]=prev;else delete G.sunk[k];
+        const sc=(F-F0)*3-far;if(sc<bs){bs=sc;best=[r,c]}}
+      if(best){const k=best[0]+','+best[1];G.sunk[k]='sea';tiles.push({r:best[0],c:best[1],kind:'sea'});done=true;if(lordsOnly&&!G.saidSqueeze){G.saidSqueeze=true;addLog(G,'The sea closes in. Now only the roads between the Lords are spared.')}}
+    }
+  }
+  // rise: seabed that shortens the routes between rivals the most (the island takes no sides)
+  const F1=separation(G);
+  for(let i=0;i<nRise;i++){
+    const cands=all.filter(([r,c])=>blocked(r,c,G)&&D4.some(([dr,dc])=>inB(r+dr,c+dc)&&!blocked(r+dr,c+dc,G)));
+    let best=null,bg=0;const base=separation(G);
+    for(const [r,c] of shuffle(cands).slice(0,20)){const k=r+','+c;const prev=G.sunk[k];G.sunk[k]='land';const F=separation(G);if(prev)G.sunk[k]=prev;else delete G.sunk[k];
+      const g=base-F+rnd()*.3;if(g>bg){bg=g;best=[r,c]}}
+    if(best&&bg>=1){G.sunk[best[0]+','+best[1]]='land';tiles.push({r:best[0],c:best[1],kind:'rise'})}
+  }
+  // a quiet front: raise ground beside the armies so they can manoeuvre and flank
+  if(G.round-G.lastCapture>=6){
+    const pcs=G.pieces.filter(x=>x.alive);
+    const cands=all.filter(([r,c])=>blocked(r,c,G)&&D4.some(([dr,dc])=>inB(r+dr,c+dc)&&!blocked(r+dr,c+dc,G))&&pcs.some(x=>Math.abs(x.r-r)+Math.abs(x.c-c)<=2));
+    // prefer seabed that sits near pieces of two or more domains
+    const score=([r,c])=>new Set(pcs.filter(x=>Math.abs(x.r-r)+Math.abs(x.c-c)<=3).map(x=>x.p)).size+rnd();
+    cands.sort((x,y)=>score(y)-score(x));
+    for(const [r,c] of cands.slice(0,2)){G.sunk[r+','+c]='land';tiles.push({r,c,kind:'rise'})}
+  }
+  if(tiles.length){G.quakes++;G.lastQuake={n:G.quakes,tiles,round:G.round};
+    const s=tiles.filter(t=>t.kind==='sea').length,u=tiles.length-s;
+    addLog(G,`The island shifts. ${s?`${s} square${s>1?'s':''} sink${s>1?'':'s'} beneath the waves`:''}${s&&u?' and ':''}${u?`${u} rise${u>1?'':'s'} from the seabed`:''}.`);
+    G.islandDone=false;}
+  else if(!G.islandDone){G.islandDone=true;G.doneSince=G.round;addLog(G,'The island is still. Only the roads between the armies remain.')}
+  if(!tiles.some(t=>t.kind==='sea')&&!G.islandDone){} // keep going
+  if(tiles.length&&!tiles.some(t=>t.kind==='sea')){G.noSink=(G.noSink||0)+1;if(G.noSink>=3&&!G.islandDone){G.islandDone=true;G.doneSince=G.round}}else G.noSink=0;
 }
 
 // ---------- knowledge ----------
@@ -319,8 +421,10 @@ function belief(G,x,v){
   const out={};
   if(visibleTo(x,v)){out[x.rank]=1;return out}
   const mine=G.pieces.filter(q=>q.p===x.p);
-  const hidden=new Set([0,1,2,3,4,5,6,7,8,9]);
-  for(const q of mine)if(!q.alive||visibleTo(q,v))hidden.delete(q.rank);
+  // ranks still unaccounted for (a multiset: there are two Spies)
+  const cnt={};for(const k of ARMY)cnt[k]=(cnt[k]||0)+1;
+  for(const q of mine)if(!q.alive||visibleTo(q,v))cnt[q.rank]--;
+  const hidden={has:k=>cnt[k]>0};
   const unk=mine.filter(q=>q.alive&&!visibleTo(q,v));
   const n=unk.length;if(!n)return{5:1};
   let p0=0,p9=0;
@@ -330,7 +434,7 @@ function belief(G,x,v){
     const tot=unk.reduce((s,q)=>s+w(q),0);p9=w(x)/tot;
     if(p0+p9>1){p9=1-p0}
   }
-  const rest=[...hidden].filter(k=>k!==0&&k!==9);
+  const rest=[];for(const k in cnt)if(cnt[k]>0&&k!=='0'&&k!=='9')for(let i=0;i<cnt[k];i++)rest.push(+k);
   if(p0)out[0]=p0;if(p9)out[9]=p9;
   const m=Math.max(0,1-p0-p9);
   if(rest.length)for(const k of rest)out[k]=(out[k]||0)+m/rest.length;
@@ -422,7 +526,7 @@ function fightEV(G,a,x,t,B,host,deep){
   let ev=0,pwin=0;
   for(const k in B){const p=B[k];const kr=+k;const res=resolve(x.rank,kr);
     let v;
-    if(res>0)v=VALUE[kr]*host+(kr===9?60*host:0);
+    if(res>0)v=VALUE[kr]*host+(kr===9||kr===0?60*host:0);
     else if(res<0)v=-(x.rank===9?500:VALUE[x.rank]);
     else v=VALUE[kr]*host-(x.rank===9?500:VALUE[x.rank])+(kr===9?60*host:0);
     ev+=p*v;if(res>0)pwin+=p;
@@ -437,18 +541,18 @@ function danger(G,a,x,r,c){
     const dist=Math.abs(q.r-r)+Math.abs(q.c-c);
     if(dist!==1){if(!(dist>1&&dist<6&&(q.r===r||q.c===c)&&scoutLine(G,q,r,c,a)))continue}
     const B=belief(G,q,a);let pk=0;
-    for(const k in B){const kr=+k;if(kr===0)continue;if(dist>1&&kr!==3)continue;
+    for(const k in B){const kr=+k;if(kr===0)continue;if(dist>1&&kr!==3)continue;if(x.rank===0&&kr!==1)continue;
       // q attacks x: does q win?
       const res=resolve(kr,x.rank);if(res>0)pk+=B[k];else if(res===0)pk+=B[k]*.5}
     const h=hasPact(G,q.p,a)?.15:1;
     const looks=x.revealed?1:.4; // hidden pieces are attacked less eagerly
-    d+=pk*h*looks*(x.rank===9?120:VALUE[x.rank]);
+    d+=pk*h*looks*(x.rank===9?120:x.rank===0?90:VALUE[x.rank]);
   }
   return d;
 }
 function scoutLine(G,q,r,c,a){ // could a scout at q slide to (r,c)?
   const dr=Math.sign(r-q.r),dc=Math.sign(c-q.c);let rr=q.r+dr,cc=q.c+dc;
-  while(rr!==r||cc!==c){if(isWater(rr,cc)||at(G,rr,cc))return false;rr+=dr;cc+=dc}
+  while(rr!==r||cc!==c){if(blocked(rr,cc,G)||at(G,rr,cc))return false;rr+=dr;cc+=dc}
   return true;
 }
 function aiChoose(G,a){
@@ -487,7 +591,7 @@ function aiChoose(G,a){
       if(x.rank===9){s-=4/bold;if(lordDanger>6)s+=(d0-d1)*.6;
         const fr=(r,c)=>[[1,0],[-1,0],[0,1],[0,-1]].filter(([dr,dc])=>{const q=at(G,r+dr,c+dc);return q&&q.p===a}).length;
         s+=(fr(m.r,m.c)-fr(x.r,x.c))*.6;}
-      if(x.rank!==9||bold>2.2){
+      if(x.rank!==9||bold>2.2||alivePieces(G,a).length<=2||G.islandDone){
         // approach the most interesting target
         let bestT=0;for(const T of targets){const dd0=Math.abs(T.q.r-x.r)+Math.abs(T.q.c-x.c),dd1=Math.abs(T.q.r-m.r)+Math.abs(T.q.c-m.c);
           const fit=x.rank===2?((belief(G,T.q,a)[9]||0)*3+.2):x.rank===1?((belief(G,T.q,a)[0]||0)*2+.2):x.rank>=6?1.3:.7;
@@ -505,7 +609,7 @@ function aiChoose(G,a){
   return best;
 }
 
-return {N,TILE,RANK_NAME,RANK_SHORT,RANK_TIP,VALUE,DOMAINS,HOMES,PERSONAS,PACT_LEN,homeCells,WATER,isWater,inB,newGame,swapSetup,shuffleSetup,suggestSetup,startPlay,
+return {ARMY,blocked,landConnected,quake,QUAKE_START,setG:g=>{CURG=g},N,TILE,RANK_NAME,RANK_SHORT,RANK_TIP,VALUE,DOMAINS,HOMES,PERSONAS,PACT_LEN,homeCells,WATER,isWater,inB,newGame,swapSetup,shuffleSetup,suggestSetup,startPlay,
   movesFor,allMoves,resolve,doMove,nextTurn,visibleTo,belief,threat,leader,hostility,attitude,wouldAccept,makePact,accuse,plantRumor,aiDiplomacy,aiChoose,
   hasPact,breakPact,alivePieces,lordOf,at,strength,credibility,pactCount,setRandom,addLog};
 })();
@@ -650,6 +754,178 @@ function wrap(s,n){const words=String(s).split(' ');const lines=[];let l='';for(
 return {TEAM,BASEPAL,sprite,pixels,text,textW,wrap,mk};
 })();
 
+// ===================== Environment: time of day, seasons, weather, holiday boards =====================
+const ENV=(()=>{
+const SEASONS=['spring','summer','autumn','winter'];
+const SEASON_NAME={spring:'Spring',summer:'Summer',autumn:'Autumn',winter:'Winter'};
+const HOLIDAYS={
+ harvest:{name:'Harvest Night',season:'autumn',time:.7,blurb:'Pumpkins, candles and bats under an orange moon.'},
+ midwinter:{name:'Midwinter Lights',season:'winter',time:.76,blurb:'Snow, little pines and strings of coloured lights.'},
+ lantern:{name:'Lantern Festival',season:'spring',time:.74,blurb:'Red lanterns drift up over cherry blossom.'},
+ hearts:{name:'Hearts Day',season:'spring',time:.6,blurb:'Roses, pink petals and floating hearts.'},
+ fireworks:{name:'Fireworks Night',season:'summer',time:.8,blurb:'Bunting on every keep and fireworks overhead.'}};
+const WEATHER_NAME={clear:'Clear',cloudy:'Cloudy',rain:'Rain',storm:'Thunderstorm',snow:'Snow',fog:'Fog'};
+const WEIGHTS={spring:{clear:4,cloudy:2,rain:3,storm:1,fog:1},summer:{clear:6,cloudy:1,rain:1,storm:2,fog:.5},autumn:{clear:3,cloudy:3,rain:2,storm:1,fog:2},winter:{clear:3,cloudy:2,snow:5,fog:2}};
+const DAY_ROUNDS=10; // one full day every 10 rounds
+const rnd=Math.random;
+const pickW=w=>{let t=0;for(const k in w)t+=w[k];let r=rnd()*t;for(const k in w){r-=w[k];if(r<=0)return k}return Object.keys(w)[0]};
+// a fresh environment for a new game. board: 'random' | season | holiday key
+function create(board){
+  const hol=HOLIDAYS[board]?board:null;
+  const season=hol?HOLIDAYS[hol].season:SEASONS.includes(board)?board:SEASONS[Math.floor(rnd()*4)];
+  const startTime=hol?HOLIDAYS[hol].time:[.02,.12,.3,.5,.64,.7,.85][Math.floor(rnd()*7)];
+  const e={season,holiday:hol,startTime,weather:hol==='midwinter'?'snow':hol?'clear':pickW(WEIGHTS[season]),weatherUntil:4+Math.floor(rnd()*4),seasonFrom:1};
+  return e;
+}
+// advance with the game clock (called every turn)
+function advance(env,round){
+  if(round>=env.weatherUntil){env.weather=env.holiday==='midwinter'?(rnd()<.7?'snow':'clear'):env.holiday?(rnd()<.8?'clear':'cloudy'):pickW(WEIGHTS[env.season]);env.weatherUntil=round+4+Math.floor(rnd()*5)}
+  if(!env.holiday&&round-env.seasonFrom>=24){env.season=SEASONS[(SEASONS.indexOf(env.season)+1)%4];env.seasonFrom=round;return 'season'}
+  return null;
+}
+const timeOf=(env,round,turn)=>((env.startTime+((round-1)*5+(turn||0))/(DAY_ROUNDS*5))%1+1)%1;
+// ---------- light ----------
+const hex=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+const lerp=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t);
+const KF=[
+ {t:0,   n:'Dawn',        tint:[255,205,190],top:'#34407c',hor:'#f4b088'},
+ {t:.1,  n:'Morning',     tint:[255,246,232],top:'#3c68c4',hor:'#c8dcf4'},
+ {t:.3,  n:'Midday',      tint:[255,255,255],top:'#2c58c0',hor:'#d4e6f8'},
+ {t:.52, n:'Afternoon',   tint:[255,248,230],top:'#3460b8',hor:'#e0e4ec'},
+ {t:.64, n:'Golden hour', tint:[255,214,150],top:'#44508c',hor:'#f8b458'},
+ {t:.72, n:'Dusk',        tint:[190,150,200],top:'#241e5c',hor:'#d86c70'},
+ {t:.8,  n:'Night',       tint:[96,112,186], top:'#070a26',hor:'#1c2a5c'},
+ {t:.93, n:'Night',       tint:[96,112,186], top:'#070a26',hor:'#1c2a5c'},
+ {t:1,   n:'Dawn',        tint:[255,205,190],top:'#34407c',hor:'#f4b088'}];
+function light(env,time){
+  let i=0;while(i<KF.length-2&&KF[i+1].t<=time)i++;
+  const a=KF[i],b=KF[i+1];const k=(time-a.t)/Math.max(1e-6,b.t-a.t);
+  let tint=lerp(a.tint,b.tint,k),top=lerp(hex(a.top),hex(b.top),k),hor=lerp(hex(a.hor),hex(b.hor),k);
+  const night=time>.76&&time<.97?1:time>.72&&time<=.76?(time-.72)/.04:time>=.97?1-(time-.97)/.03:0;
+  const w=env.weather;
+  const grey=[150,156,170];
+  if(w==='cloudy'){top=lerp(top,grey,.35);hor=lerp(hor,grey,.3);tint=lerp(tint,[220,224,232],.25)}
+  if(w==='rain'||w==='storm'){top=lerp(top,[70,76,92],.6);hor=lerp(hor,[120,126,140],.55);tint=lerp(tint,[150,160,180],.45)}
+  if(w==='fog'){top=lerp(top,[190,196,206],.5);hor=lerp(hor,[220,224,230],.65);tint=lerp(tint,[220,224,230],.25)}
+  if(w==='snow'){top=lerp(top,[170,180,200],.4);hor=lerp(hor,[226,232,242],.5);tint=lerp(tint,[230,236,250],.2)}
+  const fogCol=w==='fog'?[214,218,226]:lerp(hor,[230,236,246],.4);
+  const fogAmt=w==='fog'?.9:w==='rain'||w==='storm'?.55:w==='snow'?.55:.42;
+  const fogStart=w==='fog'?140:w==='rain'||w==='storm'||w==='snow'?240:340;
+  const name=(a.n===b.n||k<.5)?a.n:b.n;
+  return{tint:tint.map(Math.round),top:top.map(Math.round),hor:hor.map(Math.round),night,fogCol:fogCol.map(Math.round),fogAmt,fogStart,name,golden:name==='Golden hour'||name==='Dawn'};
+}
+// ---------- sky panorama ----------
+const hash=(a,b)=>{let h=a*374761393+b*668265263;h=(h^(h>>13))*1274126177;return ((h^(h>>16))>>>0)/4294967295};
+const rgb=a=>`rgb(${a[0]|0},${a[1]|0},${a[2]|0})`;
+function buildSky(env,time,L){
+  const w=1024,h=120,c=PX.mk(w,h),x=c.getContext('2d');
+  const bands=10;for(let i=0;i<bands;i++){const col=lerp(L.top,L.hor,Math.pow(i/(bands-1),1.3));x.fillStyle=rgb(col);x.fillRect(0,Math.floor(i*h/bands),w,Math.ceil(h/bands)+1);
+    if(i){x.fillStyle=rgb(lerp(L.top,L.hor,Math.pow((i-1)/(bands-1),1.3)));const y=Math.floor(i*h/bands);for(let xx=0;xx<w;xx+=2)x.fillRect(xx+(i%2),y,1,1)}}
+  // stars
+  if(L.night>0&&env.weather!=='rain'&&env.weather!=='storm'&&env.weather!=='fog'){for(let k=0;k<220;k++){const sx=hash(k,7)*w,sy=h-58+hash(k,13)*44;const b=hash(k,21);x.fillStyle=`rgba(255,255,${200+b*55|0},${L.night*(.4+b*.6)})`;x.fillRect(sx|0,sy|0,b>.85?2:1,1)}}
+  // sun or moon
+  const day=time<.76||time>.98;
+  if(env.weather!=='storm'&&env.weather!=='fog'){
+    if(day){const p=time>.98?0:time/.76;const el=Math.sin(Math.PI*p);const sx=180+p*660,sy=h-12-el*30;
+      const col=L.golden||p<.15||p>.82?'#ffc070':'#fff6d0';x.fillStyle=col;x.fillRect(sx-7,sy-4,14,8);x.fillRect(sx-4,sy-7,8,14);x.fillRect(sx-6,sy-6,12,12);
+      x.fillStyle='rgba(255,240,180,.25)';x.fillRect(sx-12,sy-12,24,24)}
+    else{const p=(time-.76)/.22;const el=Math.sin(Math.PI*Math.min(1,p));const mx=300+p*500,my=h-14-el*28;
+      x.fillStyle=env.holiday==='harvest'?'#ffb050':'#eef0ff';x.fillRect(mx-6,my-3,12,6);x.fillRect(mx-3,my-6,6,12);x.fillRect(mx-5,my-5,10,10);
+      x.fillStyle=env.holiday==='harvest'?'#d88a30':'#c8cce8';x.fillRect(mx-1,my-2,3,2);x.fillRect(mx+2,my+1,2,2)}
+  }
+  // clouds
+  const nC=env.weather==='clear'?10:env.weather==='cloudy'?22:env.weather==='fog'?6:26;
+  const cc=env.weather==='rain'||env.weather==='storm'?lerp(L.hor,[70,74,86],.55):lerp([240,244,255],L.tint,.35);
+  const cs=lerp(cc,[0,0,0],.18);
+  for(let k=0;k<nC;k++){const cx=hash(k,3)*w,cy=h-62+hash(k,9)*(env.weather==='clear'?22:34),cw=30+hash(k,5)*(env.weather==='clear'?60:110);x.fillStyle=rgb(cc);x.fillRect(cx,cy,cw,5);x.fillRect(cx+6,cy-4,cw-14,4);x.fillRect(cx+14,cy-7,cw-30,3);x.fillStyle=rgb(cs);x.fillRect(cx+2,cy+5,cw-4,2)}
+  // mountains, tinted by the light
+  const t2=L.tint.map(v=>v/255);const tc=hx=>rgb(hex(hx).map((v,i)=>v*t2[i]));
+  const ridge=(col,base,amp,seed,step)=>{x.fillStyle=col;for(let xx=0;xx<w;xx++){const y=base-Math.abs(Math.sin(xx/step+seed))*amp-hash(Math.floor(xx/6),seed)*4;x.fillRect(xx,y,1,h-y)}};
+  ridge(tc('#6878b0'),h-6,34,1.3,47);ridge(tc('#4c5c94'),h-4,22,4.1,29);
+  x.fillStyle=tc('#e8eeff');for(let xx=0;xx<w;xx++){const y=h-6-Math.abs(Math.sin(xx/47+1.3))*34-hash(Math.floor(xx/6),1.3)*4;if(h-6-y>(env.season==='winter'?14:26))x.fillRect(xx,y,1,env.season==='winter'?6:3)}
+  const hill={spring:'#2e6a3c',summer:'#3a7a30',autumn:'#7a5a28',winter:'#a8b8cc'}[env.season];
+  ridge(tc(hill),h,10,2.2,13);
+  return c;
+}
+// ---------- ground palettes and holiday decorations (drawn into the board texture) ----------
+const GROUND={
+ spring:{a:'#54a444',b:'#4c9a3c',d:'#3c7c30',l:'#7cc85a',flowers:['#f8f080','#f088c0','#ffffff'],fp:.16},
+ summer:{a:'#5cae3c',b:'#64b444',d:'#3e8a2c',l:'#a0dc5c',flowers:['#f8d040','#e84040'],fp:.1},
+ autumn:{a:'#a89038',b:'#b08434',d:'#7c6028',l:'#d0a848',flowers:['#e05028','#f09030','#8c3c1c'],fp:.38},
+ winter:{a:'#e8eef6',b:'#dde6f0',d:'#b8c8dc',l:'#ffffff',flowers:['#8aa090'],fp:.2}};
+function decorate(x,X,Y,r,c,env,frame){
+  const h=hash(r*7+1,c*11+3),H=env.holiday;
+  if(H==='harvest'&&h>.88){x.fillStyle='#1c6c1c';x.fillRect(X+7,Y+4,2,2);x.fillStyle='#f08020';x.fillRect(X+4,Y+6,8,6);x.fillRect(X+5,Y+5,6,8);x.fillStyle='#c05c10';x.fillRect(X+7,Y+6,1,6);
+    x.fillStyle=frame%2?'#fff070':'#ffc040';x.fillRect(X+5,Y+8,2,1);x.fillRect(X+9,Y+8,2,1);x.fillRect(X+6,Y+10,4,1)}
+  if(H==='midwinter'&&h>.9){x.fillStyle='#1c5c30';x.fillRect(X+7,Y+2,2,2);x.fillRect(X+6,Y+4,4,3);x.fillRect(X+5,Y+7,6,3);x.fillRect(X+4,Y+10,8,3);x.fillStyle='#6a4024';x.fillRect(X+7,Y+13,2,2);
+    const cols=['#ff4040','#f8d040','#40c0ff','#ff80ff'];for(let k=0;k<5;k++){x.fillStyle=cols[(k+frame)%4];x.fillRect(X+5+(k*3)%6,Y+5+k*2,1,1)}x.fillStyle='#fff070';x.fillRect(X+7,Y+1,2,1)}
+  if(H==='lantern'&&h>.9){x.fillStyle='#5a3418';x.fillRect(X+7,Y+4,1,10);x.fillStyle='#e02828';x.fillRect(X+5,Y+2,5,4);x.fillStyle=frame%2?'#ffe070':'#ffb040';x.fillRect(X+6,Y+3,3,2)}
+  if(H==='lantern'&&h<.25){x.fillStyle='#ffb0c8';x.fillRect(X+(h*60|0)%14,Y+(h*90|0)%14,2,1)}
+  if(H==='hearts'&&h>.86){x.fillStyle='#e8306c';x.fillRect(X+5,Y+6,2,2);x.fillRect(X+9,Y+6,2,2);x.fillRect(X+5,Y+7,6,2);x.fillRect(X+6,Y+9,4,1);x.fillRect(X+7,Y+10,2,1);x.fillStyle='#2c7c34';x.fillRect(X+7,Y+11,1,3)}
+  if(H==='fireworks'&&h>.93){x.fillStyle='#8c5a2c';x.fillRect(X+7,Y+5,1,9);const cols=['#e83c3c','#ffffff','#3c74dc'];for(let k=0;k<3;k++){x.fillStyle=cols[k];x.fillRect(X+8,Y+5+k*2,4,2)}}
+}
+function homeDeco(x,X,Y,r,c,env,frame,own){
+  const H=env.holiday;
+  if(H==='midwinter'){const cols=['#ff4040','#f8d040','#40c0ff','#80ff80'];for(let k=0;k<4;k++){x.fillStyle=cols[(k+r+c+frame)%4];x.fillRect(X+2+k*4,Y+1,1,1)}}
+  if(H==='fireworks'){const cols=['#e83c3c','#ffffff','#3c74dc'];for(let k=0;k<4;k++){x.fillStyle=cols[(k+c)%3];x.fillRect(X+1+k*4,Y+1,3,1);x.fillRect(X+2+k*4,Y+2,1,1)}}
+  if(H==='harvest'&&hash(r,c)>.7){x.fillStyle=frame%2?'#ffe070':'#ffb040';x.fillRect(X+12,Y+3,1,2);x.fillStyle='#f0e8d0';x.fillRect(X+12,Y+5,1,3)}
+  if(env.season==='winter'){x.fillStyle='rgba(255,255,255,.45)';for(let k=0;k<6;k++)x.fillRect(X+(hash(r*3+k,c)*15|0),Y+(hash(c*5+k,r)*15|0),2,1)}
+}
+// ---------- screen-space weather and ambience ----------
+const P=[];let flash=0,nextBolt=0,nextFw=0;
+function ambience(ctx,W,H,env,L,t,H0){
+  const w=env.weather,s=env.season,hol=env.holiday;
+  const want=w==='rain'?140:w==='storm'?220:w==='snow'?110:0;
+  const amb=hol==='hearts'?14:hol==='lantern'&&L.night>.3?16:hol==='harvest'&&L.night>.3?8:s==='autumn'&&w==='clear'?16:s==='spring'&&w==='clear'?12:s==='summer'&&L.night>.5?18:0;
+  const kind=w==='rain'||w==='storm'?'rain':w==='snow'?'snow':null;
+  const akind=hol==='hearts'?'heart':hol==='lantern'?'lantern':hol==='harvest'?'bat':s==='autumn'?'leaf':s==='spring'?'petal':s==='summer'?'firefly':null;
+  let nr=0,na=0;for(const p of P){if(p.k===kind)nr++;else na++}
+  for(;nr<want;nr++)P.push(spawn(kind,W,H,true));
+  for(;na<amb;na++)if(akind)P.push(spawn(akind,W,H,true));
+  for(let i=P.length-1;i>=0;i--){const p=P[i];
+    if((p.k==='rain'||p.k==='snow')&&p.k!==kind||(p.k!=='rain'&&p.k!=='snow'&&p.k!==akind)){P.splice(i,1);continue}
+    p.x+=p.vx;p.y+=p.vy;p.life--;
+    if(p.k==='snow')p.x+=Math.sin(t/600+p.ph)*.3;
+    if(p.k==='leaf'||p.k==='petal')p.x+=Math.sin(t/400+p.ph)*.5;
+    if(p.y>H+4||p.y<-12||p.x<-10||p.x>W+10||p.life<0){P[i]=spawn(p.k,W,H,false);continue}
+    draw(ctx,p,t);
+  }
+  if(w==='fog'){for(let k=0;k<5;k++){const y=H0+12+k*34,xo=((t/40+k*90)%(W+200))-100;ctx.fillStyle='rgba(225,230,238,.14)';ctx.fillRect(xo-160,y,320,14);ctx.fillRect(xo-100,y-6,200,6)}}
+  if(w==='storm'){if(t>nextBolt){nextBolt=t+4000+Math.random()*7000;flash=1;try{SND.play('thunder')}catch(e){}}
+    if(flash>0){ctx.fillStyle=`rgba(230,236,255,${flash*.55})`;ctx.fillRect(0,0,W,H);flash-=.06}}
+  if(hol==='fireworks'&&L.night>.4&&t>nextFw){nextFw=t+700+Math.random()*1600;const cx=40+Math.random()*(W-80),cy=10+Math.random()*Math.max(20,H0-14);const col=['#ff5050','#ffe070','#60c0ff','#ff80ff','#80ff80'][Math.random()*5|0];
+    for(let k=0;k<28;k++){const a=k/28*Math.PI*2;P.push({k:akind,fw:true,x:cx,y:cy,vx:Math.cos(a)*1.2,vy:Math.sin(a)*1.2,c:col,life:40})}try{SND.play('pop')}catch(e){}}
+}
+function spawn(k,W,H,anywhere){
+  const y=anywhere?Math.random()*H:-8;const x=Math.random()*W;
+  switch(k){
+    case 'rain':return{k,x:x+20,y,vx:-1.2,vy:5+Math.random()*2,life:400};
+    case 'snow':return{k,x,y,vx:-.15,vy:.4+Math.random()*.5,s:Math.random()<.25?2:1,ph:Math.random()*6,life:900};
+    case 'leaf':return{k,x,y,vx:-.3,vy:.35+Math.random()*.3,c:['#e05028','#f09030','#a8642c'][Math.random()*3|0],ph:Math.random()*6,life:900};
+    case 'petal':return{k,x,y,vx:-.25,vy:.3+Math.random()*.25,c:['#ffc0d8','#ffffff'][Math.random()*2|0],ph:Math.random()*6,life:900};
+    case 'firefly':return{k,x,y:H*.3+Math.random()*H*.6,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,ph:Math.random()*6,life:300+Math.random()*300};
+    case 'heart':return{k,x,y:anywhere?y:H+6,vx:(Math.random()-.5)*.2,vy:-.35-Math.random()*.3,ph:Math.random()*6,life:900};
+    case 'lantern':return{k,x,y:anywhere?y:H+6,vx:(Math.random()-.5)*.15,vy:-.25-Math.random()*.2,ph:Math.random()*6,life:1200};
+    case 'bat':return{k,x:anywhere?x:-8,y:10+Math.random()*60,vx:.8+Math.random()*.6,vy:(Math.random()-.5)*.2,ph:Math.random()*6,life:900};
+  }
+  return{k,x,y,vx:0,vy:1,life:100};
+}
+function draw(ctx,p,t){
+  if(p.fw){ctx.fillStyle=p.c;ctx.fillRect(p.x|0,p.y|0,2,2);p.vy+=.02;if(p.life<1)p.y=999;return}
+  switch(p.k){
+    case 'rain':ctx.fillStyle='rgba(190,210,255,.55)';ctx.fillRect(p.x|0,p.y|0,1,4);break;
+    case 'snow':ctx.fillStyle='#ffffff';ctx.fillRect(p.x|0,p.y|0,p.s,p.s);break;
+    case 'leaf':case 'petal':ctx.fillStyle=p.c;ctx.fillRect(p.x|0,p.y|0,2,1);ctx.fillRect((p.x|0)+(Math.sin(t/200+p.ph)>0?1:0),(p.y|0)+1,1,1);break;
+    case 'firefly':if(Math.sin(t/300+p.ph)>.2){ctx.fillStyle='#f8f080';ctx.fillRect(p.x|0,p.y|0,1,1);ctx.fillStyle='rgba(248,240,128,.3)';ctx.fillRect((p.x|0)-1,(p.y|0)-1,3,3)}break;
+    case 'heart':{const x=p.x|0,y=p.y|0;ctx.fillStyle='#ff5c8c';ctx.fillRect(x,y,2,1);ctx.fillRect(x+3,y,2,1);ctx.fillRect(x,y+1,5,1);ctx.fillRect(x+1,y+2,3,1);ctx.fillRect(x+2,y+3,1,1);break}
+    case 'lantern':{const x=p.x|0,y=p.y|0;ctx.fillStyle='rgba(255,180,80,.25)';ctx.fillRect(x-2,y-2,7,9);ctx.fillStyle='#e02828';ctx.fillRect(x,y,3,4);ctx.fillStyle='#ffe070';ctx.fillRect(x+1,y+1,1,2);break}
+    case 'bat':{const x=p.x|0,y=p.y|0,f=Math.sin(t/80+p.ph)>0;ctx.fillStyle='#14101c';ctx.fillRect(x+2,y+1,2,2);if(f){ctx.fillRect(x,y,2,1);ctx.fillRect(x+4,y,2,1)}else{ctx.fillRect(x,y+2,2,1);ctx.fillRect(x+4,y+2,2,1)}break}
+  }
+}
+function describe(env,time){const L=light(env,time);return `${env.holiday?HOLIDAYS[env.holiday].name+' · ':''}${SEASON_NAME[env.season]} · ${L.name} · ${WEATHER_NAME[env.weather]}`}
+return{SEASONS,SEASON_NAME,HOLIDAYS,WEATHER_NAME,create,advance,timeOf,light,buildSky,GROUND,decorate,homeDeco,ambience,describe,hash,DAY_ROUNDS};
+})();
+
 // ===================== Renderer: board texture, Mode 7 field view, map view, battle scenes =====================
 const RD=(()=>{
 const W=384,H=240,T=16,BOARD=LD.N*T,OFF=96,TX=BOARD+OFF*2;
@@ -663,17 +939,18 @@ const col=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.sli
 const mix=(a,b,t)=>a.map((v,i)=>Math.round(v+(b[i]-v)*t));
 const rgb=a=>`rgb(${a[0]},${a[1]},${a[2]})`;
 // ---------- static world texture (4 water frames) ----------
-function buildBase(frame){
-  const c=PX.mk(TX,TX),x=c.getContext('2d');
+function buildBase(frame,env){
+  const c=PX.mk(TX,TX),x=c.getContext('2d');const GR=ENV.GROUND[env.season];const winter=env.season==='winter';
   // sea
   for(let yy=0;yy<TX;yy+=2)for(let xx=0;xx<TX;xx+=2){const v=hash(xx>>3,yy>>3);x.fillStyle=((xx+yy+frame*4)>>3)%7===0&&v>.6?'#5c98e8':v>.5?'#2858b0':'#2450a4';x.fillRect(xx,yy,2,2)}
   // beach + cliff ring
-  x.fillStyle='#d8c890';x.fillRect(OFF-8,OFF-8,BOARD+16,BOARD+16);
-  x.fillStyle='#b8a470';for(let i=0;i<BOARD+16;i+=3){x.fillRect(OFF-8+i,OFF-8+((i*7)%5),1,1);x.fillRect(OFF-8+i,OFF+BOARD+2+((i*3)%5),1,1)}
+  x.fillStyle=winter?'#e8eef4':'#d8c890';x.fillRect(OFF-8,OFF-8,BOARD+16,BOARD+16);
+  x.fillStyle=winter?'#c8d4e4':'#b8a470';for(let i=0;i<BOARD+16;i+=3){x.fillRect(OFF-8+i,OFF-8+((i*7)%5),1,1);x.fillRect(OFF-8+i,OFF+BOARD+2+((i*3)%5),1,1)}
   x.fillStyle='#6a5a3a';x.fillRect(OFF-2,OFF-2,BOARD+4,BOARD+4);
   for(let r=0;r<LD.N;r++)for(let c2=0;c2<LD.N;c2++){
     const X=OFF+c2*T,Y=OFF+r*T,own=homeOwner[r+','+c2];
     if(LD.isWater(r,c2)){
+      if(winter){x.fillStyle='#a8cef0';x.fillRect(X,Y,T,T);x.fillStyle='#e8f4ff';x.fillRect(X+2,Y+4,7,1);x.fillRect(X+8,Y+5,1,5);x.fillRect(X+9,Y+10,5,1);x.fillStyle='#80acd8';x.fillRect(X,Y,T,1);x.fillRect(X,Y,1,T);continue}
       x.fillStyle='#2c64c8';x.fillRect(X,Y,T,T);x.fillStyle='#1c4a9c';x.fillRect(X,Y,T,2);x.fillRect(X,Y,2,T);
       for(let k=0;k<3;k++){const yy=Y+3+k*5,xs=X+((frame*2+k*5)%12);x.fillStyle='#78b4ff';x.fillRect(xs,yy,4,1)}
       continue;
@@ -683,17 +960,31 @@ function buildBase(frame){
       x.fillStyle=rgb(base);x.fillRect(X,Y,T,T);x.fillStyle=rgb(dark);
       x.fillRect(X,Y+7,T,1);x.fillRect(X+((r%2)?4:11),Y,1,7);x.fillRect(X+((r%2)?11:4),Y+8,1,8);x.fillRect(X,Y+15,T,1);
       x.fillStyle=rgb(mix(base,[255,255,255],.25));x.fillRect(X+1,Y+1,3,1);x.fillRect(X+8,Y+9,3,1);
+      ENV.homeDeco(x,X,Y,r,c2,env,frame,own);
     }else{
-      const g=(r+c2)%2?'#54a444':'#4c9a3c';x.fillStyle=g;x.fillRect(X,Y,T,T);
-      for(let k=0;k<10;k++){const px=Math.floor(hash(r*31+k,c2*17)*16),py=Math.floor(hash(c2*13+k,r*7+k)*16);x.fillStyle=k%3?'#3c7c30':'#7cc85a';x.fillRect(X+px,Y+py,1,k%3?2:1)}
-      if(hash(r,c2)>.86){x.fillStyle=hash(c2,r)>.5?'#f8f080':'#f088c0';x.fillRect(X+5,Y+6,2,2);x.fillRect(X+10,Y+10,1,1)}
+      const g=(r+c2)%2?GR.a:GR.b;x.fillStyle=g;x.fillRect(X,Y,T,T);
+      for(let k=0;k<10;k++){const px=Math.floor(hash(r*31+k,c2*17)*16),py=Math.floor(hash(c2*13+k,r*7+k)*16);x.fillStyle=k%3?GR.d:GR.l;x.fillRect(X+px,Y+py,1,k%3?2:1)}
+      if(hash(r,c2)>1-GR.fp){const f=GR.flowers;x.fillStyle=f[Math.floor(hash(c2,r)*f.length)];x.fillRect(X+5,Y+6,2,winter?1:2);x.fillStyle=f[Math.floor(hash(r+3,c2)*f.length)];x.fillRect(X+10,Y+10,1,1);x.fillRect(X+3,Y+12,1,1)}
       x.fillStyle='rgba(0,0,0,.12)';x.fillRect(X,Y+15,T,1);x.fillRect(X+15,Y,1,T);
+      ENV.decorate(x,X,Y,r,c2,env,frame);
     }
   }
   return c;
 }
-let bases=null;
-function ensureBases(){if(!bases)bases=[0,1,2,3].map(buildBase)}
+let bases=null,baseKey='';
+function curEnv(){return V.title?V.titleEnv:(CUR.G&&CUR.G.env)||V.titleEnv||{season:'spring',holiday:null,weather:'clear',startTime:.3}}
+function curTime(){const e=curEnv();if(V.title)return V.titleTime;const G=CUR.G;return G?ENV.timeOf(e,G.round,G.phase==='play'?G.turn:0):e.startTime}
+function ensureBases(){const e=curEnv();const k=e.season+'|'+e.holiday;if(!bases||k!==baseKey){baseKey=k;bases=[0,1,2,3].map(f=>buildBase(f,e))}}
+// squares the restless island has changed: sunk into the sea, or raised seabed
+function drawTerrain(frame){
+  const G=CUR.G;if(!G||!G.sunk)return;const winter=curEnv().season==='winter';
+  for(const k in G.sunk){const [r,c]=k.split(',').map(Number);const X=OFF+c*T,Y=OFF+r*T;
+    if(G.sunk[k]==='sea'){tx.fillStyle='#2450a4';tx.fillRect(X,Y,T,T);tx.fillStyle='#2858b0';for(let i=0;i<T;i+=4)tx.fillRect(X+((i+frame*3)%T),Y+i,6,2);tx.fillStyle='#5c98e8';tx.fillRect(X+((frame*4+r*3)%12),Y+6,4,1);tx.fillStyle='rgba(255,255,255,.35)';tx.fillRect(X,Y,T,1);tx.fillRect(X,Y,1,T)}
+    else{tx.fillStyle=winter?'#d8e0e8':'#c8b078';tx.fillRect(X,Y,T,T);tx.fillStyle=winter?'#b8c4d4':'#a8905c';tx.fillRect(X,Y+15,T,1);tx.fillRect(X+15,Y,1,T);
+      const sh=[[3,4,'#f0e0c8'],[11,3,'#e87890'],[6,11,'#f8f0e0'],[12,12,'#3c8c5c'],[9,7,'#8c6c4c']];for(const [a,b,cl] of sh){tx.fillStyle=cl;tx.fillRect(X+a,Y+b,2,1)}
+      tx.fillStyle='rgba(80,140,200,.45)';tx.fillRect(X+2,Y+9,4,2)}
+  }
+}
 const tex=PX.mk(TX,TX),tx=tex.getContext('2d');let texData=null,texKey='';
 function drawHighlights(t){
   const blink=Math.floor(t/250)%2;
@@ -709,14 +1000,16 @@ function drawHighlights(t){
 function refreshTex(t){
   ensureBases();
   const frame=Math.floor(t/300)%4;
-  const key=frame+'|'+V.sel+'|'+V.swapSel+'|'+V.legal.length+'|'+(V.hover?V.hover.r+','+V.hover.c:'')+'|'+Math.floor(t/250)%2+'|'+(V.last?JSON.stringify(V.last):'');
+  const key=frame+'|'+baseKey+'|'+(CUR.G?CUR.G.quakes:0)+'|'+V.sel+'|'+V.swapSel+'|'+V.legal.length+'|'+(V.hover?V.hover.r+','+V.hover.c:'')+'|'+Math.floor(t/250)%2+'|'+(V.last?JSON.stringify(V.last):'');
   if(key===texKey&&texData)return;texKey=key;
-  tx.drawImage(bases[frame],0,0);drawHighlights(t);
+  tx.drawImage(bases[frame],0,0);drawTerrain(frame);drawHighlights(t);
   texData=new Uint32Array(tx.getImageData(0,0,TX,TX).data.buffer);
 }
 // ---------- sky panorama ----------
-let sky=null;
-function buildSky(){
+let sky=null,skyKey='';
+function curLight(){const e=curEnv();return ENV.light(e,curTime())}
+function getSky(){const e=curEnv(),tm=curTime();const k=e.season+'|'+e.holiday+'|'+e.weather+'|'+Math.round(tm*64);if(!sky||k!==skyKey){skyKey=k;sky=ENV.buildSky(e,tm,ENV.light(e,tm))}return sky}
+function buildSkyOld(){
   const w=1024,h=120,c=PX.mk(w,h),x=c.getContext('2d');
   const bands=['#18205c','#20307c','#2c4494','#3c5cb0','#5078c8','#6c94dc','#8cb0e8','#b0ccf0','#d0e0f4'];
   bands.forEach((b,i)=>{x.fillStyle=b;x.fillRect(0,Math.floor(i*h/bands.length),w,Math.ceil(h/bands.length)+1)});
@@ -742,13 +1035,13 @@ function project(wx,wy){
 const out=ctx.createImageData(W,H),o32=new Uint32Array(out.data.buffer);
 function renderMode7(t){
   refreshTex(t);
-  const C=V.cam,P=camPos();
+  const C=V.cam,P=camPos();const LT=curLight();
   const sea=[0xffa45024,0xffb05828,0xffe8985c];
   for(let y=C.H0+1;y<H;y++){
     const z=C.h*C.f/(y-C.H0);
     let wx=P.x+P.fx*z+P.rx*(-W/2)*z/C.f,wy=P.y+P.fy*z+P.ry*(-W/2)*z/C.f;
     const sx=P.rx*z/C.f,sy=P.ry*z/C.f;
-    const fog=Math.min(.42,Math.max(0,(z-340)/600));const fr=208*fog,fg=224*fog,fb=244*fog,keep=1-fog;
+    const fog=Math.min(LT.fogAmt,Math.max(0,(z-LT.fogStart)/600));const fr=LT.fogCol[0]*fog,fg=LT.fogCol[1]*fog,fb=LT.fogCol[2]*fog,keep=1-fog;
     let i=y*W;
     for(let x=0;x<W;x++,i++){
       const ix=wx|0,iy=wy|0;let p;
@@ -759,7 +1052,7 @@ function renderMode7(t){
     }
   }
   ctx.putImageData(out,0,0,0,C.H0+1,W,H-C.H0-1);
-  if(!sky)sky=buildSky();
+  getSky();
   const off=((C.ang/(Math.PI*2))*1024%1024+1024)%1024;
   ctx.drawImage(sky,off,120-C.H0-1,Math.min(1024-off,W),C.H0+1,0,0,Math.min(1024-off,W),C.H0+1);
   if(1024-off<W)ctx.drawImage(sky,0,120-C.H0-1,W-(1024-off),C.H0+1,1024-off,0,W-(1024-off),C.H0+1);
@@ -890,6 +1183,7 @@ function hud(t){
     ctx.fillStyle='rgba(8,12,40,.78)';ctx.fillRect(4,4,w+12,15);ctx.fillStyle=T0.P;ctx.fillRect(4,4,4,15);
     PX.text(ctx,s,14,8,'#fff',1,'#000');
     const r=`ROUND ${G.round}`;PX.text(ctx,r,W-PX.textW(r)-6,8,'#e8e0c0',1,'#000');
+    const d=ENV.describe(curEnv(),curTime()).replace(/·/g,'/').toUpperCase();ctx.fillStyle='rgba(8,12,40,.6)';ctx.fillRect(4,H-14,PX.textW(d)+8,11);PX.text(ctx,d,8,H-12,'#c8d8ff');
   }
   if(V.mode==='field'){
     // compass
@@ -899,18 +1193,30 @@ function hud(t){
     PX.text(ctx,'N',Math.round(cx+nx*9-2),Math.round(cy+ny*9-3),'#fff');
   }
 }
+// light the scene: multiply by the time-of-day tint, warm glow at golden hour, then weather and ambience
+function lightPass(t){
+  const L=curLight(),e=curEnv();const top=V.mode==='field'?V.cam.H0+1:0;
+  ctx.save();ctx.globalCompositeOperation='multiply';ctx.fillStyle=`rgb(${L.tint[0]},${L.tint[1]},${L.tint[2]})`;
+  if(V.mode==='field')ctx.fillRect(0,top,W,H-top);else ctx.fillRect(MAP.ox-20,MAP.oy-20,BOARD+40,BOARD+40);
+  ctx.restore();
+  if(L.golden){ctx.fillStyle='rgba(255,150,60,.07)';ctx.fillRect(0,top,W,H-top)}
+  if(V.mode==='map'&&e.weather==='fog'){ctx.fillStyle='rgba(220,226,234,.28)';ctx.fillRect(MAP.ox-20,MAP.oy-20,BOARD+40,BOARD+40)}
+  ENV.ambience(ctx,W,H,e,L,t,V.mode==='field'?V.cam.H0:0);
+}
 function frame(t){
   V.t=t;
   // ease camera
   const C=V.cam;let d=C.want-C.ang;while(d>Math.PI)d-=Math.PI*2;while(d<-Math.PI)d+=Math.PI*2;C.ang+=d*.08;
-  if(V.title)C.want+=.0025;
+  if(V.title){C.want+=.0025;V.titleTime=((V.titleTime||0)+.00018)%1}
+  {const tg=V.title?62:40;if(C.H0!==tg)C.H0+=Math.sign(tg-C.H0)}
   ctx.save();
   if(V.shake>0){ctx.translate(Math.round((Math.random()-.5)*V.shake),Math.round((Math.random()-.5)*V.shake));V.shake*=.85;if(V.shake<.5)V.shake=0}
   if(V.battle&&V.battle.full){BT.draw(t)}
   else{
     if(V.mode==='field'||V.title)renderMode7(t);else renderMap(t);
     const old=V.mode;if(V.title)V.mode='field';
-    drawPieces(t);drawMarkers(t);drawParts();V.mode=old;
+    drawPieces(t);drawMarkers(t);drawParts();
+    lightPass(t);V.mode=old;
     hud(t);
     if(V.battle&&V.battle.flash){ctx.fillStyle=`rgba(255,255,255,${V.battle.flash})`;ctx.fillRect(0,0,W,H)}
   }
@@ -918,7 +1224,8 @@ function frame(t){
   ctx.restore();
 }
 function titleOverlay(t){
-  ctx.fillStyle='rgba(6,8,30,.35)';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(6,8,30,.3)';ctx.fillRect(0,0,W,H);
+  const d=ENV.describe(curEnv(),curTime()).replace(/·/g,'/').toUpperCase();PX.text(ctx,d,Math.round(W/2-PX.textW(d)/2),118,'#a8b8e8',1,'#000');
   const s1='LORDS',s2='& DOMAINS';
   PX.text(ctx,s1,Math.round(W/2-PX.textW(s1,4)/2),40,'#ffe070',4,'#5a2c08');
   PX.text(ctx,s2,Math.round(W/2-PX.textW(s2,3)/2),74,'#ffffff',3,'#20184c');
@@ -933,15 +1240,15 @@ function rotate(d){V.cam.want+=d}
 function zoom(k){V.cam.dist=Math.max(150,Math.min(340,V.cam.dist+k));V.cam.h=Math.max(60,Math.min(170,V.cam.h+k*.45))}
 function animMove(id,from,to,dur,lunge){V.anims[id]={fr:from.r,fc:from.c,tr:to.r,tc:to.c,t0:performance.now(),dur:dur||260,lunge}}
 function worldOf(r,c){return{x:OFF+c*T+8,y:OFF+r*T+8}}
-return {V,W,H,CUR,start,pick,project,MAP,OFF,setViewer,faceDomain,rotate,zoom,animMove,burst,floatText,worldOf,ctx,cv,homeAngle};
+return {curEnv,curTime,curLight,V,W,H,CUR,start,pick,project,MAP,OFF,setViewer,faceDomain,rotate,zoom,animMove,burst,floatText,worldOf,ctx,cv,homeAngle};
 })();
 
 // ===================== Battle cinematics and chiptune sound =====================
 const SND=(()=>{
-  let ac=null,on=true,musicOn=false,master=null,mus=null,musTimer=null;
-  const ctx=()=>{if(!ac){try{ac=new (window.AudioContext||window.webkitAudioContext)();master=ac.createGain();master.gain.value=.22;master.connect(ac.destination)}catch(e){ac=null}}if(ac&&ac.state==='suspended')ac.resume();return ac};
-  function tone(f,d,type,vol,slide,when){const a=ctx();if(!a)return;const t=a.currentTime+(when||0);const o=a.createOscillator(),g=a.createGain();o.type=type||'square';o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(30,slide),t+d);g.gain.setValueAtTime(vol||.3,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(master);o.start(t);o.stop(t+d+.02)}
-  function noise(d,vol,when,hp){const a=ctx();if(!a)return;const t=a.currentTime+(when||0);const b=a.createBuffer(1,Math.floor(a.sampleRate*d),a.sampleRate);const ch=b.getChannelData(0);for(let i=0;i<ch.length;i++)ch[i]=(Math.random()*2-1)*(1-i/ch.length);const s=a.createBufferSource();s.buffer=b;const g=a.createGain();g.gain.value=vol||.3;const f=a.createBiquadFilter();f.type='highpass';f.frequency.value=hp||400;s.connect(f);f.connect(g);g.connect(master);s.start(t)}
+  let ac=null,on=true,musicOn=true,master=null,mbus=null,cur=null,timer=null,step=0,next=0,want=null;
+  const ctx=()=>{if(!ac){try{ac=new (window.AudioContext||window.webkitAudioContext)();master=ac.createGain();master.gain.value=.22;master.connect(ac.destination);mbus=ac.createGain();mbus.gain.value=1;mbus.connect(master)}catch(e){ac=null}}if(ac&&ac.state==='suspended')ac.resume();return ac};
+  function tone(f,d,type,vol,slide,when,bus){const a=ctx();if(!a)return;const t=a.currentTime+(when||0);const o=a.createOscillator(),g=a.createGain();o.type=type||'square';o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(30,slide),t+d);g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(vol||.3,t+.008);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(bus||master);o.start(t);o.stop(t+d+.03)}
+  function noise(d,vol,when,hp,bus){const a=ctx();if(!a)return;const t=a.currentTime+(when||0);const b=a.createBuffer(1,Math.max(1,Math.floor(a.sampleRate*d)),a.sampleRate);const ch=b.getChannelData(0);for(let i=0;i<ch.length;i++)ch[i]=(Math.random()*2-1)*(1-i/ch.length);const s=a.createBufferSource();s.buffer=b;const g=a.createGain();g.gain.value=vol||.3;const f=a.createBiquadFilter();f.type='highpass';f.frequency.value=hp||400;s.connect(f);f.connect(g);g.connect(bus||master);s.start(t)}
   const fx={
     select(){tone(880,.05,'square',.15)},
     move(){tone(220,.06,'triangle',.25);tone(330,.05,'triangle',.18,null,.05)},
@@ -956,35 +1263,64 @@ const SND=(()=>{
     pact(){[523,784,1047].forEach((f,i)=>tone(f,.15,'triangle',.25,null,i*.1))},
     betray(){[440,415,392,370].forEach((f,i)=>tone(f,.15,'sawtooth',.18,null,i*.09))},
     rumor(){tone(660,.08,'triangle',.18);tone(620,.12,'triangle',.18,null,.1)},
-    victory(){[523,523,523,659,784,659,784,1047].forEach((f,i)=>tone(f,.18,'square',.22,null,i*.13))}
+    victory(){[523,523,523,659,784,659,784,1047].forEach((f,i)=>tone(f,.18,'square',.22,null,i*.13))},
+    thunder(){noise(1.4,.5,0,60);noise(.5,.3,.1,300)},
+    pop(){noise(.12,.18,0,1500);tone(900,.1,'square',.05,300)},
+    rumble(){noise(1.2,.45,0,50);tone(55,1,'sawtooth',.2,35)},
+    splash(){noise(.5,.25,0,900)}
   };
-  // a small looping march: lead + bass
-  const LEAD=[69,72,76,74,72,69,67,69,0,72,74,76,77,76,74,72,69,72,76,79,77,76,74,72,71,72,74,71,69,0,69,0];
-  const BASS=[45,45,52,52,43,43,50,50,41,41,48,48,40,40,47,47];
-  const mf=n=>440*Math.pow(2,(n-69)/12);
-  function startMusic(){if(musTimer||!ctx())return;let step=0;const beat=.2;let next=ac.currentTime+.1;
-    musTimer=setInterval(()=>{while(next<ac.currentTime+.4){const l=LEAD[step%LEAD.length];if(l)tone(mf(l),beat*.9,'square',.06,null,next-ac.currentTime);if(step%2===0){const b=BASS[(step>>1)%BASS.length];tone(mf(b),beat*1.8,'triangle',.12,null,next-ac.currentTime)}step++;next+=beat}},100)}
-  function stopMusic(){clearInterval(musTimer);musTimer=null}
-  return{play(n){if(on&&fx[n])try{fx[n]()}catch(e){}},set(v){on=v},music(v){musicOn=v;if(v)startMusic();else stopMusic()},get on(){return on},get musicOn(){return musicOn},unlock(){ctx()}};
+  // ----- five songs: tokens are eighth notes; '=' holds, '-' rests; drums k kick, s snare, h hat -----
+  const SONGS={
+   title:{name:'The Restless Isle',bpm:96,lead:'A4 = C5 E5 A5 = G5 E5 F5 = E5 D5 C5 = B4 C5 D5 = C5 B4 A4 = G4 A4 E4 = = = - - - - A4 = C5 E5 A5 = B5 C6 B5 = A5 G5 E5 = D5 E5 F5 = E5 D5 C5 B4 A4 G#4 A4 = = = - - - -',
+     bass:'A2 = A2 = A2 = A2 = F2 = F2 = F2 = F2 = D2 = D2 = D2 = D2 = E2 = E2 = E2 = E2 = A2 = A2 = A2 = A2 = G2 = G2 = G2 = G2 = F2 = F2 = E2 = E2 = A2 = E2 = A2 = - -',drums:'k - h - s - h -',wave:'square'},
+   deploy:{name:'Banners at Dawn',bpm:116,lead:'D5 = F#5 A5 D6 = A5 F#5 G5 = B5 G5 E5 = C#5 E5 F#5 = A5 F#5 D5 = F#5 A5 E5 = = = C#5 = E5 = D5 = F#5 A5 D6 = C#6 B5 A5 = G5 F#5 E5 = F#5 G5 A5 = F#5 D5 E5 = C#5 A4 D5 = = = - - - -',
+     bass:'D3 = A2 = D3 = A2 = G2 = D3 = G2 = D3 = D3 = A2 = D3 = A2 = A2 = E3 = A2 = C#3 = D3 = A2 = D3 = F#3 = G2 = B2 = A2 = C#3 = D3 = B2 = A2 = A2 = D3 = A2 = D3 = - -',drums:'k - s - k k s -',wave:'square'},
+   field:{name:'Five Crowns',bpm:124,lead:'E5 - G5 - B5 A5 G5 F#5 E5 = = - D5 - E5 - G5 - A5 - B5 = D6 B5 A5 = = - - - - - C6 - B5 A5 G5 - A5 - B5 - A5 G5 F#5 - G5 - A5 - G5 F#5 E5 - D#5 - E5 = = = - - - -',
+     bass:'E2 E3 E2 E3 E2 E3 E2 E3 C3 C2 C3 C2 D3 D2 D3 D2 G2 G3 G2 G3 G2 G3 G2 G3 D3 D2 D3 D2 D3 D2 D3 D2 A2 A3 A2 A3 A2 A3 A2 A3 E2 E3 E2 E3 E2 E3 E2 E3 C3 C2 C3 C2 B2 B1 B2 B1 E2 E3 E2 E3 E2 - - -',drums:'k h s h k k s h',wave:'square'},
+   night:{name:'Night Watch',bpm:84,lead:'D5 = = F5 A5 = = = G5 = F5 = E5 = = = F5 = = E5 D5 = = = A4 = = = = = - - D5 = = F5 A5 = = C6 A#5 = = A5 G5 = = = F5 = E5 = D5 = C#5 = D5 = = = = = - -',
+     bass:'D3 = = = A2 = = = C3 = = = C3 = = = A#2 = = = A#2 = = = A2 = = = A2 = = = D3 = = = F3 = = = G2 = = = G2 = = = A2 = = = A2 = = = D3 = = = - - - -',drums:'k - - - h - - -',wave:'triangle'},
+   last:{name:'The Last Lord',bpm:148,lead:'C5 C5 D#5 C5 G5 C5 D#5 C5 A#4 A#4 D5 A#4 F5 A#4 D5 A#4 G#4 G#4 C5 G#4 D#5 G#4 C5 G#4 G4 G4 B4 G4 D5 G4 B4 D5 C5 C5 D#5 G5 C6 = G5 D#5 A#4 D5 F5 A#5 = F5 D5 A#4 G#4 C5 D#5 G#5 G5 F5 D#5 D5 C5 = G4 = C5 = - -',
+     bass:'C2 C3 C2 C3 C2 C3 C2 C3 A#1 A#2 A#1 A#2 A#1 A#2 A#1 A#2 G#1 G#2 G#1 G#2 G#1 G#2 G#1 G#2 G1 G2 G1 G2 G1 G2 G1 G2 C2 C3 C2 C3 C2 C3 C2 C3 A#1 A#2 A#1 A#2 A#1 A#2 A#1 A#2 G#1 G#2 G#1 G#2 G1 G2 G1 G2 C2 C3 C2 C3 C2 - - -',drums:'k h s h k s s h',wave:'square'}
+  };
+  const NOTE={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+  const midi=t=>{const m=/^([A-G])(#|b)?(\d)$/.exec(t);if(!m)return null;return 12*(+m[3]+1)+NOTE[m[1]]+(m[2]==='#'?1:m[2]==='b'?-1:0)};
+  const hz=n=>440*Math.pow(2,(n-69)/12);
+  const parse=str=>{const tk=str.trim().split(/\s+/);return tk.map((t,i)=>{if(t==='='||t==='-')return null;const n=midi(t);if(n==null)return null;let len=1;while(tk[i+len]==='=')len++;return{n,len}})};
+  for(const k in SONGS){const S=SONGS[k];S.L=parse(S.lead);S.B=parse(S.bass);S.D=S.drums.trim().split(/\s+/)}
+  function tick(){
+    if(!ac||!cur)return;const S=SONGS[cur];const st=60/S.bpm/2;
+    while(next<ac.currentTime+.25){
+      const w=next-ac.currentTime;const i=step%S.L.length;
+      if(i%8===0&&want&&want!==cur){cur=want;step=0;continue}
+      const l=S.L[i];if(l){tone(hz(l.n),st*l.len*.95,S.wave,S.wave==='triangle'?.14:.055,null,w,mbus);tone(hz(l.n-12),st*l.len*.9,'triangle',.04,null,w+.012,mbus)}
+      const b=S.B[i%S.B.length];if(b)tone(hz(b.n),st*b.len*.92,'triangle',.13,null,w,mbus);
+      const d=S.D[i%S.D.length];if(d==='k')tone(110,.12,'sine',.35,40,w,mbus);else if(d==='s')noise(.1,.12,w,1500,mbus);else if(d==='h')noise(.03,.05,w,6000,mbus);
+      step++;next+=st;
+    }
+  }
+  function song(name){want=name;if(!musicOn)return;if(!ctx())return;if(!cur){cur=name;step=0;next=ac.currentTime+.08}if(!timer)timer=setInterval(tick,60)}
+  function stopMusic(){clearInterval(timer);timer=null;cur=null}
+  return{play(n){if(on&&fx[n])try{fx[n]()}catch(e){}},set(v){on=v},music(v){musicOn=v;if(v){if(want)song(want)}else stopMusic()},song,
+    get on(){return on},get musicOn(){return musicOn},get songName(){return cur?SONGS[cur].name:''},unlock(){ctx();if(musicOn&&want&&!timer)song(want)},SONGS};
 })();
 
 const BT=(()=>{
 const {W,H,ctx}=RD;let B=null,resolveFn=null,bg=null;
 const hash=(a,b)=>{let h=a*374761393+b*668265263;h=(h^(h>>13))*1274126177;return ((h^(h>>16))>>>0)/4294967295};
 function buildBg(castle,team){
+  const env=RD.curEnv(),L=RD.curLight(),tm=RD.curTime();
   const c=PX.mk(W*2,H),x=c.getContext('2d');
-  const bands=['#283c94','#3454ac','#4470c4','#5888d4','#78a4e0','#98bcec','#c0d4f0','#f0d8b0'];
-  bands.forEach((b,i)=>{x.fillStyle=b;x.fillRect(0,i*18,W*2,18)});
-  for(let i=1;i<bands.length;i++){x.fillStyle=bands[i-1];for(let xx=0;xx<W*2;xx+=2)x.fillRect(xx+(i%2),i*18,1,1)}
-  x.fillStyle='#fff6d0';x.fillRect(300,40,18,18);x.fillRect(296,44,26,10);x.fillRect(304,36,10,26);
-  const ridge=(col,base,amp,step,seed)=>{x.fillStyle=col;for(let xx=0;xx<W*2;xx++){const y=base-Math.abs(Math.sin(xx/step+seed))*amp-hash(xx>>3,seed*9)*5;x.fillRect(xx,y,1,H-y)}};
-  ridge('#7088c0',150,46,53,1);ridge('#5068a0',158,30,31,3);
-  if(castle){x.fillStyle='#8c8494';x.fillRect(60,92,220,70);for(let k=0;k<12;k++)x.fillRect(60+k*19,84,11,10);x.fillStyle='#6c6474';for(let yy=100;yy<160;yy+=8)for(let xx=60;xx<280;xx+=16)x.fillRect(xx+((yy/8)%2)*8,yy,15,1);
+  const sky=ENV.buildSky(env,tm,L);
+  // stretch the sky panorama behind the fighters
+  x.drawImage(sky,0,0,1024,120,0,0,W*2,170);
+  const tint=L.tint.map(v=>v/255);const tc=hx=>{const v=[parseInt(hx.slice(1,3),16),parseInt(hx.slice(3,5),16),parseInt(hx.slice(5,7),16)];return `rgb(${v.map((q,i)=>q*tint[i]|0).join(',')})`};
+  if(castle){x.fillStyle=tc('#8c8494');x.fillRect(60,92,220,78);for(let k=0;k<12;k++)x.fillRect(60+k*19,84,11,10);x.fillStyle=tc('#6c6474');for(let yy=100;yy<168;yy+=8)for(let xx=60;xx<280;xx+=16)x.fillRect(xx+((yy/8)%2)*8,yy,15,1);
     x.fillStyle=PX.TEAM[team].P;for(const bx of [100,200]){x.fillRect(bx,96,14,30);x.fillStyle=PX.TEAM[team].L;x.fillRect(bx+5,104,4,4);x.fillStyle=PX.TEAM[team].P}}
-  ridge('#3c7c3c',170,14,17,5);
-  x.fillStyle='#4c9a3c';x.fillRect(0,170,W*2,H-170);
-  for(let k=0;k<500;k++){x.fillStyle=k%3?'#3c7c30':'#74c050';x.fillRect(hash(k,1)*W*2,172+hash(k,2)*68,1,2)}
-  x.fillStyle='#5aa848';for(let yy=176;yy<H;yy+=12)x.fillRect(0,yy,W*2,1);
+  const GR=ENV.GROUND[env.season];
+  x.fillStyle=tc(GR.a);x.fillRect(0,170,W*2,H-170);
+  for(let k=0;k<500;k++){x.fillStyle=tc(k%3?GR.d:GR.l);x.fillRect(hash(k,1)*W*2,172+hash(k,2)*68,1,2)}
+  x.fillStyle=tc(GR.b);for(let yy=176;yy<H;yy+=12)x.fillRect(0,yy,W*2,1);
+  if(env.weather==='rain'||env.weather==='storm'){x.fillStyle='rgba(120,150,200,.35)';for(let k=0;k<30;k++)x.fillRect(hash(k,5)*W*2,190+hash(k,6)*45,18,2)}
   return c;
 }
 function play(ev,G,viewer,speed){
@@ -1002,8 +1338,9 @@ function play(ev,G,viewer,speed){
     B.lines=[[`${LD.DOMAINS[a.p].name.toUpperCase()} ATTACKS ${LD.DOMAINS[d.p].name.toUpperCase()}!`],
       [`${LD.RANK_NAME[a.rank].toUpperCase()} VS ${LD.RANK_NAME[d.rank].toUpperCase()}!`],
       [R>0?(d.rank===0?'THE SAPPER BREAKS THE KEEP!':a.rank===2&&d.rank===9?'ASSASSINATION! THE LORD IS SLAIN!':a.rank===9&&d.rank===9?'THE LORDS DUEL. THE ATTACKER WINS!':`THE ${nm(d).toUpperCase()} FALLS!`)
-        :R<0?(d.rank===0?'THE KEEP HOLDS! THE ATTACKER IS DESTROYED!':`THE ${nm(a).toUpperCase()} FALLS!`):'BOTH FIGHTERS FALL!']];
+        :R<0?(d.rank===0?'THE KEEP HOLDS! THE ATTACKER IS DESTROYED!':a.rank===9&&d.rank===2?'THE SPY WAS WAITING! THE LORD IS SLAIN!':`THE ${nm(a).toUpperCase()} FALLS!`):'BOTH FIGHTERS FALL!']];
     if((R>0&&d.rank===9)||(R<0&&a.rank===9)||(R===0&&(a.rank===9||d.rank===9)))B.lines.push(['A LORD HAS FALLEN!']);
+    else if(R>0&&d.rank===0)B.lines.push([`THE KEEP OF ${LD.DOMAINS[d.p].name.toUpperCase()} IS BREACHED! THE DOMAIN FALLS!`]);
   });
 }
 function skip(){if(B&&!B.done){B.t0=performance.now()-B.dur}}
@@ -1066,6 +1403,7 @@ function draw(t){
   window_(8,H-46,W-16,40);
   const li=k<tReveal?0:k<tHit?1:2;const lines=k>.85&&B.lines[3]?B.lines[3]:B.lines[li];
   lines.forEach((l,i)=>PX.wrap(l,58).forEach((w,j)=>PX.text(ctx,w,18,H-38+j*10,'#ffffff',1,'#101030')));
+  {const L=RD.curLight();ctx.save();ctx.globalCompositeOperation='multiply';ctx.fillStyle=`rgb(${(L.tint[0]+255)/2|0},${(L.tint[1]+255)/2|0},${(L.tint[2]+255)/2|0})`;ctx.fillRect(0,0,W,H-48);ctx.restore();ENV.ambience(ctx,W,H-48,RD.curEnv(),L,t,60)}
   if(!q&&Math.floor(t/400)%2)PX.text(ctx,'CLICK TO SKIP',W-96,H-14,'#a8b0e0');
   if(k>=1&&!B.done){B.done=true;setTimeout(()=>{RD.V.battle=null;const r=resolveFn;B=null;r&&r()},120)}
 }
@@ -1077,7 +1415,7 @@ return{play,draw,skip,get active(){return !!B}};
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const store={get(k,d){try{const v=localStorage.getItem('lords-domains.'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('lords-domains.'+k,JSON.stringify(v))}catch(e){}}};
-const S=Object.assign({view:innerWidth<600?'map':'field',battle:'full',speed:'normal',sound:true,music:false,theme:'auto',hints:true,tips:true},store.get('settings',{}));
+const S=Object.assign({view:innerWidth<600?'map':'field',battle:'full',speed:'normal',sound:true,music:true,mode:'decisive',board:'random',theme:'auto',hints:true,tips:true},store.get('settings',{}));
 const saveS=()=>store.set('settings',S);
 const V=RD.V;let G=null;let waiting=null;let busy=false;let token=0;
 const D=LD.DOMAINS,TM=PX.TEAM;
@@ -1099,32 +1437,71 @@ function viewerNow(){if(!G)return 0;const h=humans();if(!h.length)return S.revea
 function setViewer(){V.viewer=viewerNow();}
 function sprURL(rank,team){const c=PX.mk(16,24);c.getContext('2d').drawImage(PX.sprite(rank,team),0,0);return c.toDataURL()}
 const dom=p=>`<b style="color:${TM[p].L}">${D[p].name}</b>`;
+const LORE_SHORT='Long ago the First Crown raised the isle of Thalmar from the sea and bound its stones with an oath: the land would stand for as long as one Lord ruled it. The last High Lord drowned without an heir, and now five domains claim the crown.';
+const LORE_ISLAND='The island cannot obey five masters, so it will not keep still. It drowns the quiet corners where cowards hide and heaves the seabed up between rivals. It takes no side and favours no banner. It only wants the oath kept, and the oath can only be kept when a single Lord stands.';
+// ---------- music cues ----------
+function musicFor(){
+  if(V.title||!G)return 'title';
+  if(G.phase==='setup')return 'deploy';
+  if(G.over)return 'title';
+  if(G.alive.filter(Boolean).length<=2||G.saidSqueeze)return 'last';
+  const L=RD.curLight();return L.night>.5||(G.env&&G.env.weather==='fog')?'night':'field';
+}
+function cueMusic(){SND.song(musicFor());renderCorner()}
+// ---------- sound and music switches, always in the corner ----------
+function renderCorner(){
+  const c=$('#corner');if(!c)return;
+  c.innerHTML=`<button class="btn sm" id="cSnd" aria-pressed="${S.sound}" title="Sound effects">${S.sound?'🔊 Sound':'🔇 Sound'}</button><button class="btn sm" id="cMus" aria-pressed="${S.music}" title="${S.music&&SND.songName?'Now playing: '+esc(SND.songName):'Music'}">${S.music?'♪ Music':'✕ Music'}</button>`;
+  $('#cSnd').onclick=()=>{S.sound=!S.sound;saveS();SND.set(S.sound);SND.unlock();if(S.sound)SND.play('select');renderCorner()};
+  $('#cMus').onclick=()=>{S.music=!S.music;saveS();SND.unlock();SND.music(S.music);if(S.music)cueMusic();renderCorner()};
+}
 // ---------- title ----------
+let titleTimer=null;
+function newTitleBoard(){V.titleEnv=ENV.create(Math.random()<.2?Object.keys(ENV.HOLIDAYS)[Math.random()*5|0]:'random');V.titleEnv.weather=V.titleEnv.holiday?V.titleEnv.weather:['clear','clear','cloudy','rain','snow','fog','storm'][Math.random()*7|0];
+  if(V.titleEnv.weather==='snow'&&V.titleEnv.season!=='winter')V.titleEnv.weather='rain';
+  V.titleTime=V.titleEnv.startTime;G=demoGame();RD.CUR.G=G;LD.setG(G);V.cam.want=Math.random()*Math.PI*2;}
 function showTitle(){
-  V.title=true;V.mode='field';G=demoGame();RD.CUR.G=G;V.viewer=-1;V.sel=null;V.legal=[];V.last=null;
+  V.title=true;V.mode='field';newTitleBoard();V.viewer=-1;V.sel=null;V.legal=[];V.last=null;
+  clearInterval(titleTimer);titleTimer=setInterval(()=>{if(V.title){V.shake=6;newTitleBoard()}},20000);
+  coachStop();cueMusic();
   $('#titleMenu').hidden=false;$('#tCont').hidden=!store.get('save',null);
   $('#diploBox').hidden=true;
-  $('#turnBox').innerHTML=`<h3>Welcome, ruler</h3><p>Five domains share one island. Each hides its Lord among ten pieces. Protect yours, find theirs, and make friends you can betray later.</p><p class="muted">Press <b>New game</b> to begin, or read <b>How to play</b>.</p>`;
+  $('#turnBox').innerHTML=`<h3>Welcome, ruler</h3><p>${LORE_SHORT}</p><p>Five domains share the island. Each hides its Lord among eleven pieces. Protect yours, find theirs, and make friends you can betray later.</p><p class="muted">New here? Try the <b>Walkthrough</b>. Every visit to this screen shows a different battle.</p>`;
   renderDomains();renderLog();
 }
-function demoGame(){const g=LD.newGame({ctrl:['ai','ai','ai','ai','ai']});LD.startPlay(g);for(let i=0;i<60;i++){const m=LD.aiChoose(g,g.turn);if(m)LD.doMove(g,m.id,m.r,m.c);LD.nextTurn(g);if(g.over)break}g.log=[];return g}
+function demoGame(){const g=LD.newGame({ctrl:['ai','ai','ai','ai','ai'],decisive:false});g.env=V.titleEnv;LD.setG(g);LD.startPlay(g);const n=20+Math.random()*120|0;for(let i=0;i<n;i++){const m=LD.aiChoose(g,g.turn);if(m)LD.doMove(g,m.id,m.r,m.c);LD.nextTurn(g);if(g.over)break}g.log=[];return g}
 // ---------- new game ----------
 function newGameModal(){
   const opts=[['human','Human player'],['easy','Computer: Easy'],['normal','Computer: Normal'],['hard','Computer: Hard']];
   const def=store.get('seats',['human','normal','normal','normal','normal']);
-  modal(`<h2>New game</h2><p>Choose who rules each domain. Computer rulers each get a hidden personality: honourable, opportunist, warlike, schemer or cautious.</p>
+  const boards=[['random','Random season'],...ENV.SEASONS.map(x=>[x,ENV.SEASON_NAME[x]])];
+  modal(`<h2>New game</h2>
+  <h3 style="color:var(--gold);margin:6px 0">1 · Mode</h3>
+  <div class="modes2">
+   <label class="mcard"><input type="radio" name="mode" value="classic" ${S.mode==='classic'?'checked':''}><b>Classic</b><span>The island stands still. Pure bluff and battle. If nobody fights for 40 rounds, the strongest army is named High Lord.</span></label>
+   <label class="mcard"><input type="radio" name="mode" value="decisive" ${S.mode!=='classic'?'checked':''}><b>Decisive: the restless island</b><span>From round 6 the land sinks and rises every round, always forcing the armies together. Every war ends with a fallen Lord or a breached Keep.</span></label>
+  </div>
+  <h3 style="color:var(--gold);margin:10px 0 6px">2 · Board</h3>
+  <div class="drow"><select id="ngBoard" aria-label="Board">${boards.map(([v,l])=>`<option value="${v}" ${S.board===v?'selected':''}>${l}</option>`).join('')}<optgroup label="Holiday boards">${Object.entries(ENV.HOLIDAYS).map(([k,h])=>`<option value="${k}" ${S.board===k?'selected':''}>${h.name}</option>`).join('')}</optgroup></select><span class="muted" id="ngBoardTip" style="font-size:.85rem"></span></div>
+  <p class="muted" style="font-size:.85rem">Time of day passes as you play (dawn, golden hour, night) and the weather changes with the season.</p>
+  <h3 style="color:var(--gold);margin:10px 0 6px">3 · Rulers</h3><p>Choose who rules each domain. Computer rulers each get a hidden personality: honourable, opportunist, warlike, schemer or cautious.</p>
   <div class="presets"><button class="btn sm" data-pre="solo">Me vs 4 computers</button><button class="btn sm" data-pre="hot">5 players, one screen</button><button class="btn sm" data-pre="duo">2 players + 3 computers</button><button class="btn sm" data-pre="watch">Watch 5 computers</button></div>
   <div class="seats">${D.map((d,p)=>`<div class="seat"><span style="width:16px;height:16px;background:${TM[p].P};border:2px solid #fff;border-radius:3px"></span><span>${d.name} <span class="muted" style="font-size:.85rem">· ${d.banner}</span></span><select data-seat="${p}" aria-label="${d.name}">${opts.map(([v,l])=>`<option value="${v}" ${def[p]===v?'selected':''}>${l}</option>`).join('')}</select></div>`).join('')}</div>
   <div class="row"><button class="btn" data-x>Cancel</button><button class="btn gold" id="goNew">Begin</button></div>`,m=>{
     m.querySelector('[data-x]').onclick=closeModal;
     m.querySelectorAll('[data-pre]').forEach(b=>b.onclick=()=>{const pre={solo:['human','normal','normal','normal','normal'],hot:['human','human','human','human','human'],duo:['human','normal','human','normal','normal'],watch:['normal','hard','normal','easy','hard']}[b.dataset.pre];m.querySelectorAll('[data-seat]').forEach((s,i)=>s.value=pre[i])});
-    $('#goNew').onclick=()=>{const seats=[...m.querySelectorAll('[data-seat]')].map(s=>s.value);store.set('seats',seats);closeModal();begin(seats)};
+    const tip=()=>{const v=$('#ngBoard').value;$('#ngBoardTip').textContent=ENV.HOLIDAYS[v]?ENV.HOLIDAYS[v].blurb:v==='random'?'A surprise season, time and sky.':''};$('#ngBoard').onchange=tip;tip();
+    $('#goNew').onclick=()=>{const seats=[...m.querySelectorAll('[data-seat]')].map(s=>s.value);store.set('seats',seats);S.mode=m.querySelector('[name=mode]:checked').value;S.board=$('#ngBoard').value;saveS();closeModal();begin(seats)};
   });
 }
-function begin(seats){
-  token++;SND.unlock();
+function begin(seats,opt){
+  token++;SND.unlock();clearInterval(titleTimer);opt=opt||{};
   const ctrl=seats.map(s=>s==='human'?'human':'ai'),diff=seats.map(s=>s==='human'?'normal':s);
-  G=LD.newGame({ctrl,diff});RD.CUR.G=G;V.title=false;$('#titleMenu').hidden=true;V.mode=S.view;V.sel=null;V.legal=[];V.last=null;
+  G=LD.newGame({ctrl,diff,decisive:(opt.mode||S.mode)!=='classic'});G.env=ENV.create(opt.board||S.board);G.tutorial=!!opt.tutorial;LD.setG(G);seenQuake=0;
+  RD.CUR.G=G;V.title=false;V.cam.H0=40;$('#titleMenu').hidden=true;V.mode=S.view;V.sel=null;V.legal=[];V.last=null;
+  if(!opt.tutorial)coachStop();
+  LD.addLog(G,`${G.decisive?'Decisive mode. ':'Classic mode. '}${ENV.describe(G.env,G.env.startTime)}.`);
+  cueMusic();
   store.set('save',null);
   setupPhase();
 }
@@ -1140,7 +1517,7 @@ async function setupPhase(){
     await arrange(p);
   }
   V.setup=false;V.swapSel=null;
-  LD.startPlay(G);setViewer();
+  LD.startPlay(G);setViewer();cueMusic();coachEmit('ready');
   if(!hs.length){RD.faceDomain(0,true)}
   renderAll();turnLoop(my);
 }
@@ -1151,14 +1528,14 @@ function arrange(p){
       <div class="drow"><button class="btn sm" id="sShuf">Shuffle</button><button class="btn sm" id="sSug">Suggested layout</button><span style="flex:1"></span><button class="btn gold" id="sReady">Ready</button></div>`;
       $('#sShuf').onclick=()=>{LD.shuffleSetup(G,p);V.swapSel=null;SND.play('move')};
       $('#sSug').onclick=()=>{LD.suggestSetup(G,p);V.swapSel=null;SND.play('move')};
-      $('#sReady').onclick=()=>{waiting=null;V.swapSel=null;SND.play('select');res()};
+      $('#sReady').onclick=()=>{if(coach.on&&coach.steps[coach.i].wait==='swap')return toast('First swap two of your pieces.');waiting=null;V.swapSel=null;SND.play('select');res()};
     };
     draw();renderDomains();
     waiting={kind:'setup',p,click(hit){
       if(!hit||hit.id==null)return;const x=G.pieces[hit.id];if(x.p!==p)return;
       if(V.swapSel==null){V.swapSel=x.id;SND.play('select');inspect(x)}
       else if(V.swapSel===x.id){V.swapSel=null}
-      else{LD.swapSetup(G,V.swapSel,x.id);V.swapSel=null;SND.play('move')}
+      else{LD.swapSetup(G,V.swapSel,x.id);V.swapSel=null;SND.play('move');coachEmit('swap')}
     }};
   });
 }
@@ -1184,9 +1561,22 @@ async function turnLoop(my){
       if(m)await perform(m);
     }
     if(my!==token)return;
-    LD.nextTurn(G);save();
+    LD.nextTurn(G);
+    const ch=ENV.advance(G.env,G.round);if(ch==='season'){toast(`<b>${ENV.SEASON_NAME[G.env.season]}</b> comes to the island.`,2600);LD.addLog(G,`${ENV.SEASON_NAME[G.env.season]} comes to the island.`)}
+    await showQuake(my);
+    cueMusic();save();
   }
   if(G&&G.over&&my===token)gameOver();
+}
+let seenQuake=0;
+async function showQuake(my){
+  if(!G.lastQuake||G.lastQuake.n<=seenQuake)return;seenQuake=G.lastQuake.n;
+  const q=G.lastQuake;SND.play('rumble');V.shake=9;
+  for(const t of q.tiles){const w=RD.worldOf(t.r,t.c);if(t.kind==='sea'){RD.burst(w.x,w.y,['#5c98e8','#ffffff','#2858b0'],16,1.1,2.5);setTimeout(()=>SND.play('splash'),200)}else RD.burst(w.x,w.y,['#c8b078','#e87890','#3c8c5c','#8c6c4c'],16,1,3)}
+  const s=q.tiles.filter(t=>t.kind==='sea').length,u=q.tiles.length-s;
+  if(q.n===1)toast(`<b>The island stirs.</b><br>${esc(LORE_ISLAND.split('. ')[0])}.`,4200);
+  else toast(`<b>The island shifts.</b> ${s?s+' sink':''}${s&&u?', ':''}${u?u+' rise from the seabed':''}.`,2200);
+  await sleep(q.n===1?1600:700);
 }
 async function handleOffers(p){
   const offers=G.offers.filter(o=>o.to===p);G.offers=G.offers.filter(o=>o.to!==p);
@@ -1213,7 +1603,7 @@ function humanTurn(p){
         const m=V.legal.find(l=>l.r===hit.r&&l.c===hit.c);
         if(m){
           if(m.attack){const t=G.pieces[m.target];if(LD.hasPact(G,p,t.p)){const ok=await ask('Break the pact?',`<p>You have a pact with ${dom(t.p)}. Attacking now is a betrayal: every domain will trust you less.</p>`,[{t:'Keep the peace',v:false},{t:'Betray them',v:true,cls:'red'}]);if(!ok)return}}
-          waiting=null;const mv={id:V.sel,r:m.r,c:m.c,attack:m.attack};V.sel=null;V.legal=[];$('#diploBox').hidden=true;res(mv);return}
+          waiting=null;const mv={id:V.sel,r:m.r,c:m.c,attack:m.attack};coachEmit(m.attack?'attack':'moved');if(m.attack)coachEmit('moved');V.sel=null;V.legal=[];$('#diploBox').hidden=true;res(mv);return}
       }
       if(x&&x.p===p){if(V.sel===x.id){V.sel=null;V.legal=[]}else{V.sel=x.id;V.legal=LD.movesFor(G,x);SND.play('select');if(!V.legal.length)toast(x.rank===0?'A Keep never moves.':'That piece has nowhere to go.',1600)}inspect(x);renderDiplo(p)}
       else{V.sel=null;V.legal=[];if(x)inspect(x)}
@@ -1236,7 +1626,7 @@ async function perform(m){
       A.alive=true;G.pieces[e.def].alive=true;A.r=e.from.r;A.c=e.from.c;
       RD.animMove(e.att,e.from,{r:(e.from.r*.6+e.to.r*.4),c:(e.from.c*.6+e.to.c*.4)},220,true);
       await sleep(240);
-      if(S.battle!=='off'){await BT.play({...e,preA,preD},G,vw<0?-1:vw,S.battle)}
+      if(S.battle!=='off'){$('#toast').hidden=true;await BT.play({...e,preA,preD},G,vw<0?-1:vw,S.battle)}
       else{SND.play('clash');RD.V.shake=5;await sleep(250)}
       A.r=realA.r;A.c=realA.c;G.pieces.forEach((q,i)=>q.alive=finalAlive[i]);
       // a domain that fell keeps its pieces dead
@@ -1251,7 +1641,7 @@ async function perform(m){
     else if(e.type==='fall'){
       SND.play('fall');V.shake=10;
       for(const q of G.pieces)if(q.p===e.p){const w=RD.worldOf(q.r,q.c);RD.burst(w.x,w.y,[TM[e.p].P,TM[e.p].L,TM[e.p].Q,'#ffe070'],18,1.5,2.5)}
-      toast(`<b style="color:${TM[e.p].L}">The Lord of ${D[e.p].name} has fallen!</b><br>The whole domain collapses${e.by!=null&&e.by!==e.p?` before ${D[e.by].name}`:''}.`,3600);
+      toast(e.how==='keep'?`<b style="color:${TM[e.p].L}">The Keep of ${D[e.p].name} is breached!</b><br>The whole domain collapses${e.by!=null?` before ${D[e.by].name}`:''}.`:`<b style="color:${TM[e.p].L}">The Lord of ${D[e.p].name} has fallen!</b><br>The whole domain collapses${e.by!=null&&e.by!==e.p?` before ${D[e.by].name}`:''}.`,3600);
       await sleep(1400);
       if(humans().length===1&&e.p===humans()[0]&&!G.over){
         const c=await ask('Your Lord has fallen',`<p>${dom(e.p)} is no more. The other domains fight on.</p>`,[{t:'Title screen',v:'title'},{t:'Watch the rest',v:'watch'},{t:'New game',v:'new',cls:'gold'}]);
@@ -1277,16 +1667,16 @@ function renderDiplo(p){
    <div class="drow"><button class="btn sm" id="dRumor" ${used||!sel||sel.p!==p?'disabled':''} title="Select one of your pieces first">Rumour: "this is my Lord"</button></div>
    <p class="muted" style="font-size:.8rem">Point the finger turns the other domains against a rival. A rumour marks one of your pieces with a crown so enemies think it is your Lord. Try it on a Keep.</p>`;
   $('#dPact').onclick=async()=>{const q=+$('#dTarget').value;if(LD.hasPact(G,p,q)){toast('You already have a pact with them.');return}
-    G.actedDiplo=true;
+    G.actedDiplo=true;coachEmit('diplo');
     if(G.ctrl[q]==='human'){G.offers.push({from:p,to:q,round:G.round});LD.addLog(G,`${D[p].name} sends an envoy to ${D[q].name}.`,p);toast(`Your envoy rides to ${D[q].name}. They will answer on their turn.`)}
     else{const r=LD.wouldAccept(G,q,p);if(r.ok){const shown=LD.makePact(G,p,q);SND.play('pact');toast(`${dom(q)}: "${esc(r.why)}"`,3200);setTimeout(()=>showTokens(shown,p),900)}else{SND.play('lose');LD.addLog(G,`${D[q].name} refuses ${D[p].name}'s pact.`,q);toast(`${dom(q)}: "${esc(r.why)}"`,3000)}}
     renderAll();renderDiplo(p)};
-  $('#dAccuse').onclick=()=>{const q=+$('#dTarget').value;G.actedDiplo=true;LD.accuse(G,p,q);SND.play('rumor');toast(`Word spreads that ${dom(q)} cannot be trusted.`);renderAll();renderDiplo(p)};
-  $('#dRumor').onclick=()=>{if(!sel||sel.p!==p)return;G.actedDiplo=true;LD.plantRumor(G,sel.id);SND.play('rumor');toast(`A rumour spreads that your <b>${LD.RANK_NAME[sel.rank]}</b> is your Lord.`);renderAll();renderDiplo(p)};
+  $('#dAccuse').onclick=()=>{const q=+$('#dTarget').value;G.actedDiplo=true;coachEmit('diplo');LD.accuse(G,p,q);SND.play('rumor');toast(`Word spreads that ${dom(q)} cannot be trusted.`);renderAll();renderDiplo(p)};
+  $('#dRumor').onclick=()=>{if(!sel||sel.p!==p)return;G.actedDiplo=true;coachEmit('diplo');LD.plantRumor(G,sel.id);SND.play('rumor');toast(`A rumour spreads that your <b>${LD.RANK_NAME[sel.rank]}</b> is your Lord.`);renderAll();renderDiplo(p)};
 }
 // ---------- side panels ----------
 function inspect(x){
-  const v=V.viewer;const vis=v<0||LD.visibleTo(x,v);
+  const v=V.viewer;const vis=v<0||LD.visibleTo(x,v);if(!vis)coachEmit('inspectEnemy');
   const c=document.createElement('canvas');c.width=16;c.height=24;c.getContext('2d').drawImage(vis?PX.sprite(x.rank,x.p):PX.sprite('hidden',x.p),0,0);
   let body='';
   if(vis){body=`<b>${D[x.p].name} ${LD.RANK_NAME[x.rank]}</b>${x.rank!==9&&x.rank!==0?` · rank ${x.rank}`:''}${x.p!==v&&!x.revealed?' <span class="muted">(shown to you in secret)</span>':''}<p style="font-size:.9rem">${LD.RANK_TIP[x.rank]}</p>`}
@@ -1302,7 +1692,7 @@ function renderDomains(){
   const v=V.viewer;
   $('#doms').innerHTML=D.map((d,p)=>{
     const pcs=G.pieces.filter(x=>x.p===p&&x.alive);
-    const hidden=[];if(G.alive[p]&&v!==p){const all=new Set([0,1,2,3,4,5,6,7,8,9]);for(const x of G.pieces)if(x.p===p&&(!x.alive||LD.visibleTo(x,v<0?p:v)))all.delete(x.rank);hidden.push(...[...all].sort((a,b)=>b-a))}
+    const hidden=[];if(G.alive[p]&&v!==p){const left=LD.ARMY.slice();for(const x of G.pieces)if(x.p===p&&(!x.alive||LD.visibleTo(x,v<0?p:v))){const i=left.indexOf(x.rank);if(i>=0)left.splice(i,1)}hidden.push(...left.sort((a,b)=>b-a))}
     const who=G.ctrl[p]==='human'?(humans().length>1?'Human':'You'):`Computer · ${G.diff[p]}`;
     const att=v>=0&&v<5&&v!==p&&G.alive[p]&&G.ctrl[p]==='ai'?`<span class="att ${LD.attitude(G,p,v)}">${LD.attitude(G,p,v)}</span>`:v>=0&&v<5&&LD.hasPact(G,p,v)?'<span class="att Allied">Allied</span>':'';
     const pact=[0,1,2,3,4].filter(q=>LD.hasPact(G,p,q)).map(q=>D[q].name).join(', ');
@@ -1312,11 +1702,50 @@ function renderDomains(){
 }
 function renderLog(){if(!G){$('#log').innerHTML='';return}$('#log').innerHTML=G.log.slice(-40).reverse().map(l=>`<div style="border-color:${l.p>=0?TM[l.p].P:'transparent'}"><span class="muted">${l.round}</span> ${esc(l.t)}</div>`).join('')}
 function renderAll(){renderDomains();renderLog();if(G&&G.phase==='play'&&G.ctrl[G.turn]==='human'&&waiting)renderDiplo(G.turn);else if(!waiting)$('#diploBox').hidden=true}
+// ---------- walkthrough ----------
+const coach={on:false,i:0,steps:[]};
+function coachEmit(ev){if(!coach.on)return;const st=coach.steps[coach.i];if(st&&st.wait===ev)setTimeout(()=>coachNext(),350)}
+function coachStop(){coach.on=false;const b=$('#coach');if(b)b.hidden=true}
+function coachShow(){
+  const st=coach.steps[coach.i];if(!st){coachStop();return}
+  if(st.enter)st.enter();
+  const b=$('#coach');b.hidden=false;
+  b.innerHTML=`<div class="cstep">Walkthrough · ${coach.i+1} of ${coach.steps.length}</div><h3>${st.title}</h3><p>${st.t}</p>${st.wait?'<p class="muted" style="font-size:.85rem">Do this on the board to continue.</p>':''}<div class="drow"><button class="btn sm" id="cQuit">End walkthrough</button><span style="flex:1"></span>${st.wait?'<button class="btn sm" id="cSkip">Skip this step</button>':`<button class="btn sm gold" id="cNext">${coach.i===coach.steps.length-1?'Finish':'Next'}</button>`}</div>`;
+  $('#cQuit').onclick=coachStop;const n=$('#cNext')||$('#cSkip');n.onclick=coachNext;
+}
+function coachNext(){coach.i++;if(coach.i>=coach.steps.length){coachStop();toast('The walkthrough is done. The island is yours to win.',3000);return}coachShow()}
+// put a revealed, weak enemy right in front of one of your strong pieces so the first attack is a sure thing
+function stageAttack(){
+  const me=humans()[0];const mine=LD.alivePieces(G,me).filter(x=>x.rank>=5&&x.rank<=8);
+  for(const x of mine){for(const [dr,dc] of [[-1,0],[0,-1],[0,1],[1,0]]){const r=x.r+dr,c=x.c+dc;if(!LD.inB(r,c)||LD.blocked(r,c,G)||LD.at(G,r,c))continue;
+    const foe=G.pieces.find(q=>q.alive&&q.p!==me&&q.rank>=3&&q.rank<=4);if(!foe)return;foe.r=r;foe.c=c;foe.revealed=true;
+    const w=RD.worldOf(r,c);RD.burst(w.x,w.y,['#ffffff','#ffe070'],20,1,2.5);RD.floatText(w.x,w.y,'A SCOUTING PARTY!','#ffe070');renderAll();return}}
+}
+function startWalkthrough(){
+  closeModal();
+  coach.steps=[
+   {title:'Welcome to Thalmar',t:`${LORE_SHORT} You rule <b>Crimson</b>, the red domain. Four computer rulers hold the rest. This walkthrough shows you everything in a real game.`},
+   {title:'Deploy your army',t:'Your eleven pieces stand in your home squares. Click one of your pieces, then another, to swap them. Your <b>Lord</b> is marked L: hide it where enemies will not look.',wait:'swap'},
+   {title:'Ready for war',t:'When your army is arranged, press <b>Ready</b> below the board.',wait:'ready'},
+   {title:'Two ways to look',t:'Press <b>View</b> at the top (or the V key) to switch between the low field view behind your army and the map from above. In the field view, ⟲ ⟳ rotate the island and ＋ − zoom.',wait:'view'},
+   {title:'Make a move',t:'Click one of your pieces, then a highlighted square. Most pieces move one square up, down, left or right. Scouts (3) run any distance in a straight line. Keeps never move.',wait:'moved'},
+   {title:'Hooded strangers',t:'Every enemy looks like a hooded figure until it fights. Hover over or tap an enemy piece: the Inspect panel shows your spies\' best guess at what it is.',wait:'inspectEnemy'},
+   {title:'Diplomacy',t:'Before you move, you may make one diplomatic act: <b>offer a pact</b> (no attacks for 6 rounds), <b>point the finger</b> at a rival, or crown one of your pieces with a <b>rumour</b> that it is your Lord. Try one in the Diplomacy panel.',wait:'diplo'},
+   {title:'To battle',t:'A revealed enemy Scout has wandered up to your lines. Attack it: select the piece beside it, then click the enemy (its square has a red frame). Both pieces are revealed and the higher rank wins.',wait:'attack',enter:stageAttack},
+   {title:'Killing a Lord',t:'Only three things beat a Lord: a <b>Spy</b> (whoever attacks, the Spy wins), another <b>Lord</b> that attacks first, or a <b>Keep</b> it is foolish enough to attack. You have two Spies. Keep them close to where you think an enemy Lord hides.'},
+   {title:'Breaking a Keep',t:'A Keep destroys anything that attacks it, except a <b>Sapper</b>. If a Sapper breaks a domain\'s Keep, that whole domain falls. Guard your Keep, and send your Sapper after theirs.'},
+   {title:'The restless island',t:`In Decisive mode, from round 6 the island reshapes itself every round. ${LORE_ISLAND}`},
+   {title:'Sky and seasons',t:'Time passes as you play: dawn, golden hour, night under the moon. Weather and seasons change too, and you can pick a holiday board when you start a new game. The 🔊 and ♪ buttons in the corner mute sound and music.'},
+   {title:'Your war now',t:'That is everything. Protect your Lord and your Keep, find theirs, make friends you can betray later, and trust carefully.'}];
+  coach.on=true;coach.i=0;
+  begin(['human','easy','easy','easy','easy'],{mode:'decisive',board:'spring',tutorial:true});
+  coachShow();
+}
 // ---------- game over ----------
 function gameOver(){
   V.viewer=-1;V.sel=null;V.legal=[];renderAll();
   const w=G.winner;const human=G.ctrl[w]==='human';const solo=humans().length===1;
-  SND.play(human||!solo?'victory':'lose');
+  SND.play(human||!solo?'victory':'lose');setTimeout(cueMusic,2500);coachStop();
   const lords=G.pieces.filter(x=>x.rank===9);
   modal(`<h2>${solo?(human?'Victory!':'Defeat'):`${D[w].name} wins`}</h2>
    <p>${G.stalemate?`The war ground to a halt. ${dom(w)} held the strongest army.`:`${dom(w)} is the last domain standing.`}</p>
@@ -1333,17 +1762,20 @@ function gameOver(){
 }
 // ---------- save / continue ----------
 function save(){if(G&&!G.over&&G.phase==='play')store.set('save',G)}
-function cont(){const g=store.get('save',null);if(!g)return;token++;G=g;RD.CUR.G=G;V.title=false;$('#titleMenu').hidden=true;V.mode=S.view;V.sel=null;V.legal=[];setViewer();if(humans().length===1)RD.faceDomain(humans()[0],true);renderAll();turnLoop(token)}
+function cont(){const g=store.get('save',null);if(!g)return;token++;clearInterval(titleTimer);coachStop();G=g;if(!G.env)G.env=ENV.create('random');LD.setG(G);seenQuake=G.lastQuake?G.lastQuake.n:0;RD.CUR.G=G;V.title=false;$('#titleMenu').hidden=true;V.mode=S.view;V.sel=null;V.legal=[];setViewer();if(humans().length===1)RD.faceDomain(humans()[0],true);renderAll();turnLoop(token)}
 // ---------- rules ----------
 function rules(){
   const rows=[9,8,7,6,5,4,3,2,1,0].map(k=>`<img src="${sprURL(k,0)}" alt=""><div><b>${LD.RANK_NAME[k]}</b>${k!==9&&k!==0?` (${k})`:''} · ${LD.RANK_TIP[k]}</div>`).join('');
   modal(`<h2>How to play</h2><div class="rules">
-  <p>Five domains share one island. Each has ten pieces, and one of them is its <b>Lord</b>. You know where your own Lord is. Everyone else's is a mystery.</p>
-  <h3>Winning</h3><ul><li>If a Lord falls, its whole domain falls with it.</li><li>The last Lord standing wins.</li><li>If no one fights for 40 rounds (or after 200 rounds), the strongest remaining army wins.</li></ul>
-  <h3>Your turn</h3><ul><li>Move one piece one square up, down, left or right. Scouts may run any distance in a straight line. Keeps never move.</li><li>Water cannot be crossed.</li><li>Moving onto an enemy is an attack. Both pieces are revealed to everyone. The higher rank wins; equal ranks both fall.</li><li>Special fights: a <b>Spy</b> that attacks a Lord kills it. Any attacker except a <b>Sapper</b> is destroyed by a <b>Keep</b>. A Lord who attacks another Lord wins.</li></ul>
+  <p>${LORE_SHORT}</p>
+  <p>Five domains share the island. Each has eleven pieces, and one of them is its <b>Lord</b>. You know where your own Lord is. Everyone else's is a mystery.</p>
+  <h3>Winning</h3><ul><li>If a Lord falls, its whole domain falls with it.</li><li>If a Sapper breaks a domain's Keep, that domain falls too.</li><li>The last domain standing wins.</li><li>Classic mode: if no one fights for 40 rounds (or after 200 rounds), the strongest remaining army wins.</li></ul>
+  <h3>Modes</h3><ul><li><b>Classic:</b> the island stands still.</li><li><b>Decisive, the restless island:</b> from round 6, every round empty land far from the fighting sinks into the sea and seabed rises as new land where it brings rivals closer. It never sinks a square with a piece on it and never cuts the roads between Lords. ${LORE_ISLAND}</li></ul>
+  <h3>Your turn</h3><ul><li>Move one piece one square up, down, left or right. Scouts may run any distance in a straight line. Keeps never move.</li><li>Water cannot be crossed.</li><li>Moving onto an enemy is an attack. Both pieces are revealed to everyone. The higher rank wins; equal ranks both fall.</li><li>Special fights: a <b>Spy</b> and a Lord who meet: the Lord dies, whoever attacks. Any attacker except a <b>Sapper</b> is destroyed by a <b>Keep</b>, and a Sapper who breaks a Keep topples that domain. A Lord who attacks another Lord wins.</li><li>Each domain has 11 pieces: Lord, Marshal, Knight, Captain, Guard, Raider, Scout, two Spies, Sapper and Keep.</li></ul>
   <h3>Reading the field</h3><ul><li>Enemy pieces look like hooded figures until they fight or are shown to you.</li><li>Pieces that have moved show small footprints. Keeps never move, so an unmoved piece might be a Keep, or a Lord staying hidden.</li><li>The Domains panel lists each rival's ranks that are still hidden. Inspect any piece to see your best guess.</li></ul>
   <h3>Diplomacy</h3><ul><li><b>Offer a pact:</b> for ${LD.PACT_LEN} rounds neither side attacks the other. Each side is shown one of the other's pieces.</li><li><b>Point the finger:</b> turn the other domains against a rival.</li><li><b>Rumour:</b> crown one of your pieces so rivals think it is your Lord. A Keep makes a nasty surprise.</li><li>You can attack an ally, but that breaks the pact, and every domain trusts you less.</li><li>Computer rulers have hidden personalities. Some keep their word. Some do not.</li></ul>
   <h3>The pieces</h3><div class="rtbl">${rows}</div>
+  <h3>Sky, seasons and holidays</h3><ul><li>Time passes as you play: a full day every ${ENV.DAY_ROUNDS} rounds, from dawn through golden hour to night.</li><li>Every game starts in a random season (or the one you pick), and the weather follows it: sun, cloud, rain, storms, snow and fog.</li><li>Holiday boards: ${Object.values(ENV.HOLIDAYS).map(h=>h.name).join(', ')}.</li><li>Music changes with the moment: five songs, from the title theme to the last stand.</li></ul>
   <h3>Views</h3><ul><li><b>Field</b> is the low view from behind your domain. Rotate with ⟲ ⟳ (Q/E) and zoom with + and −.</li><li><b>Map</b> is the view from above. Press V to switch.</li></ul>
   </div><div class="row"><button class="btn gold" data-x>Close</button></div>`,m=>m.querySelector('[data-x]').onclick=closeModal);
 }
@@ -1390,22 +1822,25 @@ addEventListener('keydown',e=>{
   if(!$('#modalBg').hidden){if(e.key==='Escape'&&!G?.over)closeModal();return}
   if(e.target.tagName==='SELECT'||e.target.tagName==='INPUT')return;
   const k=e.key.toLowerCase();
-  if(k==='v'){V.mode=V.mode==='field'?'map':'field';S.view=V.mode;saveS();syncView()}
+  if(k==='v'){V.mode=V.mode==='field'?'map':'field';S.view=V.mode;saveS();syncView();coachEmit('view')}
   if(k==='q')RD.rotate(-Math.PI/4);if(k==='e')RD.rotate(Math.PI/4);
   if(k==='+'||k==='=')RD.zoom(-20);if(k==='-')RD.zoom(20);
   if(k==='escape'){V.sel=null;V.legal=[];V.swapSel=null}
   if(k===' '&&BT.active){e.preventDefault();BT.skip()}
 });
-$('#bView').onclick=()=>{V.mode=V.mode==='field'?'map':'field';S.view=V.mode;saveS();syncView()};
+$('#bView').onclick=()=>{V.mode=V.mode==='field'?'map':'field';S.view=V.mode;saveS();syncView();coachEmit('view')};
 $('#bRotL').onclick=()=>RD.rotate(-Math.PI/4);$('#bRotR').onclick=()=>RD.rotate(Math.PI/4);
 $('#bZoomIn').onclick=()=>RD.zoom(-20);$('#bZoomOut').onclick=()=>RD.zoom(20);
 $('#bRules').onclick=rules;$('#tRules').onclick=rules;$('#bSettings').onclick=settings;$('#tSet').onclick=settings;
-$('#tNew').onclick=newGameModal;$('#tCont').onclick=cont;
+$('#tNew').onclick=newGameModal;$('#tCont').onclick=cont;$('#tWalk').onclick=startWalkthrough;
 $('#bMenu').onclick=async()=>{if(G&&!V.title&&!G.over){const ok=await ask('Leave this game?','<p>Your game is saved after every turn. You can continue it from the title screen.</p>',[{t:'Stay',v:false},{t:'Title screen',v:true,cls:'gold'}]);if(!ok)return}token++;waiting=null;showTitle()};
 $('#modalBg').addEventListener('click',e=>{if(e.target.id==='modalBg'&&!$('#modal [data-i]'))closeModal()});
 // expose for tests
 window.LDG={get G(){return G},S,V,begin,perform,store,get waiting(){return waiting}};
-syncView();RD.start();showTitle();if(S.music)SND.music(true);
+SND.music(S.music);renderCorner();
+// first interaction unlocks audio in the browser
+addEventListener('pointerdown',()=>{SND.unlock();cueMusic()},{once:true});
+syncView();RD.start();showTitle();
 })();
 
 </script>
