@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Lords & Domains: a five-player hidden-Lord strategy game with alliances, bluffs and betrayals.">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<title>Lords &amp; Domains</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --page:#d9d5e6;--ink:#1b1830;--muted:#55506e;--win-a:#3048b8;--win-b:#101c58;--win-ink:#ffffff;--win-muted:#b8c0f0;--edge:#f0f0ff;--edge2:#8890c0;
+  --gold:#ffe070;--bad:#ff7070;--ok:#8ce07c;--btn:#2a3a9c;--btn-hi:#4058d0;--shadow:0 6px 0 rgba(0,0,0,.25);
+  --font:"Pixelify Sans",ui-monospace,"Courier New",monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--page:#0b0d22;--ink:#e8e6f6;--muted:#a09cc0}}
+:root[data-theme="dark"]{--page:#0b0d22;--ink:#e8e6f6;--muted:#a09cc0}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--page);color:var(--ink);font-family:var(--font);font-size:16px}
+body{min-height:100vh;padding:max(10px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}
+button,select,input{font:inherit}
+[hidden]{display:none!important}
+.app{max-width:1280px;margin:0 auto;display:grid;gap:10px}
+.top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.brand{font-weight:700;font-size:1.35rem;letter-spacing:.04em;margin-right:auto;display:flex;align-items:center;gap:8px}
+.brand i{display:inline-block;width:14px;height:14px;background:var(--gold);box-shadow:3px 3px 0 #c08020;transform:rotate(45deg)}
+.btn{background:linear-gradient(#4a60d8,#24308c);color:#fff;border:2px solid var(--edge);border-radius:6px;padding:6px 12px;cursor:pointer;box-shadow:inset 0 -3px 0 rgba(0,0,0,.3);text-shadow:1px 1px 0 #000;min-height:36px}
+.btn:hover{filter:brightness(1.15)}.btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.45;cursor:not-allowed;filter:none}
+.btn.gold{background:linear-gradient(#ffd860,#c08018);color:#2a1800;text-shadow:none;border-color:#fff4c0}
+.btn.red{background:linear-gradient(#e05050,#8c1c24)}
+.btn.sm{padding:3px 8px;min-height:30px;font-size:.9rem}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:10px;align-items:start}
+.stage{position:relative;display:grid;gap:8px}
+.screenwrap{position:relative;background:#000;border:3px solid var(--edge);border-radius:8px;box-shadow:var(--shadow);overflow:hidden;aspect-ratio:384/240}
+#screen{display:block;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;cursor:pointer;touch-action:manipulation}
+.ctrls{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.ctrls .sp{flex:1}
+.win{background:linear-gradient(var(--win-a),var(--win-b));color:var(--win-ink);border:3px solid var(--edge);border-radius:8px;box-shadow:inset 0 0 0 1px var(--edge2),var(--shadow);padding:10px 12px}
+.win h3{margin:0 0 6px;font-size:1rem;color:var(--gold);letter-spacing:.04em;text-transform:uppercase}
+.win p{margin:4px 0;line-height:1.35}
+.muted{color:var(--win-muted)}
+.side{display:grid;gap:10px}
+.dom{display:grid;grid-template-columns:auto 1fr auto;gap:2px 8px;align-items:center;padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.18)}
+.dom:last-child{border-bottom:0}
+.dom .sw{width:14px;height:14px;border:2px solid #fff;border-radius:3px;grid-row:span 2}
+.dom b{font-weight:700}
+.dom .meta{font-size:.82rem;color:var(--win-muted);grid-column:2/4}
+.dom.dead{opacity:.45}.dom.dead b{text-decoration:line-through}
+.dom.turn b::after{content:" ◄";color:var(--gold)}
+.chips{display:inline-flex;gap:2px;flex-wrap:wrap}
+.chip{display:inline-block;min-width:16px;text-align:center;font-size:.75rem;padding:0 3px;border-radius:3px;background:rgba(255,255,255,.15)}
+.chip.l{background:var(--gold);color:#2a1800}
+.att{font-size:.78rem;padding:1px 6px;border-radius:999px;border:1px solid rgba(255,255,255,.4)}
+.att.Allied{background:#2c8c3c}.att.Friendly{background:#3c7c5c}.att.Hostile{background:#9c2c2c}.att.Wary{background:#8c6c1c}
+.drow{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.drow select{background:#101c58;color:#fff;border:2px solid var(--edge2);border-radius:6px;padding:4px 6px;min-height:34px}
+#log{max-height:220px;overflow:auto;font-size:.88rem;line-height:1.35;display:grid;gap:3px}
+#log div{padding-left:8px;border-left:4px solid transparent}
+.info{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}
+.info canvas{width:48px;height:72px;image-rendering:pixelated;background:rgba(0,0,0,.25);border-radius:4px}
+.bars{display:grid;gap:2px;margin-top:4px;font-size:.8rem}
+.bar{display:grid;grid-template-columns:62px 1fr 34px;gap:6px;align-items:center}
+.bar i{display:block;height:7px;background:var(--gold);border-radius:2px}
+.modal-bg{position:fixed;inset:0;background:rgba(4,6,24,.72);display:flex;align-items:center;justify-content:center;padding:14px;z-index:50}
+.modal{max-width:640px;width:100%;max-height:90vh;overflow:auto}
+.modal h2{margin:0 0 8px;color:var(--gold);font-size:1.4rem}
+.modal .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:12px}
+.seats{display:grid;gap:6px;margin:8px 0}
+.seat{display:grid;grid-template-columns:20px 1fr 170px;gap:8px;align-items:center}
+.seat select{background:#101c58;color:#fff;border:2px solid var(--edge2);border-radius:6px;padding:4px;min-height:34px}
+.presets{display:flex;gap:6px;flex-wrap:wrap}
+.rules h3{color:var(--gold);margin:12px 0 4px}
+.rules ul{margin:4px 0;padding-left:18px;line-height:1.45}
+.rtbl{display:grid;grid-template-columns:36px 1fr;gap:6px 10px;align-items:center}
+.rtbl img{width:32px;height:48px;image-rendering:pixelated}
+.toast{position:absolute;left:50%;top:26px;transform:translateX(-50%);max-width:90%;z-index:5;pointer-events:none;font-size:.95rem;text-align:center}
+.titlemenu{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);display:flex;gap:8px;flex-wrap:wrap;justify-content:center;z-index:4}
+.setrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.18)}
+.seg{display:inline-flex;border:2px solid var(--edge2);border-radius:6px;overflow:hidden}
+.seg button{background:#101c58;color:#fff;border:0;padding:4px 10px;cursor:pointer;min-height:32px}
+.seg button.on{background:var(--gold);color:#2a1800}
+.kbd{font-size:.8rem;color:var(--win-muted)}
+@media (max-width:900px){.layout{grid-template-columns:1fr}.brand{font-size:1.1rem}}
+@media (max-width:520px){.titlemenu{bottom:10px}.titlemenu .btn{padding:4px 8px;min-height:32px;font-size:.85rem}.seat{grid-template-columns:20px 1fr 130px}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="top">
+    <div class="brand"><i></i>Lords &amp; Domains</div>
+    <button class="btn sm" id="bView" title="Switch between the field and the map (V)">View: Map</button>
+    <button class="btn sm" id="bRotL" title="Rotate left (Q)" aria-label="Rotate left">⟲</button>
+    <button class="btn sm" id="bRotR" title="Rotate right (E)" aria-label="Rotate right">⟳</button>
+    <button class="btn sm" id="bZoomIn" title="Closer (+)" aria-label="Zoom in">＋</button>
+    <button class="btn sm" id="bZoomOut" title="Further (-)" aria-label="Zoom out">－</button>
+    <button class="btn sm" id="bRules">Rules</button>
+    <button class="btn sm" id="bSettings">Settings</button>
+    <button class="btn sm" id="bMenu">Menu</button>
+  </div>
+  <div class="layout">
+    <div class="stage">
+      <div class="screenwrap"><canvas id="screen"></canvas>
+        <div class="win toast" id="toast" hidden></div>
+        <div class="titlemenu" id="titleMenu">
+          <button class="btn gold" id="tNew">New game</button>
+          <button class="btn" id="tCont" hidden>Continue</button>
+          <button class="btn" id="tRules">How to play</button>
+          <button class="btn" id="tSet">Settings</button>
+        </div>
+      </div>
+      <div class="win" id="turnBox"><h3>Welcome</h3><p>Five domains. Five hidden Lords. Press <b>New game</b> to begin.</p></div>
+    </div>
+    <div class="side">
+      <div class="win" id="infoBox"><h3>Inspect</h3><p class="muted">Hover over or tap a piece to read about it.</p></div>
+      <div class="win" id="domBox"><h3>Domains</h3><div id="doms"></div></div>
+      <div class="win" id="diploBox" hidden><h3>Diplomacy</h3><div id="diplo"></div></div>
+      <div class="win"><h3>Chronicle</h3><div id="log"></div></div>
+    </div>
+  </div>
+</div>
+<div class="modal-bg" id="modalBg" hidden><div class="win modal" id="modal" role="dialog" aria-modal="true"></div></div>
+
+<script>
+// ===================== Lords & Domains: rules, diplomacy and AI =====================
+// Pure game logic. No DOM. The same code runs in the page and in tests.
+const LD=(()=>{
+const N=13, TILE=16;
+const RANK_NAME={9:'Lord',8:'Marshal',7:'Knight',6:'Captain',5:'Guard',4:'Raider',3:'Scout',2:'Spy',1:'Sapper',0:'Keep'};
+const RANK_SHORT={9:'L',8:'8',7:'7',6:'6',5:'5',4:'4',3:'3',2:'2',1:'1',0:'K'};
+const RANK_TIP={
+ 9:'Your ruler and your strongest piece. It beats every rank, and a Lord who attacks another Lord wins. An attacking Spy kills it, and attacking a Keep destroys it. If it falls, your whole domain falls.',
+ 8:'The strongest fighter. Loses only to the Lord, a Keep, or another Marshal (both fall).',
+ 7:'Heavy cavalry. Beats every rank below 7.',
+ 6:'A veteran officer. Beats every rank below 6.',
+ 5:'Steady infantry. Beats every rank below 5.',
+ 4:'A fast striker. Beats every rank below 4.',
+ 3:'Moves any number of open squares in a straight line. Good for probing unknown pieces.',
+ 2:'Weak in a fair fight, but kills a Lord when the Spy attacks first.',
+ 1:'The only piece that can break a Keep.',
+ 0:'A fortified tower. It never moves. Anything that attacks it is destroyed, except a Sapper.'};
+const VALUE={9:40,8:9,7:7,6:5.5,5:4,4:3.2,3:2.6,2:3.4,1:3,0:2.2};
+const DOMAINS=[
+ {name:'Crimson',banner:'the Ember Crown'},
+ {name:'Azure',banner:'the Tide Throne'},
+ {name:'Verdant',banner:'the Greenwood Seat'},
+ {name:'Golden',banner:'the Sun Court'},
+ {name:'Violet',banner:'the Dusk Spire'}];
+// Five homes roughly evenly spaced around the board. Each: 3x3 block on the edge + one forward square.
+const HOMES=[
+ {block:[10,5],front:[9,6]},
+ {block:[6,0],front:[7,3]},
+ {block:[0,1],front:[3,2]},
+ {block:[0,9],front:[3,10]},
+ {block:[6,10],front:[7,9]}];
+// home cells ordered back-to-front so setup index 0 is the safest corner
+function homeCells(p){
+  const h=HOMES[p],[br,bc]=h.block,cells=[];
+  for(let r=br;r<br+3;r++)for(let c=bc;c<bc+3;c++)cells.push([r,c]);
+  const cr=6,cc=6;const d=([r,c])=>Math.abs(r-cr)+Math.abs(c-cc);
+  cells.sort((a,b)=>d(b)-d(a));cells.push(h.front);return cells;
+}
+const WATER=new Set(['6,6','5,4','5,8','8,4','8,8']);
+const isWater=(r,c)=>WATER.has(r+','+c);
+const inB=(r,c)=>r>=0&&c>=0&&r<N&&c<N;
+const PERSONAS=[
+ {name:'Honourable',honor:.9,greed:.3,deceit:.1,aggr:.5,blurb:'keeps its word, mostly'},
+ {name:'Opportunist',honor:.4,greed:.8,deceit:.5,aggr:.6,blurb:'goes where the gold is'},
+ {name:'Warlike',honor:.5,greed:.6,deceit:.2,aggr:.95,blurb:'would rather fight than talk'},
+ {name:'Schemer',honor:.25,greed:.6,deceit:.9,aggr:.5,blurb:'loves a rumour'},
+ {name:'Cautious',honor:.75,greed:.35,deceit:.3,aggr:.3,blurb:'guards its walls'}];
+const DIFF={chaos:{noise:40,look:0,aggr:1},easy:{noise:3.2,look:.4,aggr:1.15},normal:{noise:1.1,look:.8,aggr:.8},hard:{noise:.35,look:1,aggr:.4}};
+const PACT_LEN=6;
+
+let rnd=Math.random;
+const setRandom=f=>{rnd=f};
+const pick=a=>a[Math.floor(rnd()*a.length)];
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+// ---------- new game ----------
+function newGame(opts){
+  const ctrl=opts.ctrl||['human','ai','ai','ai','ai'];
+  const diff=opts.diff||['normal','normal','normal','normal','normal'];
+  const personas=shuffle(PERSONAS.slice());
+  const G={v:1,n:N,round:1,turn:0,phase:'setup',ctrl,diff,pieces:[],alive:[true,true,true,true,true],
+    persona:personas.map(p=>p.name),trust:[...Array(5)].map(()=>Array(5).fill(50)),pacts:[...Array(5)].map(()=>Array(5).fill(0)),
+    rep:[0,0,0,0,0],accused:[0,0,0,0,0],grudge:[...Array(5)].map(()=>Array(5).fill(0)),kills:[0,0,0,0,0],
+    offers:[],log:[],lastCapture:1,over:false,winner:null,fallenBy:[null,null,null,null,null],actedDiplo:false,
+    stats:{clashes:0,betrayals:0},ready:[false,false,false,false,false]};
+  for(let p=0;p<5;p++){
+    const cells=homeCells(p);
+    const ranks=ctrl[p]==='ai'?aiSetup():shuffle([9,8,7,6,5,4,3,2,1,0]);
+    cells.forEach(([r,c],i)=>G.pieces.push({id:G.pieces.length,p,rank:ranks[i],r,c,alive:true,moves:0,revealed:false,known:[],rumor:false,prev:null,lastMoved:0}));
+  }
+  addLog(G,'The five domains take the field. Each Lord is hidden among its own.');
+  return G;
+}
+// AI setup: Lord in the back, a Keep beside it, Spy and Scouts forward.
+function aiSetup(){
+  const order=[9,0,5,8,1,6,7,2,4,3]; // index 0 = safest
+  const r=order.slice();
+  // a little variety so the Lord is not always in the same corner
+  if(rnd()<.5){[r[0],r[2]]=[r[2],r[0]]}
+  if(rnd()<.35){[r[0],r[3]]=[r[3],r[0]]}
+  if(rnd()<.5){[r[4],r[6]]=[r[6],r[4]]}
+  if(rnd()<.5){[r[7],r[9]]=[r[9],r[7]]}
+  return r;
+}
+function addLog(G,t,p){G.log.push({t,p:p==null?-1:p,round:G.round});if(G.log.length>200)G.log.shift()}
+const at=(G,r,c)=>G.pieces.find(x=>x.alive&&x.r===r&&x.c===c)||null;
+const alivePieces=(G,p)=>G.pieces.filter(x=>x.alive&&x.p===p);
+const lordOf=(G,p)=>G.pieces.find(x=>x.alive&&x.p===p&&x.rank===9);
+
+// ---------- setup ----------
+function swapSetup(G,a,b){const A=G.pieces[a],B=G.pieces[b];if(!A||!B||A.p!==B.p)return;[A.rank,B.rank]=[B.rank,A.rank]}
+function shuffleSetup(G,p){const ps=alivePieces(G,p);const rs=shuffle(ps.map(x=>x.rank));ps.forEach((x,i)=>x.rank=rs[i])}
+function suggestSetup(G,p){const cells=homeCells(p);const rs=aiSetup();cells.forEach(([r,c],i)=>{at(G,r,c).rank=rs[i]})}
+function startPlay(G){G.phase='play';G.turn=0;while(!G.alive[G.turn])G.turn=(G.turn+1)%5;addLog(G,'Battle begins. '+DOMAINS[G.turn].name+' moves first.')}
+
+// ---------- movement ----------
+function movesFor(G,x){
+  if(!x||!x.alive||x.rank===0)return[];
+  const out=[],max=x.rank===3?N:1;
+  for(const [dr,dc] of [[1,0],[-1,0],[0,1],[0,-1]]){
+    for(let s=1;s<=max;s++){
+      const r=x.r+dr*s,c=x.c+dc*s;
+      if(!inB(r,c)||isWater(r,c))break;
+      const t=at(G,r,c);
+      if(!t){out.push({r,c,attack:false});continue}
+      if(t.p!==x.p)out.push({r,c,attack:true,target:t.id});
+      break;
+    }
+  }
+  return out;
+}
+function allMoves(G,p){const o=[];for(const x of alivePieces(G,p))for(const m of movesFor(G,x))o.push({id:x.id,...m});return o}
+// combat: 1 attacker wins, -1 defender wins, 0 both fall
+function resolve(a,d){
+  if(d===0)return a===1?1:-1;          // Keep: only a Sapper breaks it
+  if(a===2&&d===9)return 1;            // Spy strikes the Lord
+  if(a===9&&d===9)return 1;            // a Lord who strikes first wins the duel
+  if(a>d)return 1; if(a<d)return -1; return 0;
+}
+const hasPact=(G,a,b)=>a!==b&&G.pacts[a][b]>=G.round;
+// Perform a move. Returns a list of events for the renderer.
+function doMove(G,id,r,c){
+  const x=G.pieces[id];const ev=[];
+  const t=at(G,r,c);
+  const from={r:x.r,c:x.c};
+  x.prev=from;x.moves++;x.lastMoved=G.round;
+  if(!t){x.r=r;x.c=c;ev.push({type:'move',id,from,to:{r,c}});}
+  else{
+    G.stats.clashes++;
+    const betray=hasPact(G,x.p,t.p);
+    if(betray)breakPact(G,x.p,t.p,ev);
+    const res=resolve(x.rank,t.rank);
+    // grudges and trust
+    G.grudge[t.p][x.p]+=1.2;G.trust[t.p][x.p]=clamp(G.trust[t.p][x.p]-12,0,100);
+    x.revealed=true;t.revealed=true;
+    const e={type:'clash',att:id,def:t.id,from,to:{r,c},result:res,aRank:x.rank,dRank:t.rank,ap:x.p,dp:t.p};
+    ev.push(e);
+    const nm=(q)=>`${DOMAINS[q.p].name} ${RANK_NAME[q.rank]}`;
+    let line=`${nm(x)} attacks ${nm(t)}. `;
+    if(res>0){t.alive=false;x.r=r;x.c=c;G.kills[x.p]++;
+      line+=t.rank===0?'The Sapper breaks the Keep.':x.rank===2&&t.rank===9?'The Spy strikes down the Lord!':`${DOMAINS[x.p].name} wins.`}
+    else if(res<0){x.alive=false;G.kills[t.p]++;line+=t.rank===0?'The Keep holds. The attacker is destroyed.':`${DOMAINS[t.p].name} holds.`}
+    else{x.alive=false;t.alive=false;line+='Both fall.'}
+    addLog(G,line,x.p);G.lastCapture=G.round;
+    // a fallen Lord takes the domain with it
+    for(const q of [t,x])if(!q.alive&&q.rank===9&&G.alive[q.p]){fallDomain(G,q.p,q===t?x.p:t.p,ev)}
+  }
+  return ev;
+}
+function fallDomain(G,p,by,ev){
+  G.alive[p]=false;G.fallenBy[p]=by;
+  for(const q of G.pieces)if(q.p===p&&q.alive){q.alive=false;q.revealed=true}
+  for(let b=0;b<5;b++){G.pacts[p][b]=0;G.pacts[b][p]=0}
+  addLog(G,`The Lord of ${DOMAINS[p].name} has fallen${by!=null&&by!==p?' to '+DOMAINS[by].name:''}. The domain collapses.`,p);
+  ev.push({type:'fall',p,by});
+}
+function breakPact(G,a,b,ev){
+  G.pacts[a][b]=0;G.pacts[b][a]=0;G.rep[a]++;G.stats.betrayals++;
+  G.trust[b][a]=0;G.grudge[b][a]+=3;
+  for(let o=0;o<5;o++)if(o!==a&&o!==b)G.trust[o][a]=clamp(G.trust[o][a]-12,0,100);
+  addLog(G,`${DOMAINS[a].name} breaks its pact with ${DOMAINS[b].name}!`,a);
+  ev&&ev.push({type:'betray',a,b});
+}
+function nextTurn(G){
+  const al=G.alive.filter(Boolean).length;
+  if(al<=1){G.over=true;G.winner=G.alive.indexOf(true);addLog(G,`${DOMAINS[G.winner].name} claims every domain.`,G.winner);return}
+  // stalemate: long quiet stretch or round limit
+  if(G.round-G.lastCapture>=40||G.round>=200){
+    let best=-1,bv=-1;for(let p=0;p<5;p++)if(G.alive[p]){const v=alivePieces(G,p).reduce((s,x)=>s+(x.rank===9?0:VALUE[x.rank]),0);if(v>bv){bv=v;best=p}}
+    G.over=true;G.winner=best;G.stalemate=true;addLog(G,`The war grinds to a halt. ${DOMAINS[best].name} holds the strongest army and is named High Lord.`,best);return;
+  }
+  let t=G.turn;
+  do{t=(t+1)%5;if(t===0)endRound(G)}while(!G.alive[t]);
+  G.turn=t;G.actedDiplo=false;
+  if(!allMoves(G,t).length){addLog(G,`${DOMAINS[t].name} cannot move.`,t);return nextTurn(G)}
+}
+function endRound(G){
+  G.round++;
+  for(let p=0;p<5;p++){G.accused[p]=Math.max(0,G.accused[p]-.12);for(let q=0;q<5;q++)G.grudge[p][q]*=.93}
+  for(let a=0;a<5;a++)for(let b=a+1;b<5;b++)if(G.pacts[a][b]&&G.pacts[a][b]===G.round-1){
+    G.pacts[a][b]=G.pacts[b][a]=0;G.trust[a][b]=clamp(G.trust[a][b]+10,0,100);G.trust[b][a]=clamp(G.trust[b][a]+10,0,100);
+    if(G.alive[a]&&G.alive[b])addLog(G,`The pact between ${DOMAINS[a].name} and ${DOMAINS[b].name} ends honourably.`);
+  }
+}
+
+// ---------- knowledge ----------
+// Is piece x's rank visible to player v?
+const visibleTo=(x,v)=>x.p===v||x.revealed||x.known.includes(v);
+// Probability distribution over ranks for an unknown piece from player v's point of view.
+function belief(G,x,v){
+  const out={};
+  if(visibleTo(x,v)){out[x.rank]=1;return out}
+  const mine=G.pieces.filter(q=>q.p===x.p);
+  const hidden=new Set([0,1,2,3,4,5,6,7,8,9]);
+  for(const q of mine)if(!q.alive||visibleTo(q,v))hidden.delete(q.rank);
+  const unk=mine.filter(q=>q.alive&&!visibleTo(q,v));
+  const n=unk.length;if(!n)return{5:1};
+  let p0=0,p9=0;
+  if(hidden.has(0)){const still=unk.filter(q=>q.moves===0).length;p0=x.moves===0&&still?1/still:0}
+  if(hidden.has(9)){
+    const w=q=>(q.moves===0?1.6:1/(1+q.moves*.5))*(q.rumor?1.9:1)*(q.moves===0&&hidden.has(0)?1:1);
+    const tot=unk.reduce((s,q)=>s+w(q),0);p9=w(x)/tot;
+    if(p0+p9>1){p9=1-p0}
+  }
+  const rest=[...hidden].filter(k=>k!==0&&k!==9);
+  if(p0)out[0]=p0;if(p9)out[9]=p9;
+  const m=Math.max(0,1-p0-p9);
+  if(rest.length)for(const k of rest)out[k]=(out[k]||0)+m/rest.length;
+  else if(m>0){out[9]=(out[9]||0)+m}
+  return out;
+}
+
+// ---------- diplomacy ----------
+function strength(G,p){return alivePieces(G,p).reduce((s,x)=>s+(x.rank===9?0:VALUE[x.rank]),0)}
+function threat(G,p){
+  if(!G.alive[p])return 0;
+  const al=[0,1,2,3,4].filter(q=>G.alive[q]);
+  const avg=al.reduce((s,q)=>s+strength(G,q),0)/al.length||1;
+  return strength(G,p)/avg+G.kills[p]*.06;
+}
+// the clear leader, or -1 when nobody stands out
+function leader(G){let b=-1,bv=-1,second=-1;for(let p=0;p<5;p++)if(G.alive[p]){const t=threat(G,p);if(t>bv){second=bv;bv=t;b=p}else if(t>second)second=t}return bv>second*1.1+.02?b:-1}
+const credibility=(G,p)=>clamp(1-G.rep[p]*.22-(G.rumors&&G.rumors[p]||0)*.04,.2,1);
+// How much player a wants to hurt player d.
+function hostility(G,a,d,raw){
+  if(a===d||!G.alive[d])return 0;
+  const P=PERSONAS.find(x=>x.name===G.persona[a]);
+  let h=.35+threat(G,d)*.55+(100-G.trust[a][d])/100*.5+G.accused[d]+G.grudge[a][d]*.35;
+  h*=.6+P.aggr*.6;
+  if(!raw&&hasPact(G,a,d))h*=.12;
+  return clamp(h,.05,3.5);
+}
+function attitude(G,a,d){const t=G.trust[a][d];return hasPact(G,a,d)?'Allied':t>=70?'Friendly':t>=45?'Neutral':t>=25?'Wary':'Hostile'}
+function pactCount(G,p){let n=0;for(let q=0;q<5;q++)if(hasPact(G,p,q))n++;return n}
+// Would AI d accept a pact from a? Returns {ok, why}
+function wouldAccept(G,d,a){
+  if(!G.alive[d]||!G.alive[a])return{ok:false,why:'gone'};
+  if(hasPact(G,d,a))return{ok:false,why:'already'};
+  const P=PERSONAS.find(x=>x.name===G.persona[d]);
+  const lead=leader(G);
+  let s=G.trust[d][a]/100+(lead===a?-.45:.15)+(lead!==d&&lead!==a?.15:0)-G.rep[a]*.18+P.honor*.15-G.grudge[d][a]*.12-pactCount(G,d)*.15;
+  const ok=s>.52;
+  const why=ok?pick(['We stand together, for now.','Agreed. Our swords point elsewhere.','A wise offer. We accept.']):
+    lead===a?'You are already too strong. No.':G.rep[a]>0?'You have broken pacts before. No.':G.grudge[d][a]>1?'We remember what you did. No.':'Not today.';
+  return{ok,why};
+}
+function makePact(G,a,b){
+  G.pacts[a][b]=G.pacts[b][a]=G.round+PACT_LEN;
+  G.pactCool=G.pactCool||[...Array(5)].map(()=>Array(5).fill(0));G.pactCool[a][b]=G.pactCool[b][a]=G.round+PACT_LEN+5;
+  G.trust[a][b]=clamp(G.trust[a][b]+8,0,100);G.trust[b][a]=clamp(G.trust[b][a]+8,0,100);
+  addLog(G,`${DOMAINS[a].name} and ${DOMAINS[b].name} sign a pact for ${PACT_LEN} rounds.`);
+  // tokens of trust: each shows the other one non-Lord piece
+  const shown=[];
+  for(const [x,y] of [[a,b],[b,a]]){
+    const cand=alivePieces(G,x).filter(q=>q.rank!==9&&!q.revealed&&!q.known.includes(y));
+    if(cand.length){const q=pick(cand);q.known.push(y);shown.push({from:x,to:y,id:q.id})}
+  }
+  return shown;
+}
+function accuse(G,a,d){
+  const cr=credibility(G,a);G.accused[d]=clamp(G.accused[d]+.45*cr,0,1.2);
+  G.trust[d][a]=clamp(G.trust[d][a]-14,0,100);G.rumors=G.rumors||[0,0,0,0,0];G.rumors[a]++;
+  addLog(G,`${DOMAINS[a].name} spreads word that ${DOMAINS[d].name} plots against everyone.`,a);
+}
+function plantRumor(G,id){
+  const x=G.pieces[id];for(const q of alivePieces(G,x.p))q.rumor=false;x.rumor=true;
+  addLog(G,`A rumour spreads: ${DOMAINS[x.p].name}'s Lord has been seen on the field.`,x.p);
+}
+// AI diplomacy at the start of its turn. Returns events (offers to humans etc.)
+function aiDiplomacy(G,a){
+  const P=PERSONAS.find(x=>x.name===G.persona[a]);const out=[];
+  const al=[0,1,2,3,4].filter(q=>G.alive[q]&&q!==a);
+  const lead=leader(G);
+  // pacts
+  G.pactCool=G.pactCool||[...Array(5)].map(()=>Array(5).fill(0));
+  if(pactCount(G,a)<1&&rnd()<.07+(lead!==a?.04:0)){
+    const cands=al.filter(d=>!hasPact(G,a,d)&&d!==lead&&G.trust[a][d]>=35&&G.pactCool[a][d]<=G.round&&pactCount(G,d)<2);
+    if(cands.length){
+      const d=cands.sort((x,y)=>G.trust[a][y]-G.trust[a][x])[0];
+      if(G.ctrl[d]==='human'){if(!G.offers.some(o=>o.from===a&&o.to===d))G.offers.push({from:a,to:d,round:G.round});}
+      else{const r=wouldAccept(G,d,a);if(r.ok){makePact(G,a,d)}}
+    }
+  }
+  // rumours
+  G.lastAccuse=G.lastAccuse||[-9,-9,-9,-9,-9];
+  if(rnd()<P.deceit*.18&&lead>=0&&lead!==a&&G.round-G.lastAccuse[a]>=6){G.lastAccuse[a]=G.round;accuse(G,a,lead)}
+  if(rnd()<P.deceit*.08){const decoys=alivePieces(G,a).filter(x=>x.rank===0||x.rank===8||x.rank===7);if(decoys.length&&!alivePieces(G,a).some(x=>x.rumor&&x.alive))plantRumor(G,pick(decoys).id)}
+  return out;
+}
+
+// ---------- move AI ----------
+// Expected value of piece x (rank known to owner) fighting an enemy with belief B, as attacker.
+function fightEV(G,a,x,t,B,host,deep){
+  let ev=0,pwin=0;
+  for(const k in B){const p=B[k];const kr=+k;const res=resolve(x.rank,kr);
+    let v;
+    if(res>0)v=VALUE[kr]*host+(kr===9?60*host:0);
+    else if(res<0)v=-(x.rank===9?500:VALUE[x.rank]);
+    else v=VALUE[kr]*host-(x.rank===9?500:VALUE[x.rank])+(kr===9?60*host:0);
+    ev+=p*v;if(res>0)pwin+=p;
+  }
+  return{ev,pwin};
+}
+// Danger to piece x if it stands on (r,c): expected loss from enemies who could attack it next.
+function danger(G,a,x,r,c){
+  let d=0;
+  for(const q of G.pieces){
+    if(!q.alive||q.p===a||q.rank===0&&visibleTo(q,a))continue;
+    const dist=Math.abs(q.r-r)+Math.abs(q.c-c);
+    if(dist!==1){if(!(dist>1&&dist<6&&(q.r===r||q.c===c)&&scoutLine(G,q,r,c,a)))continue}
+    const B=belief(G,q,a);let pk=0;
+    for(const k in B){const kr=+k;if(kr===0)continue;if(dist>1&&kr!==3)continue;
+      // q attacks x: does q win?
+      const res=resolve(kr,x.rank);if(res>0)pk+=B[k];else if(res===0)pk+=B[k]*.5}
+    const h=hasPact(G,q.p,a)?.15:1;
+    const looks=x.revealed?1:.4; // hidden pieces are attacked less eagerly
+    d+=pk*h*looks*(x.rank===9?120:VALUE[x.rank]);
+  }
+  return d;
+}
+function scoutLine(G,q,r,c,a){ // could a scout at q slide to (r,c)?
+  const dr=Math.sign(r-q.r),dc=Math.sign(c-q.c);let rr=q.r+dr,cc=q.c+dc;
+  while(rr!==r||cc!==c){if(isWater(rr,cc)||at(G,rr,cc))return false;rr+=dr;cc+=dc}
+  return true;
+}
+function aiChoose(G,a){
+  const moves=allMoves(G,a);if(!moves.length)return null;
+  const D=DIFF[G.diff[a]]||DIFF.normal;const P=PERSONAS.find(x=>x.name===G.persona[a]);
+  const host=[0,1,2,3,4].map(d=>hostility(G,a,d));
+  const myLord=lordOf(G,a);
+  // the longer the war, the bolder everyone gets
+  const alv=G.alive.filter(Boolean).length;
+  // patient players hold back while many domains remain, then strike
+  const bold=(1+clamp((G.round-12)/20,0,2)+(alivePieces(G,a).length<=4?.8:0))*(alv<=2?1:D.aggr);
+  const lordDanger=myLord?danger(G,a,myLord,myLord.r,myLord.c):0;
+  // targets of interest for approach: likely Lords and weak known pieces of hostile domains
+  const targets=G.pieces.filter(q=>q.alive&&q.p!==a&&G.alive[q.p]).map(q=>{const B=belief(G,q,a);return{q,w:host[q.p]*((B[9]||0)*6+(q.rumor?1.5:0)+.4)}});
+  let best=null,bs=-Infinity;
+  for(const m of moves){
+    const x=G.pieces[m.id];let s=0;
+    if(m.attack){
+      const t=G.pieces[m.target];const B=belief(G,t,a);
+      const hp=hasPact(G,a,t.p)?hostility(G,a,t.p,true):host[t.p];
+      const f=fightEV(G,a,x,t,B,hp);
+      s=f.ev*(f.ev>0?bold:1)+(visibleTo(t,a)?0:(x.rank<=4?1.6:.9)*hp*bold);
+      if(hasPact(G,a,t.p)){
+        // betrayal: tempting when the ally's Lord is in reach, the ally is winning, or the pact is nearly over
+        const lordShot=(B[9]||0)*f.pwin;const lead=leader(G)===t.p;const ending=G.pacts[a][t.p]-G.round<=1;
+        s-=4+P.honor*26-(lead?5:0)-(ending?3:0)-lordShot*14*(1-P.honor);
+      }
+      // defending our Lord
+      if(myLord&&Math.abs(t.r-myLord.r)+Math.abs(t.c-myLord.c)===1)s+=lordDanger*.08*f.pwin;
+      // after winning, does the piece stand exposed?
+      s-=danger(G,a,{...x,revealed:true},m.r,m.c)*.35*f.pwin*D.look;
+      if(x.rank===9)s-=6/bold;
+    }else{
+      const d0=danger(G,a,x,x.r,x.c),d1=danger(G,a,x,m.r,m.c);
+      s+=(d0-d1)*.35*D.look/bold;
+      if(x.rank===9){s-=4/bold;if(lordDanger>6)s+=(d0-d1)*.6;
+        const fr=(r,c)=>[[1,0],[-1,0],[0,1],[0,-1]].filter(([dr,dc])=>{const q=at(G,r+dr,c+dc);return q&&q.p===a}).length;
+        s+=(fr(m.r,m.c)-fr(x.r,x.c))*.6;}
+      if(x.rank!==9||bold>2.2){
+        // approach the most interesting target
+        let bestT=0;for(const T of targets){const dd0=Math.abs(T.q.r-x.r)+Math.abs(T.q.c-x.c),dd1=Math.abs(T.q.r-m.r)+Math.abs(T.q.c-m.c);
+          const fit=x.rank===2?((belief(G,T.q,a)[9]||0)*3+.2):x.rank===1?((belief(G,T.q,a)[0]||0)*2+.2):x.rank>=6?1.3:.7;
+          const g=(dd0-dd1)*T.w*fit/(1+dd1*.35);if(g>bestT)bestT=g}
+        s+=bestT*(.8+P.aggr*.7)*bold;
+        // keep some guards near the Lord
+        if(myLord&&x.rank>=5){const l0=Math.abs(myLord.r-x.r)+Math.abs(myLord.c-x.c),l1=Math.abs(myLord.r-m.r)+Math.abs(myLord.c-m.c);if(lordDanger>4)s+=(l0-l1)*.5}
+      }
+      if(x.prev&&x.prev.r===m.r&&x.prev.c===m.c)s-=1.2;
+      if(x.rank===3&&!x.revealed)s+=.1;
+    }
+    s+=(rnd()-.5)*D.noise*2;
+    if(s>bs){bs=s;best=m}
+  }
+  return best;
+}
+
+return {N,TILE,RANK_NAME,RANK_SHORT,RANK_TIP,VALUE,DOMAINS,HOMES,PERSONAS,PACT_LEN,homeCells,WATER,isWater,inB,newGame,swapSetup,shuffleSetup,suggestSetup,startPlay,
+  movesFor,allMoves,resolve,doMove,nextTurn,visibleTo,belief,threat,leader,hostility,attitude,wouldAccept,makePact,accuse,plantRumor,aiDiplomacy,aiChoose,
+  hasPact,breakPact,alivePieces,lordOf,at,strength,credibility,pactCount,setRandom,addLog};
+})();
+if(typeof module!=='undefined')module.exports=LD;
+
+// ===================== Pixel art: palette, sprites, font =====================
+const PX=(()=>{
+const BASEPAL={k:'#1a1020',s:'#f4c094',S:'#c27a58',h:'#6a4024',H:'#3e2414',m:'#e4ecf4',M:'#9098b4',N:'#545c74',g:'#f8d448',G:'#b07c1c',
+  b:'#9c6436',B:'#5e3a1e',w:'#ffffff',W:'#c8d0e0',e:'#24101c',r:'#e83c3c',c:'#78d0ff',d:'#241c30',y:'#fff4a0',o:'#f08830',v:'#3a8a44',x:'#a0a8b8'};
+const TEAM=[
+ {P:'#cc3040',Q:'#781c2c',L:'#ff7c7c',hex:'#cc3040',name:'Crimson'},
+ {P:'#3474dc',Q:'#1c3c8c',L:'#80bcff',hex:'#3474dc',name:'Azure'},
+ {P:'#3ca040',Q:'#1c5c2c',L:'#92dc78',hex:'#3ca040',name:'Verdant'},
+ {P:'#dca420',Q:'#8c5c10',L:'#ffe474',hex:'#dca420',name:'Golden'},
+ {P:'#8c4cd0',Q:'#4c2484',L:'#cc94ff',hex:'#8c4cd0',name:'Violet'}];
+// Base body. Semantic letters are mapped per unit: O shoulder, T tabard, t trim, A sleeve, U belt, u buckle, K skirt, F legs, f boots.
+const BODY=[
+'................','................','................','................',
+'.....kkkkkk.....',
+'....khhhhhhk....',
+'....khhhhhhk....',
+'....khsssshk....',
+'....ksessesk....',
+'....kssssssk....',
+'.....kssssk.....',
+'......kSSk......',
+'...kOOTTTTOOk...',
+'..kAkTTttTTkAk..',
+'..kAkTTttTTkAk..',
+'..kskTTTTTTksk..',
+'...kkUUuuUUkk...',
+'....kKKKKKKk....',
+'....kKKkkKKk....',
+'....kFk..kFk....',
+'....kFk..kFk....',
+'...kffk..kffk...',
+'...kkkk..kkkk...',
+'................'];
+// stamps: [x, y, rows]
+const ST={
+ crown:[5,1,['g.gg.g','gggggg','grggrg','GGGGGG']],
+ scepter:[12,5,['.g.','gcg','.g.','.G.','.G.','.G.','.G.','.G.','.G.','.G.','.G.','.G.','.G.']],
+ cape:[2,12,['kQQQQQQQQQQk','kQQQQQQQQQQk','kQQQQQQQQQQk','kQQQQQQQQQQk','kQQQQQQQQQQk','kQQQQQQQQQQk','kQQQQQQQQQQk','kQQQQQQQQQQk','kQQQQQQQQQQk','.kQQQQQQQQk.','..kkkkkkkk..']],
+ beard:[5,9,['.kkkk.','kHhhHk','.kHHk.']],
+ greathelm:[4,3,['...LL...','..LLLL..','.kkggkk.','kmmmmmmk','kMmmmmMk','kNeeeeNk','kmmmmmmk','kMmmmmMk','.kMMMMk.']],
+ greatsword:[13,1,['.m.','.m.','kmk','kmk','kmk','kmk','kmk','kmk','kmk','kmk','kmk','gGg','.b.','.b.','.g.']],
+ helm:[4,3,['..kkkk..','.kmmmmk.','kmmmmmmk','kMmmmmMk','kNeNNeNk','kmmmmmmk','kMmmmmMk','.kMMMMk.']],
+ sword:[13,6,['.m.','kmk','kmk','kmk','kmk','kmk','kmk','gGg','.b.']],
+ shield:[0,12,['.kkkk.','kPLLPk','kPggPk','kPLLPk','kPLLPk','.kPPk.','..kk..']],
+ hat:[3,2,['......LL..','.....LL...','..kkkkkk..','.kQQQQQQk.','kPPPPPPPPk']],
+ mustache:[5,9,['.HHHH.']],
+ saber:[13,8,['.m','km','km','mk','mk','gG','.b']],
+ kettle:[3,3,['...kkkk...','..kmmmmk..','.kmmmmmmk.','kNNNNNNNNk']],
+ spear:[13,0,['.m.','kmk','kmk','.k.','.b.','.b.','.b.','.b.','.b.','.b.','.b.','.b.','.b.','.b.','.b.','.b.','.b.','.b.','.b.','.b.','.b.','.B.']],
+ roundshield:[0,12,['.kkk.','kPLPk','kLgLk','kPLPk','.kkk.']],
+ horns:[2,2,['w........w','wk......kw','.wkkkkkkw.','..kMMMMk..','..kmmmmk..']],
+ axe:[12,6,['kmmk','mmmk','kmmk','.bk.','.b..','.b..','.b..','.b..','.b..','.B..']],
+ hood:[3,3,['...kkkk...','..kLLLLk..','.kLLLLLLk.','kLLkkkkLLk','kLk....kLk','kLk....kLk','kLk....kLk']],
+ bow:[12,5,['.kb.','.k.b','.k..b','.k..b','.k..b','.k..b','.k..b','.k.b','.kb.']],
+ quiver:[1,10,['.g.','kbk','kbk','kbk']],
+ mask:[3,3,['...kkkk...','..kQQQQk..','.kQPPPPQk.','kQQkkkkQQk','kQkrddrkQk','kQddddddQk','.kQddddQk.','..kQQQQk..']],
+ dagger:[12,12,['..m','.mk','gk.','b..']],
+ spycloak:[2,12,['kdk......kdk','kdk......kdk','kdk......kdk','kdk......kdk','kdk......kdk','kdk......kdk','.kd......dk.']],
+ goggles:[3,3,['...kkkk...','..kbbbbk..','.kbbbbbbk.','kNccNNccNk','.k.kssk.k.']],
+ pick:[10,5,['kmmmmk','.k.bk.','...b..','...b..','...b..','...b..','...b..','...b..','...B..']],
+ apron:[6,15,['bbbb','bBBb']],
+};
+// unit recipes: semantic colours + stamps (behind = drawn before the body)
+const UNITS={
+ 9:{map:{O:'w',T:'P',t:'g',A:'P',U:'G',u:'g',K:'P',F:'Q',f:'B'},behind:['cape'],front:['beard','crown','scepter']},
+ 8:{map:{O:'m',T:'P',t:'g',A:'m',U:'N',u:'g',K:'M',F:'N',f:'N'},behind:['cape'],front:['greathelm','greatsword']},
+ 7:{map:{O:'m',T:'P',t:'L',A:'m',U:'N',u:'m',K:'M',F:'N',f:'N'},front:['helm','sword','shield']},
+ 6:{map:{O:'L',T:'P',t:'w',A:'P',U:'b',u:'g',K:'Q',F:'B',f:'k'},behind:['cape'],front:['hat','mustache','saber']},
+ 5:{map:{O:'M',T:'P',t:'L',A:'P',U:'b',u:'m',K:'Q',F:'B',f:'k'},front:['kettle','spear','roundshield']},
+ 4:{map:{O:'s',T:'Q',t:'P',A:'s',U:'b',u:'m',K:'b',F:'B',f:'b'},front:['horns','axe']},
+ 3:{map:{O:'L',T:'v',t:'P',A:'L',U:'b',u:'g',K:'v',F:'B',f:'b'},behind:['quiver'],front:['hood','bow']},
+ 2:{map:{O:'Q',T:'d',t:'P',A:'Q',U:'P',u:'r',K:'Q',F:'d',f:'k'},behind:['spycloak'],front:['mask','dagger']},
+ 1:{map:{O:'b',T:'P',t:'Q',A:'s',U:'B',u:'m',K:'b',F:'B',f:'k'},front:['apron','goggles','pick']},
+};
+const HIDDEN=['................','................',
+'......kkkk......','.....kQQQQk.....','....kQPPPPQk....','....kPPPPPPk....','...kPPkkkkPPk...','...kPkddddkPk...','...kPkyddykPk...','...kPkddddkPk...','...kPPkkkkPPk...',
+'..kPPPPPPPPPPk..','..kPPLPPPPLPPk..','..kPPLPPPPLPPk..','.kPPPLPPPPLPPPk.','.kPPPLPPPPLPPPk.','.kQPPLPPPPLPPQk.','.kQPPPPPPPPPPQk.','.kQQPPPPPPPPQQk.','.kQQQPPPPPPQQQk.',
+'kQQQQQQQQQQQQQQk','kkkkkkkkkkkkkkkk','................','................'];
+const KEEP=['.......kPPP.....','.......kPPPP....','.......kPP......','.......k........',
+'...kk.kkkk.kk...','...kmkkmmkkmk...','...kmmmmmmmmk...','..kNNNNNNNNNNk..','...kmmmmmmmmk...','...kmMmmmmMmk...','...kmmmkkmmmk...','...kMmmkkmmMk...',
+'...kmmmmmmmmk...','...kmMmmmmMmk...','...kmmmPPmmmk...','...kMmPLLPmMk...','...kmmPPPPmmk...','...kmmmPPmmmk...','...kmMmmmmMmk...','...kmmmkkmmmk...','...kmmkBBkmmk...','..kNNkBBBBkNNk..','..kkkkkkkkkkkk..','................'];
+function hexOf(ch,team){const T=TEAM[team]||TEAM[0];return T[ch]||BASEPAL[ch]||null}
+function paint(ctx,rows,x0,y0,team,map){
+  for(let y=0;y<rows.length;y++)for(let x=0;x<rows[y].length;x++){let ch=rows[y][x];if(ch==='.')continue;if(map&&map[ch])ch=map[ch];const col=hexOf(ch,team);if(!col)continue;ctx.fillStyle=col;ctx.fillRect(x0+x,y0+y,1,1)}
+}
+const cache={};
+function mk(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return c}
+// rank: 0-9, 'hidden'. variant 'flash' paints white.
+function sprite(rank,team,variant){
+  const key=rank+'|'+team+'|'+(variant||'');if(cache[key])return cache[key];
+  const c=mk(16,24),x=c.getContext('2d');
+  if(rank==='hidden')paint(x,HIDDEN,0,0,team);
+  else if(rank===0)paint(x,KEEP,0,0,team);
+  else{const U=UNITS[rank];
+    for(const n of U.behind||[]){const [sx,sy,rows]=ST[n];paint(x,rows,sx,sy,team)}
+    paint(x,BODY,0,0,team,U.map);
+    for(const n of U.front||[]){const [sx,sy,rows]=ST[n];paint(x,rows,sx,sy,team)}
+  }
+  if(variant==='flash'||variant==='dark'){const d=x.getImageData(0,0,16,24);for(let i=0;i<d.data.length;i+=4)if(d.data[i+3]){if(variant==='flash'){d.data[i]=d.data[i+1]=d.data[i+2]=255}else{d.data[i]*=.35;d.data[i+1]*=.3;d.data[i+2]*=.4}}x.putImageData(d,0,0)}
+  if(variant==='flip'){const f=mk(16,24),fx=f.getContext('2d');fx.translate(16,0);fx.scale(-1,1);fx.drawImage(sprite(rank,team),0,0);cache[key]=f;return f}
+  cache[key]=c;return c;
+}
+// pixel data for particle explosions
+function pixels(rank,team){const c=sprite(rank,team);const d=c.getContext('2d').getImageData(0,0,16,24).data;const out=[];for(let y=0;y<24;y++)for(let x=0;x<16;x++){const i=(y*16+x)*4;if(d[i+3])out.push({x,y,c:`rgb(${d[i]},${d[i+1]},${d[i+2]})`})}return out}
+
+// ---------- 5x7 bitmap font ----------
+const GL={};
+const FONT_SRC={
+A:'01110 10001 10001 11111 10001 10001 10001',B:'11110 10001 10001 11110 10001 10001 11110',C:'01110 10001 10000 10000 10000 10001 01110',
+D:'11110 10001 10001 10001 10001 10001 11110',E:'11111 10000 10000 11110 10000 10000 11111',F:'11111 10000 10000 11110 10000 10000 10000',
+G:'01110 10001 10000 10111 10001 10001 01111',H:'10001 10001 10001 11111 10001 10001 10001',I:'01110 00100 00100 00100 00100 00100 01110',
+J:'00111 00010 00010 00010 00010 10010 01100',K:'10001 10010 10100 11000 10100 10010 10001',L:'10000 10000 10000 10000 10000 10000 11111',
+M:'10001 11011 10101 10101 10001 10001 10001',N:'10001 10001 11001 10101 10011 10001 10001',O:'01110 10001 10001 10001 10001 10001 01110',
+P:'11110 10001 10001 11110 10000 10000 10000',Q:'01110 10001 10001 10001 10101 10010 01101',R:'11110 10001 10001 11110 10100 10010 10001',
+S:'01111 10000 10000 01110 00001 00001 11110',T:'11111 00100 00100 00100 00100 00100 00100',U:'10001 10001 10001 10001 10001 10001 01110',
+V:'10001 10001 10001 10001 10001 01010 00100',W:'10001 10001 10001 10101 10101 10101 01010',X:'10001 10001 01010 00100 01010 10001 10001',
+Y:'10001 10001 01010 00100 00100 00100 00100',Z:'11111 00001 00010 00100 01000 10000 11111',
+'0':'01110 10001 10011 10101 11001 10001 01110','1':'00100 01100 00100 00100 00100 00100 01110','2':'01110 10001 00001 00010 00100 01000 11111',
+'3':'11111 00010 00100 00010 00001 10001 01110','4':'00010 00110 01010 10010 11111 00010 00010','5':'11111 10000 11110 00001 00001 10001 01110',
+'6':'00110 01000 10000 11110 10001 10001 01110','7':'11111 00001 00010 00100 01000 01000 01000','8':'01110 10001 10001 01110 10001 10001 01110',
+'9':'01110 10001 10001 01111 00001 00010 01100',' ':'00000 00000 00000 00000 00000 00000 00000','.':'00000 00000 00000 00000 00000 01100 01100',
+',':'00000 00000 00000 00000 01100 00100 01000','!':'00100 00100 00100 00100 00100 00000 00100','?':'01110 10001 00001 00010 00100 00000 00100',
+"'":'00100 00100 01000 00000 00000 00000 00000',':':'00000 01100 01100 00000 01100 01100 00000','-':'00000 00000 00000 11111 00000 00000 00000',
+'/':'00001 00010 00010 00100 01000 01000 10000','(':'00010 00100 01000 01000 01000 00100 00010',')':'01000 00100 00010 00010 00010 00100 01000',
+'+':'00000 00100 00100 11111 00100 00100 00000','&':'01100 10010 10100 01000 10101 10010 01101','%':'11001 11010 00010 00100 01000 01011 10011',
+'>':'01000 00100 00010 00001 00010 00100 01000','<':'00010 00100 01000 10000 01000 00100 00010','*':'00000 10101 01110 11111 01110 10101 00000'};
+for(const k in FONT_SRC)GL[k]=FONT_SRC[k].split(' ');
+function textW(s,sc){return s.length*6*(sc||1)-(sc||1)}
+function text(ctx,s,x,y,col,sc,shadow){
+  sc=sc||1;s=String(s).toUpperCase();
+  if(shadow){text(ctx,s,x+sc,y+sc,shadow,sc)}
+  ctx.fillStyle=col;let cx=x;
+  for(const ch of s){const g=GL[ch]||GL['?'];for(let r=0;r<7;r++)for(let c=0;c<5;c++)if(g[r][c]==='1')ctx.fillRect(cx+c*sc,y+r*sc,sc,sc);cx+=6*sc}
+}
+// wrap text to width (in characters)
+function wrap(s,n){const words=String(s).split(' ');const lines=[];let l='';for(const w of words){if((l+' '+w).trim().length>n){lines.push(l.trim());l=w}else l+=' '+w}if(l.trim())lines.push(l.trim());return lines}
+return {TEAM,BASEPAL,sprite,pixels,text,textW,wrap,mk};
+})();
+
+// ===================== Renderer: board texture, Mode 7 field view, map view, battle scenes =====================
+const RD=(()=>{
+const W=384,H=240,T=16,BOARD=LD.N*T,OFF=96,TX=BOARD+OFF*2;
+const cv=document.getElementById('screen');cv.width=W;cv.height=H;
+const ctx=cv.getContext('2d');ctx.imageSmoothingEnabled=false;
+const V={mode:'map',cam:{ang:-Math.PI/2,want:-Math.PI/2,dist:225,h:105,f:210,H0:40,tilt:0},sel:null,legal:[],hover:null,swapSel:null,last:null,viewer:0,
+  anims:{},parts:[],floats:[],shake:0,battle:null,title:false,setup:false,hideAll:false,t:0};
+const hash=(a,b)=>{let h=a*374761393+b*668265263;h=(h^(h>>13))*1274126177;return ((h^(h>>16))>>>0)/4294967295};
+const homeOwner={};for(let p=0;p<5;p++)for(const [r,c] of LD.homeCells(p))homeOwner[r+','+c]=p;
+const col=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+const mix=(a,b,t)=>a.map((v,i)=>Math.round(v+(b[i]-v)*t));
+const rgb=a=>`rgb(${a[0]},${a[1]},${a[2]})`;
+// ---------- static world texture (4 water frames) ----------
+function buildBase(frame){
+  const c=PX.mk(TX,TX),x=c.getContext('2d');
+  // sea
+  for(let yy=0;yy<TX;yy+=2)for(let xx=0;xx<TX;xx+=2){const v=hash(xx>>3,yy>>3);x.fillStyle=((xx+yy+frame*4)>>3)%7===0&&v>.6?'#5c98e8':v>.5?'#2858b0':'#2450a4';x.fillRect(xx,yy,2,2)}
+  // beach + cliff ring
+  x.fillStyle='#d8c890';x.fillRect(OFF-8,OFF-8,BOARD+16,BOARD+16);
+  x.fillStyle='#b8a470';for(let i=0;i<BOARD+16;i+=3){x.fillRect(OFF-8+i,OFF-8+((i*7)%5),1,1);x.fillRect(OFF-8+i,OFF+BOARD+2+((i*3)%5),1,1)}
+  x.fillStyle='#6a5a3a';x.fillRect(OFF-2,OFF-2,BOARD+4,BOARD+4);
+  for(let r=0;r<LD.N;r++)for(let c2=0;c2<LD.N;c2++){
+    const X=OFF+c2*T,Y=OFF+r*T,own=homeOwner[r+','+c2];
+    if(LD.isWater(r,c2)){
+      x.fillStyle='#2c64c8';x.fillRect(X,Y,T,T);x.fillStyle='#1c4a9c';x.fillRect(X,Y,T,2);x.fillRect(X,Y,2,T);
+      for(let k=0;k<3;k++){const yy=Y+3+k*5,xs=X+((frame*2+k*5)%12);x.fillStyle='#78b4ff';x.fillRect(xs,yy,4,1)}
+      continue;
+    }
+    if(own!=null){
+      const tc=col(PX.TEAM[own].P),st=[176,168,152];const base=mix(st,tc,.28),dark=mix(base,[40,30,40],.35);
+      x.fillStyle=rgb(base);x.fillRect(X,Y,T,T);x.fillStyle=rgb(dark);
+      x.fillRect(X,Y+7,T,1);x.fillRect(X+((r%2)?4:11),Y,1,7);x.fillRect(X+((r%2)?11:4),Y+8,1,8);x.fillRect(X,Y+15,T,1);
+      x.fillStyle=rgb(mix(base,[255,255,255],.25));x.fillRect(X+1,Y+1,3,1);x.fillRect(X+8,Y+9,3,1);
+    }else{
+      const g=(r+c2)%2?'#54a444':'#4c9a3c';x.fillStyle=g;x.fillRect(X,Y,T,T);
+      for(let k=0;k<10;k++){const px=Math.floor(hash(r*31+k,c2*17)*16),py=Math.floor(hash(c2*13+k,r*7+k)*16);x.fillStyle=k%3?'#3c7c30':'#7cc85a';x.fillRect(X+px,Y+py,1,k%3?2:1)}
+      if(hash(r,c2)>.86){x.fillStyle=hash(c2,r)>.5?'#f8f080':'#f088c0';x.fillRect(X+5,Y+6,2,2);x.fillRect(X+10,Y+10,1,1)}
+      x.fillStyle='rgba(0,0,0,.12)';x.fillRect(X,Y+15,T,1);x.fillRect(X+15,Y,1,T);
+    }
+  }
+  return c;
+}
+let bases=null;
+function ensureBases(){if(!bases)bases=[0,1,2,3].map(buildBase)}
+const tex=PX.mk(TX,TX),tx=tex.getContext('2d');let texData=null,texKey='';
+function drawHighlights(t){
+  const blink=Math.floor(t/250)%2;
+  const tile=(r,c)=>[OFF+c*T,OFF+r*T];
+  if(V.last){for(const p of [V.last.from,V.last.to]){const [X,Y]=tile(p.r,p.c);tx.fillStyle='rgba(255,240,140,.28)';tx.fillRect(X,Y,T,T)}}
+  for(const m of V.legal){const [X,Y]=tile(m.r,m.c);
+    if(m.attack){tx.fillStyle=blink?'#ff4040':'#ffa040';tx.fillRect(X,Y,T,2);tx.fillRect(X,Y+14,T,2);tx.fillRect(X,Y,2,T);tx.fillRect(X+14,Y,2,T)}
+    else{tx.fillStyle='rgba(255,255,255,.35)';tx.fillRect(X+2,Y+2,12,12);tx.fillStyle='#fff8c0';tx.fillRect(X+6,Y+6,4,4)}}
+  const selP=V.sel!=null?CUR.G.pieces[V.sel]:null;
+  for(const s of [selP,V.swapSel!=null?CUR.G.pieces[V.swapSel]:null])if(s){const [X,Y]=tile(s.r,s.c);tx.fillStyle=blink?'#fff060':'#ffffff';tx.fillRect(X,Y,T,1);tx.fillRect(X,Y+15,T,1);tx.fillRect(X,Y,1,T);tx.fillRect(X+15,Y,1,T);tx.fillRect(X+1,Y+1,T-2,1);tx.fillRect(X+1,Y+14,T-2,1)}
+  if(V.hover){const [X,Y]=tile(V.hover.r,V.hover.c);tx.fillStyle='rgba(255,255,255,.22)';tx.fillRect(X,Y,T,T)}
+}
+function refreshTex(t){
+  ensureBases();
+  const frame=Math.floor(t/300)%4;
+  const key=frame+'|'+V.sel+'|'+V.swapSel+'|'+V.legal.length+'|'+(V.hover?V.hover.r+','+V.hover.c:'')+'|'+Math.floor(t/250)%2+'|'+(V.last?JSON.stringify(V.last):'');
+  if(key===texKey&&texData)return;texKey=key;
+  tx.drawImage(bases[frame],0,0);drawHighlights(t);
+  texData=new Uint32Array(tx.getImageData(0,0,TX,TX).data.buffer);
+}
+// ---------- sky panorama ----------
+let sky=null;
+function buildSky(){
+  const w=1024,h=120,c=PX.mk(w,h),x=c.getContext('2d');
+  const bands=['#18205c','#20307c','#2c4494','#3c5cb0','#5078c8','#6c94dc','#8cb0e8','#b0ccf0','#d0e0f4'];
+  bands.forEach((b,i)=>{x.fillStyle=b;x.fillRect(0,Math.floor(i*h/bands.length),w,Math.ceil(h/bands.length)+1)});
+  // dithered band edges
+  for(let i=1;i<bands.length;i++){const y=Math.floor(i*h/bands.length);x.fillStyle=bands[i-1];for(let xx=0;xx<w;xx+=2)x.fillRect(xx+(i%2),y,1,1)}
+  // clouds
+  for(let k=0;k<14;k++){const cx=hash(k,3)*w,cy=20+hash(k,9)*40,cw=30+hash(k,5)*60;x.fillStyle='#e8f0ff';x.fillRect(cx,cy,cw,4);x.fillRect(cx+6,cy-3,cw-14,3);x.fillStyle='#b8c8e8';x.fillRect(cx+2,cy+4,cw-4,2)}
+  // mountains far and near
+  const ridge=(col,base,amp,seed,step)=>{x.fillStyle=col;for(let xx=0;xx<w;xx++){const y=base-Math.abs(Math.sin(xx/step+seed))*amp-hash(Math.floor(xx/6),seed)*4;x.fillRect(xx,y,1,h-y)}};
+  ridge('#6878b0',h-6,34,1.3,47);ridge('#4c5c94',h-4,22,4.1,29);
+  // snow caps
+  x.fillStyle='#e0e8ff';for(let xx=0;xx<w;xx++){const y=h-6-Math.abs(Math.sin(xx/47+1.3))*34-hash(Math.floor(xx/6),1.3)*4;if(h-6-y>26)x.fillRect(xx,y,1,3)}
+  ridge('#2e6a3c',h,10,2.2,13);
+  return c;
+}
+// ---------- camera ----------
+function camPos(){const C=V.cam,cx=OFF+BOARD/2,cy=OFF+BOARD/2;const fx=Math.cos(C.ang),fy=Math.sin(C.ang);return{x:cx-fx*C.dist,y:cy-fy*C.dist,fx,fy,rx:-fy,ry:fx}}
+function homeAngle(p){const cells=LD.homeCells(p);let r=0,c=0;cells.slice(0,9).forEach(([a,b])=>{r+=a;c+=b});r/=9;c/=9;return Math.atan2(6-r,6-c)}
+function project(wx,wy){
+  const C=V.cam,P=camPos();const dx=wx-P.x,dy=wy-P.y;const z=dx*P.fx+dy*P.fy;if(z<8)return null;
+  const lat=dx*P.rx+dy*P.ry;return{x:W/2+lat*C.f/z,y:C.H0+C.h*C.f/z,s:C.f/z,z};
+}
+const out=ctx.createImageData(W,H),o32=new Uint32Array(out.data.buffer);
+function renderMode7(t){
+  refreshTex(t);
+  const C=V.cam,P=camPos();
+  const sea=[0xffa45024,0xffb05828,0xffe8985c];
+  for(let y=C.H0+1;y<H;y++){
+    const z=C.h*C.f/(y-C.H0);
+    let wx=P.x+P.fx*z+P.rx*(-W/2)*z/C.f,wy=P.y+P.fy*z+P.ry*(-W/2)*z/C.f;
+    const sx=P.rx*z/C.f,sy=P.ry*z/C.f;
+    const fog=Math.min(.42,Math.max(0,(z-340)/600));const fr=208*fog,fg=224*fog,fb=244*fog,keep=1-fog;
+    let i=y*W;
+    for(let x=0;x<W;x++,i++){
+      const ix=wx|0,iy=wy|0;let p;
+      if(ix>=0&&iy>=0&&ix<TX&&iy<TX)p=texData[iy*TX+ix];
+      else{const v=((ix>>3)*7+(iy>>3)*13+((t/300)|0))&15;p=v===0?sea[2]:v<6?sea[1]:sea[0]}
+      if(fog>0){const r=p&255,g=(p>>8)&255,b=(p>>16)&255;p=0xff000000|((b*keep+fb)<<16)|((g*keep+fg)<<8)|(r*keep+fr)}
+      o32[i]=p;wx+=sx;wy+=sy;
+    }
+  }
+  ctx.putImageData(out,0,0,0,C.H0+1,W,H-C.H0-1);
+  if(!sky)sky=buildSky();
+  const off=((C.ang/(Math.PI*2))*1024%1024+1024)%1024;
+  ctx.drawImage(sky,off,120-C.H0-1,Math.min(1024-off,W),C.H0+1,0,0,Math.min(1024-off,W),C.H0+1);
+  if(1024-off<W)ctx.drawImage(sky,0,120-C.H0-1,W-(1024-off),C.H0+1,1024-off,0,W-(1024-off),C.H0+1);
+}
+const MAP={ox:(W-BOARD)/2,oy:(H-BOARD)/2+4};
+function renderMap(t){
+  refreshTex(t);
+  ctx.fillStyle='#14183a';ctx.fillRect(0,0,W,H);
+  ctx.drawImage(tex,OFF-20,OFF-20,BOARD+40,BOARD+40,MAP.ox-20,MAP.oy-20,BOARD+40,BOARD+40);
+  ctx.strokeStyle='#e8d8a0';ctx.lineWidth=1;ctx.strokeRect(MAP.ox-20.5,MAP.oy-20.5,BOARD+41,BOARD+41);
+  const G=CUR.G;if(!G)return;
+  // domain banners down the left margin
+  for(let p=0;p<5;p++){const y=28+p*40,x=8,Tm=PX.TEAM[p];
+    ctx.fillStyle='#0c1030';ctx.fillRect(x,y,MAP.ox-36,34);ctx.fillStyle=G.turn===p&&G.phase==='play'?'#ffe070':'#5060a0';ctx.fillRect(x,y,MAP.ox-36,1);ctx.fillRect(x,y+33,MAP.ox-36,1);
+    ctx.fillStyle=Tm.P;ctx.fillRect(x+4,y+4,10,16);ctx.fillStyle=Tm.L;ctx.fillRect(x+6,y+8,6,2);ctx.fillStyle=Tm.Q;for(let k=0;k<5;k++)ctx.fillRect(x+4+k*2,y+20,1,2+(k%2)*2);
+    PX.text(ctx,Tm.name.slice(0,7),x+18,y+5,G.alive[p]?'#fff':'#706880');
+    const n=G.pieces.filter(q=>q.p===p&&q.alive).length;
+    if(G.alive[p]){mini(String(Math.min(9,Math.floor(n/10))),x+18,y+16,'#c8d0ff');mini(String(n%10),x+22,y+16,'#c8d0ff');ctx.fillStyle='#c8d0ff';PX.text(ctx,'',x+28,y+15,'#c8d0ff')}
+    else{ctx.fillStyle='#e04040';for(let k=0;k<20;k++){ctx.fillRect(x+3+k*.5,y+3+k,2,1);ctx.fillRect(x+13-k*.5,y+3+k,2,1)}}
+  }
+  // selected piece portrait on the right
+  const id=V.sel!=null?V.sel:V.swapSel;if(id!=null){const x=G.pieces[id];const X=W-MAP.ox+24;ctx.fillStyle='#0c1030';ctx.fillRect(X,40,MAP.ox-32,110);
+    ctx.drawImage(spriteFor(x),X+(MAP.ox-32)/2-16,54,32,48);const nm=LD.RANK_NAME[x.rank];if(LD.visibleTo(x,V.viewer<0?x.p:V.viewer))PX.text(ctx,nm,X+Math.round((MAP.ox-32-PX.textW(nm))/2),112,'#ffe070')}
+}
+// ---------- pieces ----------
+function pieceWorld(x,t){
+  const a=V.anims[x.id];let r=x.r,c=x.c,hop=0;
+  if(a){const k=Math.min(1,(t-a.t0)/a.dur);const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;r=a.fr+(a.tr-a.fr)*e;c=a.fc+(a.tc-a.fc)*e;hop=Math.sin(Math.PI*k)*(a.lunge?2:5);if(k>=1)delete V.anims[x.id]}
+  return{wx:OFF+c*T+8,wy:OFF+r*T+8,hop};
+}
+function spriteFor(x){
+  const G=CUR.G;const v=V.viewer;
+  const show=V.hideAll?false:(v<0?true:LD.visibleTo(x,v));
+  return show?PX.sprite(x.rank,x.p):PX.sprite('hidden',x.p);
+}
+const MINI={'0':'111101101101111','1':'010110010010111','2':'111001111100111','3':'111001011001111','4':'101101111001001','5':'111100111001111','6':'111100111101111','7':'111001010010010','8':'111101111101111','9':'111101111001111',L:'100100100100111',K:'101110100110101'};
+function mini(ch,x,y,c){const g=MINI[ch];ctx.fillStyle=c;for(let i=0;i<15;i++)if(g[i]==='1')ctx.fillRect(x+i%3,y+(i/3|0),1,1)}
+function badges(x,sx,sy,s){
+  const v=V.viewer;if(V.hideAll||V.title||s<.8)return;
+  const vis=v<0||LD.visibleTo(x,v);
+  if(vis){const lbl=x.rank===9?'L':x.rank===0?'K':String(x.rank);const own=x.p===v;
+    ctx.fillStyle=own?'#101830':x.revealed?'#501010':'#104030';ctx.fillRect(sx-1,sy-1,5,7);mini(lbl,sx,sy,own?'#f8e060':'#ffd0d0')}
+  if(x.rumor){ctx.fillStyle='#f8d040';ctx.fillRect(sx-1,sy-5,5,2);ctx.fillRect(sx-1,sy-7,1,2);ctx.fillRect(sx+1,sy-7,1,2);ctx.fillRect(sx+3,sy-7,1,2)}
+  if(!vis&&x.moves>0){ctx.fillStyle='#e8e0c8';ctx.fillRect(sx,sy+2,2,2);ctx.fillRect(sx+2,sy,2,2)}
+}
+function drawPieces(t){
+  const G=CUR.G;if(!G)return;
+  const list=[];
+  for(const x of G.pieces){if(!x.alive&&!V.anims[x.id])continue;if(V.battle&&V.battle.hide&&V.battle.hide.includes(x.id))continue;
+    const w=pieceWorld(x,t);
+    if(V.mode==='field'){const p=project(w.wx,w.wy);if(!p||p.x<-40||p.x>W+40)continue;list.push({x,p,w,z:p.z})}
+    else list.push({x,w,z:-w.wy});
+  }
+  list.sort((a,b)=>b.z-a.z);
+  for(const it of list){
+    const {x,w}=it;const sp=spriteFor(x);
+    const isSel=V.sel===x.id||V.swapSel===x.id;const bob=isSel?Math.round(Math.sin(t/120)):0;
+    if(V.mode==='field'){
+      const p=it.p,s=p.s*1.05;const sw=Math.max(1,Math.round(16*s)),sh=Math.max(1,Math.round(24*s));
+      const bx=Math.round(p.x-sw/2),by=Math.round(p.y-sh+2*s-(w.hop+bob)*s);
+      ctx.fillStyle='rgba(0,0,0,.35)';ctx.fillRect(Math.round(p.x-6*s),Math.round(p.y-1*s),Math.round(12*s),Math.max(1,Math.round(3*s)));
+      ctx.drawImage(sp,bx,by,sw,sh);
+      badges(x,bx+sw-Math.round(3*s),by+Math.round(2*s),s);
+      it.rect=[bx,by,sw,sh];
+    }else{
+      const X=Math.round(w.wx-OFF+MAP.ox-8),Y=Math.round(w.wy-OFF+MAP.oy+8-24-w.hop-bob);
+      ctx.fillStyle='rgba(0,0,0,.3)';ctx.fillRect(X+3,Math.round(w.wy-OFF+MAP.oy+5),10,3);
+      ctx.drawImage(sp,X,Y);badges(x,X+12,Y+3,1);
+      it.rect=[X,Y,16,24];
+    }
+  }
+  V.drawn=list;
+}
+// floating markers above legal squares, so they are never hidden behind a sprite
+function drawMarkers(t){
+  V.markers=[];if(V.mode!=='field'||!V.legal.length)return;
+  const bob=Math.sin(t/160)*2;
+  for(const m of V.legal){const p=project(OFF+m.c*T+8,OFF+m.r*T+8);if(!p)continue;const s=Math.max(3,Math.round(4*p.s));
+    const x=Math.round(p.x),y=Math.round(p.y-24*p.s-6+bob);
+    ctx.fillStyle='#000';ctx.fillRect(x-s-1,y-1,2*s+2,s+2);
+    ctx.fillStyle=m.attack?'#ff4040':'#fff060';for(let i=0;i<s;i++)ctx.fillRect(x-s+i,y+i,2*(s-i),1);
+    V.markers.push({x,y:y+s/2,s,r:m.r,c:m.c});
+  }
+}
+// ---------- particles and floating text ----------
+function burst(wx,wy,colors,n,spd,up){for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,v=(Math.random()*.8+.2)*(spd||1);V.parts.push({x:wx,y:wy,z:4+Math.random()*10,vx:Math.cos(a)*v,vy:Math.sin(a)*v,vz:(up||1.5)+Math.random()*2,c:colors[i%colors.length],life:50+Math.random()*30})}}
+function floatText(wx,wy,s,c){V.floats.push({x:wx,y:wy,s,c,life:90})}
+function drawParts(){
+  for(const p of V.parts){p.x+=p.vx;p.y+=p.vy;p.z+=p.vz;p.vz-=.12;if(p.z<0){p.z=0;p.vz*=-.3;p.vx*=.7;p.vy*=.7}p.life--;
+    let sx,sy,s=1;if(V.mode==='field'){const q=project(p.x,p.y);if(!q)continue;sx=q.x;sy=q.y-p.z*q.s;s=Math.max(1,Math.round(q.s))}else{sx=p.x-OFF+MAP.ox;sy=p.y-OFF+MAP.oy-p.z}
+    ctx.fillStyle=p.c;ctx.fillRect(Math.round(sx),Math.round(sy),s,s)}
+  V.parts=V.parts.filter(p=>p.life>0);
+  for(const f of V.floats){f.life--;let sx,sy;if(V.mode==='field'){const q=project(f.x,f.y);if(!q)continue;sx=q.x;sy=q.y-30*q.s-(90-f.life)*.3}else{sx=f.x-OFF+MAP.ox;sy=f.y-OFF+MAP.oy-30-(90-f.life)*.3}
+    PX.text(ctx,f.s,Math.round(sx-PX.textW(f.s)/2),Math.round(sy),f.c,1,'#000')}
+  V.floats=V.floats.filter(f=>f.life>0);
+}
+// ---------- picking ----------
+function floorAt(mx,my){
+  let wx,wy;
+  if(V.mode==='field'){const C=V.cam,P=camPos();if(my<=C.H0+1)return null;const z=C.h*C.f/(my-C.H0);const lat=(mx-W/2)*z/C.f;wx=P.x+P.fx*z+P.rx*lat;wy=P.y+P.fy*z+P.ry*lat}
+  else{wx=mx-MAP.ox+OFF;wy=my-MAP.oy+OFF}
+  const c=Math.floor((wx-OFF)/T),r=Math.floor((wy-OFF)/T);return LD.inB(r,c)?{r,c}:null;
+}
+function pick(mx,my){
+  // a highlighted target square under the cursor wins over sprites standing in front of it
+  const fl=floorAt(mx,my);
+  if(fl&&V.legal.some(l=>l.r===fl.r&&l.c===fl.c))return fl;
+  if(V.markers)for(const m of V.markers){if(Math.abs(mx-m.x)<=m.s+2&&Math.abs(my-m.y)<=m.s+2)return{r:m.r,c:m.c}}
+  // from above, the square you point at is what you mean
+  if(V.mode==='map'&&fl){const q=CUR.G&&LD.at(CUR.G,fl.r,fl.c);if(q)return{r:q.r,c:q.c,id:q.id}}
+  // sprites (nearest drawn last, so search from the end)
+  if(V.drawn){const hits=[];for(let i=V.drawn.length-1;i>=0;i--){const it=V.drawn[i];if(!it.rect||!it.x.alive)continue;const [x,y,w,h]=it.rect;if(mx>=x&&mx<x+w&&my>=y&&my<y+h)hits.push(it.x)}
+    if(hits.length){const i=hits.findIndex(h=>h.id===V.sel||h.id===V.swapSel);const h=i>=0&&hits.length>1?hits[(i+1)%hits.length]:hits[0];return{r:h.r,c:h.c,id:h.id}}}
+  let wx,wy;
+  if(V.mode==='field'){const C=V.cam,P=camPos();if(my<=C.H0+1)return null;const z=C.h*C.f/(my-C.H0);const lat=(mx-W/2)*z/C.f;wx=P.x+P.fx*z+P.rx*lat;wy=P.y+P.fy*z+P.ry*lat}
+  else{wx=mx-MAP.ox+OFF;wy=my-MAP.oy+OFF}
+  const c=Math.floor((wx-OFF)/T),r=Math.floor((wy-OFF)/T);
+  if(!LD.inB(r,c))return null;return{r,c};
+}
+// ---------- frame ----------
+const CUR={G:null};
+function hud(t){
+  const G=CUR.G;if(!G||V.title)return;
+  // turn banner
+  const p=G.turn,T0=PX.TEAM[p];
+  if(G.phase==='play'&&!G.over){
+    const s=`${T0.name.toUpperCase()}'S TURN`;const w=PX.textW(s)+12;
+    ctx.fillStyle='rgba(8,12,40,.78)';ctx.fillRect(4,4,w+12,15);ctx.fillStyle=T0.P;ctx.fillRect(4,4,4,15);
+    PX.text(ctx,s,14,8,'#fff',1,'#000');
+    const r=`ROUND ${G.round}`;PX.text(ctx,r,W-PX.textW(r)-6,8,'#e8e0c0',1,'#000');
+  }
+  if(V.mode==='field'){
+    // compass
+    const a=V.cam.ang;const cx=W-16,cy=H-16;ctx.fillStyle='rgba(8,12,40,.7)';ctx.fillRect(cx-11,cy-11,22,22);
+    const fx=Math.cos(a),fy=Math.sin(a);let nx=-fx,ny=fy;const nl=Math.hypot(nx,ny)||1;nx/=nl;ny/=nl;
+    ctx.fillStyle='#ff6060';for(let k=0;k<7;k++)ctx.fillRect(Math.round(cx+nx*k),Math.round(cy+ny*k),2,2);
+    PX.text(ctx,'N',Math.round(cx+nx*9-2),Math.round(cy+ny*9-3),'#fff');
+  }
+}
+function frame(t){
+  V.t=t;
+  // ease camera
+  const C=V.cam;let d=C.want-C.ang;while(d>Math.PI)d-=Math.PI*2;while(d<-Math.PI)d+=Math.PI*2;C.ang+=d*.08;
+  if(V.title)C.want+=.0025;
+  ctx.save();
+  if(V.shake>0){ctx.translate(Math.round((Math.random()-.5)*V.shake),Math.round((Math.random()-.5)*V.shake));V.shake*=.85;if(V.shake<.5)V.shake=0}
+  if(V.battle&&V.battle.full){BT.draw(t)}
+  else{
+    if(V.mode==='field'||V.title)renderMode7(t);else renderMap(t);
+    const old=V.mode;if(V.title)V.mode='field';
+    drawPieces(t);drawMarkers(t);drawParts();V.mode=old;
+    hud(t);
+    if(V.battle&&V.battle.flash){ctx.fillStyle=`rgba(255,255,255,${V.battle.flash})`;ctx.fillRect(0,0,W,H)}
+  }
+  if(V.title)titleOverlay(t);
+  ctx.restore();
+}
+function titleOverlay(t){
+  ctx.fillStyle='rgba(6,8,30,.35)';ctx.fillRect(0,0,W,H);
+  const s1='LORDS',s2='& DOMAINS';
+  PX.text(ctx,s1,Math.round(W/2-PX.textW(s1,4)/2),40,'#ffe070',4,'#5a2c08');
+  PX.text(ctx,s2,Math.round(W/2-PX.textW(s2,3)/2),74,'#ffffff',3,'#20184c');
+  const sub='FIVE DOMAINS. FIVE HIDDEN LORDS. TRUST CAREFULLY.';PX.text(ctx,sub,Math.round(W/2-PX.textW(sub)/2),104,'#c8d8ff',1,'#000');
+  if(Math.floor(t/500)%2){const s='PRESS START';PX.text(ctx,s,Math.round(W/2-PX.textW(s,2)/2),196,'#fff',2,'#000')}
+}
+let raf=null;function loop(t){frame(t);raf=requestAnimationFrame(loop)}
+function start(){if(!raf)raf=requestAnimationFrame(loop)}
+function setViewer(p){V.viewer=p}
+function faceDomain(p,instant){V.cam.want=homeAngle(p);if(instant)V.cam.ang=V.cam.want}
+function rotate(d){V.cam.want+=d}
+function zoom(k){V.cam.dist=Math.max(150,Math.min(340,V.cam.dist+k));V.cam.h=Math.max(60,Math.min(170,V.cam.h+k*.45))}
+function animMove(id,from,to,dur,lunge){V.anims[id]={fr:from.r,fc:from.c,tr:to.r,tc:to.c,t0:performance.now(),dur:dur||260,lunge}}
+function worldOf(r,c){return{x:OFF+c*T+8,y:OFF+r*T+8}}
+return {V,W,H,CUR,start,pick,project,MAP,OFF,setViewer,faceDomain,rotate,zoom,animMove,burst,floatText,worldOf,ctx,cv,homeAngle};
+})();
+
+// ===================== Battle cinematics and chiptune sound =====================
+const SND=(()=>{
+  let ac=null,on=true,musicOn=false,master=null,mus=null,musTimer=null;
+  const ctx=()=>{if(!ac){try{ac=new (window.AudioContext||window.webkitAudioContext)();master=ac.createGain();master.gain.value=.22;master.connect(ac.destination)}catch(e){ac=null}}if(ac&&ac.state==='suspended')ac.resume();return ac};
+  function tone(f,d,type,vol,slide,when){const a=ctx();if(!a)return;const t=a.currentTime+(when||0);const o=a.createOscillator(),g=a.createGain();o.type=type||'square';o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(30,slide),t+d);g.gain.setValueAtTime(vol||.3,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(master);o.start(t);o.stop(t+d+.02)}
+  function noise(d,vol,when,hp){const a=ctx();if(!a)return;const t=a.currentTime+(when||0);const b=a.createBuffer(1,Math.floor(a.sampleRate*d),a.sampleRate);const ch=b.getChannelData(0);for(let i=0;i<ch.length;i++)ch[i]=(Math.random()*2-1)*(1-i/ch.length);const s=a.createBufferSource();s.buffer=b;const g=a.createGain();g.gain.value=vol||.3;const f=a.createBiquadFilter();f.type='highpass';f.frequency.value=hp||400;s.connect(f);f.connect(g);g.connect(master);s.start(t)}
+  const fx={
+    select(){tone(880,.05,'square',.15)},
+    move(){tone(220,.06,'triangle',.25);tone(330,.05,'triangle',.18,null,.05)},
+    cursor(){tone(1320,.03,'square',.08)},
+    clash(){noise(.18,.45,0,900);tone(160,.2,'sawtooth',.25,60)},
+    swing(){noise(.08,.25,0,2500)},
+    reveal(){[523,659,784].forEach((f,i)=>tone(f,.09,'square',.15,null,i*.05))},
+    win(){[523,659,784,1047].forEach((f,i)=>tone(f,.12,'square',.2,null,i*.08))},
+    lose(){[392,330,262].forEach((f,i)=>tone(f,.16,'triangle',.25,null,i*.11))},
+    boom(){noise(.6,.6,0,120);tone(90,.5,'sawtooth',.3,30)},
+    fall(){[784,659,523,392,262].forEach((f,i)=>tone(f,.22,'square',.2,null,i*.14));noise(.8,.3,.5,200)},
+    pact(){[523,784,1047].forEach((f,i)=>tone(f,.15,'triangle',.25,null,i*.1))},
+    betray(){[440,415,392,370].forEach((f,i)=>tone(f,.15,'sawtooth',.18,null,i*.09))},
+    rumor(){tone(660,.08,'triangle',.18);tone(620,.12,'triangle',.18,null,.1)},
+    victory(){[523,523,523,659,784,659,784,1047].forEach((f,i)=>tone(f,.18,'square',.22,null,i*.13))}
+  };
+  // a small looping march: lead + bass
+  const LEAD=[69,72,76,74,72,69,67,69,0,72,74,76,77,76,74,72,69,72,76,79,77,76,74,72,71,72,74,71,69,0,69,0];
+  const BASS=[45,45,52,52,43,43,50,50,41,41,48,48,40,40,47,47];
+  const mf=n=>440*Math.pow(2,(n-69)/12);
+  function startMusic(){if(musTimer||!ctx())return;let step=0;const beat=.2;let next=ac.currentTime+.1;
+    musTimer=setInterval(()=>{while(next<ac.currentTime+.4){const l=LEAD[step%LEAD.length];if(l)tone(mf(l),beat*.9,'square',.06,null,next-ac.currentTime);if(step%2===0){const b=BASS[(step>>1)%BASS.length];tone(mf(b),beat*1.8,'triangle',.12,null,next-ac.currentTime)}step++;next+=beat}},100)}
+  function stopMusic(){clearInterval(musTimer);musTimer=null}
+  return{play(n){if(on&&fx[n])try{fx[n]()}catch(e){}},set(v){on=v},music(v){musicOn=v;if(v)startMusic();else stopMusic()},get on(){return on},get musicOn(){return musicOn},unlock(){ctx()}};
+})();
+
+const BT=(()=>{
+const {W,H,ctx}=RD;let B=null,resolveFn=null,bg=null;
+const hash=(a,b)=>{let h=a*374761393+b*668265263;h=(h^(h>>13))*1274126177;return ((h^(h>>16))>>>0)/4294967295};
+function buildBg(castle,team){
+  const c=PX.mk(W*2,H),x=c.getContext('2d');
+  const bands=['#283c94','#3454ac','#4470c4','#5888d4','#78a4e0','#98bcec','#c0d4f0','#f0d8b0'];
+  bands.forEach((b,i)=>{x.fillStyle=b;x.fillRect(0,i*18,W*2,18)});
+  for(let i=1;i<bands.length;i++){x.fillStyle=bands[i-1];for(let xx=0;xx<W*2;xx+=2)x.fillRect(xx+(i%2),i*18,1,1)}
+  x.fillStyle='#fff6d0';x.fillRect(300,40,18,18);x.fillRect(296,44,26,10);x.fillRect(304,36,10,26);
+  const ridge=(col,base,amp,step,seed)=>{x.fillStyle=col;for(let xx=0;xx<W*2;xx++){const y=base-Math.abs(Math.sin(xx/step+seed))*amp-hash(xx>>3,seed*9)*5;x.fillRect(xx,y,1,H-y)}};
+  ridge('#7088c0',150,46,53,1);ridge('#5068a0',158,30,31,3);
+  if(castle){x.fillStyle='#8c8494';x.fillRect(60,92,220,70);for(let k=0;k<12;k++)x.fillRect(60+k*19,84,11,10);x.fillStyle='#6c6474';for(let yy=100;yy<160;yy+=8)for(let xx=60;xx<280;xx+=16)x.fillRect(xx+((yy/8)%2)*8,yy,15,1);
+    x.fillStyle=PX.TEAM[team].P;for(const bx of [100,200]){x.fillRect(bx,96,14,30);x.fillStyle=PX.TEAM[team].L;x.fillRect(bx+5,104,4,4);x.fillStyle=PX.TEAM[team].P}}
+  ridge('#3c7c3c',170,14,17,5);
+  x.fillStyle='#4c9a3c';x.fillRect(0,170,W*2,H-170);
+  for(let k=0;k<500;k++){x.fillStyle=k%3?'#3c7c30':'#74c050';x.fillRect(hash(k,1)*W*2,172+hash(k,2)*68,1,2)}
+  x.fillStyle='#5aa848';for(let yy=176;yy<H;yy+=12)x.fillRect(0,yy,W*2,1);
+  return c;
+}
+function play(ev,G,viewer,speed){
+  return new Promise(res=>{
+    resolveFn=res;
+    const a=G.pieces[ev.att],d=G.pieces[ev.def];
+    const homeD=LD.homeCells(d.p).some(([r,c])=>r===ev.to.r&&c===ev.to.c);
+    bg=buildBg(homeD,d.p);
+    const knewA=viewer<0||a.p===viewer||ev.preA, knewD=viewer<0||d.p===viewer||ev.preD;
+    const dur=speed==='quick'?1300:2900;
+    B={ev,a,d,t0:performance.now(),dur,quick:speed==='quick',knewA,knewD,parts:[],msgs:[],flashA:0,flashD:0,sh:0,stage:0,done:false};
+    RD.V.battle={full:true};
+    const nm=x=>`${LD.DOMAINS[x.p].name} ${LD.RANK_NAME[x.rank]}`;
+    const R=ev.result;
+    B.lines=[[`${LD.DOMAINS[a.p].name.toUpperCase()} ATTACKS ${LD.DOMAINS[d.p].name.toUpperCase()}!`],
+      [`${LD.RANK_NAME[a.rank].toUpperCase()} VS ${LD.RANK_NAME[d.rank].toUpperCase()}!`],
+      [R>0?(d.rank===0?'THE SAPPER BREAKS THE KEEP!':a.rank===2&&d.rank===9?'ASSASSINATION! THE LORD IS SLAIN!':a.rank===9&&d.rank===9?'THE LORDS DUEL. THE ATTACKER WINS!':`THE ${nm(d).toUpperCase()} FALLS!`)
+        :R<0?(d.rank===0?'THE KEEP HOLDS! THE ATTACKER IS DESTROYED!':`THE ${nm(a).toUpperCase()} FALLS!`):'BOTH FIGHTERS FALL!']];
+    if((R>0&&d.rank===9)||(R<0&&a.rank===9)||(R===0&&(a.rank===9||d.rank===9)))B.lines.push(['A LORD HAS FALLEN!']);
+  });
+}
+function skip(){if(B&&!B.done){B.t0=performance.now()-B.dur}}
+const ease=k=>k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+function shatter(x,team,rank,cx,by,dir,kind){
+  const ps=PX.pixels(rank,team);
+  for(const p of ps){B.parts.push({x:cx-32+p.x*4,y:by-96+p.y*4,vx:(Math.random()*2+.5)*dir+(Math.random()-.5)*2,vy:-Math.random()*4-1,c:p.c,life:60+Math.random()*40,s:4})}
+  if(kind==='boom')for(let i=0;i<90;i++){const a=Math.random()*Math.PI*2,v=Math.random()*6+1;B.parts.push({x:cx,y:by-48,vx:Math.cos(a)*v,vy:Math.sin(a)*v-2,c:['#fff4a0','#f8d040','#f08830','#e83c3c'][i%4],life:30+Math.random()*30,s:3})}
+}
+function window_(x,y,w,h){
+  const g=ctx.createLinearGradient(0,y,0,y+h);g.addColorStop(0,'#3048b8');g.addColorStop(1,'#101c58');
+  ctx.fillStyle=g;ctx.fillRect(x,y,w,h);ctx.fillStyle='#f0f0ff';ctx.fillRect(x,y,w,2);ctx.fillRect(x,y+h-2,w,2);ctx.fillRect(x,y,2,h);ctx.fillRect(x+w-2,y,2,h);
+  ctx.fillStyle='#8890c0';ctx.fillRect(x+2,y+2,w-4,1);
+}
+function draw(t){
+  if(!B)return;const k=Math.min(1,(t-B.t0)/B.dur);const q=B.quick;
+  const R=B.ev.result,a=B.a,d=B.d;
+  // timeline points (fractions)
+  const tReveal=q?.12:.18,tDash=q?.25:.36,tHit=q?.45:.52,tOut=q?.55:.62;
+  // background parallax
+  const scroll=(t/40)%W;ctx.drawImage(bg,scroll,0,W,H,0,0,W,H);
+  // ground shadow ellipses
+  const ax0=96,dx0=288,base=176;
+  let ax=ax0,dx=dx0;
+  if(k>tDash&&k<tHit){ax=ax0+(dx0-60-ax0)*ease((k-tDash)/(tHit-tDash))}
+  else if(k>=tHit&&k<tOut){ax=dx0-60;}
+  else if(k>=tOut){ax=dx0-60+(ax0-(dx0-60))*Math.min(1,(k-tOut)/.12)}
+  if(k>=tHit&&B.stage<2){B.stage=2;RD.V.shake=8;SND.play('clash');B.flashD=1;
+    if(R>0)shatter(d,d.p,d.rank,dx,base,1,d.rank===0?'stone':null);
+    if(R<0){B.flashA=1;shatter(a,a.p,a.rank,ax,base,-1,d.rank===0?'boom':null);if(d.rank===0)SND.play('boom')}
+    if(R===0){B.flashA=1;shatter(a,a.p,a.rank,ax,base,-1);shatter(d,d.p,d.rank,dx,base,1)}
+    setTimeout(()=>SND.play(R>0?'win':R<0?'lose':'lose'),250);
+  }
+  if(k>=tReveal&&B.stage<1){B.stage=1;SND.play('reveal');B.revealFlash=1}
+  if(k>=tDash&&B.stage<1.5){B.stage=1.5;SND.play('swing')}
+  const revealed=k>=tReveal;
+  const sprA=revealed||B.knewA?PX.sprite(a.rank,a.p):PX.sprite('hidden',a.p);
+  const sprD=revealed||B.knewD?PX.sprite(d.rank,d.p,'flip'):PX.sprite('hidden',d.p,'flip');
+  const aDead=k>=tHit&&R<=0,dDead=k>=tHit&&R>=0;
+  ctx.fillStyle='rgba(0,0,0,.3)';
+  if(!aDead)ctx.fillRect(ax-24,base-4,48,8);if(!dDead)ctx.fillRect(dx-24,base-4,48,8);
+  const hopA=k>=tOut&&R>0?Math.abs(Math.sin((k-tOut)*30))*10:0;
+  const breathe=Math.round(Math.sin(t/200)*1.5);
+  if(!aDead){ctx.drawImage(B.flashA>0?PX.sprite(a.rank,a.p,'flash'):sprA,ax-32,base-96-hopA+breathe,64,96)}
+  if(!dDead){const dHop=k>=tOut&&R<0?Math.abs(Math.sin((k-tOut)*30))*10:0;ctx.drawImage(B.flashD>0?PX.sprite(d.rank,d.p,'flash'):sprD,dx-32,base-96-dHop+breathe,64,96)}
+  B.flashA=Math.max(0,B.flashA-.08);B.flashD=Math.max(0,B.flashD-.08);
+  // slash
+  if(k>=tHit-.03&&k<tHit+.08){ctx.fillStyle='#ffffff';for(let i=0;i<14;i++){const ang=-1.2+i*.17,r=40;ctx.fillRect(dx+Math.cos(ang)*r-20,base-56+Math.sin(ang)*r,5,3)}ctx.fillStyle='#fff4a0';for(let i=0;i<10;i++){const ang=-1+i*.2;ctx.fillRect(dx+Math.cos(ang)*30-20,base-56+Math.sin(ang)*30,3,2)}}
+  // particles
+  for(const p of B.parts){p.x+=p.vx;p.y+=p.vy;p.vy+=.25;if(p.y>base+20){p.y=base+20;p.vy*=-.3;p.vx*=.6}p.life--;ctx.fillStyle=p.c;ctx.fillRect(Math.round(p.x),Math.round(p.y),p.s,p.s)}
+  B.parts=B.parts.filter(p=>p.life>0);
+  // reveal flash
+  if(B.revealFlash){ctx.fillStyle=`rgba(255,255,255,${B.revealFlash})`;ctx.fillRect(0,0,W,H);B.revealFlash=Math.max(0,B.revealFlash-.1)}
+  // name plates
+  const plate=(x,y,team,top,bot)=>{window_(x,y,128,30);ctx.fillStyle=PX.TEAM[team].P;ctx.fillRect(x+4,y+4,6,22);PX.text(ctx,top,x+14,y+6,'#ffffff',1,'#000');PX.text(ctx,bot,x+14,y+17,'#ffe070',1,'#000')};
+  plate(10,8,a.p,LD.DOMAINS[a.p].name,revealed||B.knewA?LD.RANK_NAME[a.rank]+' '+(a.rank===9?'':a.rank===0?'':'('+a.rank+')'):'???');
+  plate(W-138,8,d.p,LD.DOMAINS[d.p].name,revealed||B.knewD?LD.RANK_NAME[d.rank]+' '+(d.rank===9?'':d.rank===0?'':'('+d.rank+')'):'???');
+  PX.text(ctx,'VS',W/2-11,20,'#ff6060',2,'#300');
+  // message box
+  window_(8,H-46,W-16,40);
+  const li=k<tReveal?0:k<tHit?1:2;const lines=k>.85&&B.lines[3]?B.lines[3]:B.lines[li];
+  lines.forEach((l,i)=>PX.wrap(l,58).forEach((w,j)=>PX.text(ctx,w,18,H-38+j*10,'#ffffff',1,'#101030')));
+  if(!q&&Math.floor(t/400)%2)PX.text(ctx,'CLICK TO SKIP',W-96,H-14,'#a8b0e0');
+  if(k>=1&&!B.done){B.done=true;setTimeout(()=>{RD.V.battle=null;const r=resolveFn;B=null;r&&r()},120)}
+}
+return{play,draw,skip,get active(){return !!B}};
+})();
+
+// ===================== Game controller and interface =====================
+(()=>{
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const store={get(k,d){try{const v=localStorage.getItem('lords-domains.'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('lords-domains.'+k,JSON.stringify(v))}catch(e){}}};
+const S=Object.assign({view:innerWidth<600?'map':'field',battle:'full',speed:'normal',sound:true,music:false,theme:'auto',hints:true,tips:true},store.get('settings',{}));
+const saveS=()=>store.set('settings',S);
+const V=RD.V;let G=null;let waiting=null;let busy=false;let token=0;
+const D=LD.DOMAINS,TM=PX.TEAM;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const aiDelay=()=>({slow:900,normal:450,fast:150}[S.speed]);
+function applyTheme(){if(S.theme==='auto')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',S.theme)}
+applyTheme();SND.set(S.sound);
+V.mode=S.view;
+// ---------- toast ----------
+let toastT=null;function toast(html,ms){const t=$('#toast');t.innerHTML=html;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,ms||2600)}
+// ---------- modal ----------
+function modal(html,onOpen){$('#modal').innerHTML=html;$('#modalBg').hidden=false;onOpen&&onOpen($('#modal'));const f=$('#modal button');f&&f.focus({preventScroll:true});$('#modal').scrollTop=0}
+function closeModal(){$('#modalBg').hidden=true;$('#modal').innerHTML=''}
+function ask(title,body,buttons){return new Promise(res=>{modal(`<h2>${title}</h2>${body}<div class="row">${buttons.map((b,i)=>`<button class="btn ${b.cls||''}" data-i="${i}">${b.t}</button>`).join('')}</div>`,m=>{m.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{closeModal();res(buttons[+b.dataset.i].v)})})})}
+// ---------- helpers ----------
+const humans=()=>G?[0,1,2,3,4].filter(p=>G.ctrl[p]==='human'):[];
+const isHot=()=>humans().length>1;
+function viewerNow(){if(!G)return 0;const h=humans();if(!h.length)return S.revealAll?-1:9;if(h.length===1)return h[0];return G.ctrl[G.turn]==='human'?G.turn:9}
+function setViewer(){V.viewer=viewerNow();}
+function sprURL(rank,team){const c=PX.mk(16,24);c.getContext('2d').drawImage(PX.sprite(rank,team),0,0);return c.toDataURL()}
+const dom=p=>`<b style="color:${TM[p].L}">${D[p].name}</b>`;
+// ---------- title ----------
+function showTitle(){
+  V.title=true;V.mode='field';G=demoGame();RD.CUR.G=G;V.viewer=-1;V.sel=null;V.legal=[];V.last=null;
+  $('#titleMenu').hidden=false;$('#tCont').hidden=!store.get('save',null);
+  $('#diploBox').hidden=true;
+  $('#turnBox').innerHTML=`<h3>Welcome, ruler</h3><p>Five domains share one island. Each hides its Lord among ten pieces. Protect yours, find theirs, and make friends you can betray later.</p><p class="muted">Press <b>New game</b> to begin, or read <b>How to play</b>.</p>`;
+  renderDomains();renderLog();
+}
+function demoGame(){const g=LD.newGame({ctrl:['ai','ai','ai','ai','ai']});LD.startPlay(g);for(let i=0;i<60;i++){const m=LD.aiChoose(g,g.turn);if(m)LD.doMove(g,m.id,m.r,m.c);LD.nextTurn(g);if(g.over)break}g.log=[];return g}
+// ---------- new game ----------
+function newGameModal(){
+  const opts=[['human','Human player'],['easy','Computer: Easy'],['normal','Computer: Normal'],['hard','Computer: Hard']];
+  const def=store.get('seats',['human','normal','normal','normal','normal']);
+  modal(`<h2>New game</h2><p>Choose who rules each domain. Computer rulers each get a hidden personality: honourable, opportunist, warlike, schemer or cautious.</p>
+  <div class="presets"><button class="btn sm" data-pre="solo">Me vs 4 computers</button><button class="btn sm" data-pre="hot">5 players, one screen</button><button class="btn sm" data-pre="duo">2 players + 3 computers</button><button class="btn sm" data-pre="watch">Watch 5 computers</button></div>
+  <div class="seats">${D.map((d,p)=>`<div class="seat"><span style="width:16px;height:16px;background:${TM[p].P};border:2px solid #fff;border-radius:3px"></span><span>${d.name} <span class="muted" style="font-size:.85rem">· ${d.banner}</span></span><select data-seat="${p}" aria-label="${d.name}">${opts.map(([v,l])=>`<option value="${v}" ${def[p]===v?'selected':''}>${l}</option>`).join('')}</select></div>`).join('')}</div>
+  <div class="row"><button class="btn" data-x>Cancel</button><button class="btn gold" id="goNew">Begin</button></div>`,m=>{
+    m.querySelector('[data-x]').onclick=closeModal;
+    m.querySelectorAll('[data-pre]').forEach(b=>b.onclick=()=>{const pre={solo:['human','normal','normal','normal','normal'],hot:['human','human','human','human','human'],duo:['human','normal','human','normal','normal'],watch:['normal','hard','normal','easy','hard']}[b.dataset.pre];m.querySelectorAll('[data-seat]').forEach((s,i)=>s.value=pre[i])});
+    $('#goNew').onclick=()=>{const seats=[...m.querySelectorAll('[data-seat]')].map(s=>s.value);store.set('seats',seats);closeModal();begin(seats)};
+  });
+}
+function begin(seats){
+  token++;SND.unlock();
+  const ctrl=seats.map(s=>s==='human'?'human':'ai'),diff=seats.map(s=>s==='human'?'normal':s);
+  G=LD.newGame({ctrl,diff});RD.CUR.G=G;V.title=false;$('#titleMenu').hidden=true;V.mode=S.view;V.sel=null;V.legal=[];V.last=null;
+  store.set('save',null);
+  setupPhase();
+}
+// ---------- setup ----------
+async function setupPhase(){
+  const my=token;
+  const hs=humans();
+  V.setup=true;
+  for(const p of hs){
+    if(my!==token)return;
+    if(isHot()){V.hideAll=true;await ask(`${D[p].name}'s turn to deploy`,`<p>Pass the screen to the ruler of ${dom(p)}. Everyone else, look away.</p>`,[{t:'I am ready',v:1,cls:'gold'}]);V.hideAll=false}
+    G.turn=p;V.viewer=p;RD.faceDomain(p,true);
+    await arrange(p);
+  }
+  V.setup=false;V.swapSel=null;
+  LD.startPlay(G);setViewer();
+  if(!hs.length){RD.faceDomain(0,true)}
+  renderAll();turnLoop(my);
+}
+function arrange(p){
+  return new Promise(res=>{
+    const draw=()=>{
+      $('#turnBox').innerHTML=`<h3>Deploy ${D[p].name}</h3><p>Click one of your pieces, then another, to swap them. Hide your <b>Lord</b> (L) where enemies will not look. Keeps (K) never move and destroy any attacker except a Sapper, so they make good walls.</p>
+      <div class="drow"><button class="btn sm" id="sShuf">Shuffle</button><button class="btn sm" id="sSug">Suggested layout</button><span style="flex:1"></span><button class="btn gold" id="sReady">Ready</button></div>`;
+      $('#sShuf').onclick=()=>{LD.shuffleSetup(G,p);V.swapSel=null;SND.play('move')};
+      $('#sSug').onclick=()=>{LD.suggestSetup(G,p);V.swapSel=null;SND.play('move')};
+      $('#sReady').onclick=()=>{waiting=null;V.swapSel=null;SND.play('select');res()};
+    };
+    draw();renderDomains();
+    waiting={kind:'setup',p,click(hit){
+      if(!hit||hit.id==null)return;const x=G.pieces[hit.id];if(x.p!==p)return;
+      if(V.swapSel==null){V.swapSel=x.id;SND.play('select');inspect(x)}
+      else if(V.swapSel===x.id){V.swapSel=null}
+      else{LD.swapSetup(G,V.swapSel,x.id);V.swapSel=null;SND.play('move')}
+    }};
+  });
+}
+// ---------- turn loop ----------
+async function turnLoop(my){
+  while(G&&!G.over&&my===token){
+    const p=G.turn;renderAll();
+    if(G.ctrl[p]==='ai'){
+      setViewer();if(!humans().length)RD.faceDomain(p);
+      $('#turnBox').innerHTML=`<h3>${D[p].name} is thinking</h3><p class="muted">${humans().length?'Watch the field. Every clash is fought in the open.':'Five computer rulers fight it out.'}</p>`;
+      await sleep(aiDelay());if(my!==token)return;
+      const before=G.log.length;
+      LD.aiDiplomacy(G,p);
+      for(const l of G.log.slice(before)){if(/pact/.test(l.t))SND.play('pact');else SND.play('rumor');toast(esc(l.t),2200);await sleep(Math.min(900,aiDelay()*2))}
+      const m=LD.aiChoose(G,p);
+      if(m)await perform(m);
+    }else{
+      if(isHot()){V.hideAll=true;renderAll();await ask(`${D[p].name}'s turn`,`<p>Pass the screen to the ruler of ${dom(p)}.</p>`,[{t:'Show my domain',v:1,cls:'gold'}]);V.hideAll=false}
+      if(my!==token)return;
+      setViewer();RD.faceDomain(p);renderAll();
+      await handleOffers(p);if(my!==token)return;
+      const m=await humanTurn(p);if(my!==token)return;
+      if(m)await perform(m);
+    }
+    if(my!==token)return;
+    LD.nextTurn(G);save();
+  }
+  if(G&&G.over&&my===token)gameOver();
+}
+async function handleOffers(p){
+  const offers=G.offers.filter(o=>o.to===p);G.offers=G.offers.filter(o=>o.to!==p);
+  for(const o of offers){
+    if(!G.alive[o.from]||LD.hasPact(G,p,o.from))continue;
+    const yes=await ask('An envoy arrives',`<p>${dom(o.from)} offers a pact for ${LD.PACT_LEN} rounds: neither side attacks the other. As a sign of trust, each of you will be shown one of the other's pieces.</p><p class="muted">Attacking an ally breaks the pact, and every domain will remember it.</p>`,[{t:'Decline',v:false},{t:'Accept the pact',v:true,cls:'gold'}]);
+    if(yes){const shown=LD.makePact(G,p,o.from);SND.play('pact');showTokens(shown,p)}
+    else{LD.addLog(G,`${D[p].name} turns away the envoy of ${D[o.from].name}.`,p);G.trust[o.from][p]=Math.max(0,G.trust[o.from][p]-6);G.pactCool=G.pactCool||[...Array(5)].map(()=>Array(5).fill(0));G.pactCool[o.from][p]=G.pactCool[p][o.from]=G.round+10}
+    renderAll();
+  }
+}
+function showTokens(shown,viewer){
+  for(const s of shown)if(s.to===viewer){const x=G.pieces[s.id];toast(`${dom(s.from)} shows you their <b>${LD.RANK_NAME[x.rank]}</b>.`,3200);const w=RD.worldOf(x.r,x.c);RD.floatText(w.x,w.y,LD.RANK_NAME[x.rank],'#ffe070')}
+}
+function humanTurn(p){
+  return new Promise(res=>{
+    V.sel=null;V.legal=[];
+    $('#turnBox').innerHTML=`<h3>${D[p].name}: your move</h3><p>Pick one of your pieces, then a highlighted square. A <span style="color:#ff8080">red frame</span> is an attack.${S.tips&&G.round<=2?' Unknown enemies appear as hooded figures until they fight.':''}</p><p class="kbd">V switch view · Q/E rotate · +/- zoom · Esc cancel</p>`;
+    renderDiplo(p);
+    waiting={kind:'move',p,async click(hit){
+      if(!hit)return;
+      const x=hit.id!=null?G.pieces[hit.id]:LD.at(G,hit.r,hit.c);
+      if(V.sel!=null){
+        const m=V.legal.find(l=>l.r===hit.r&&l.c===hit.c);
+        if(m){
+          if(m.attack){const t=G.pieces[m.target];if(LD.hasPact(G,p,t.p)){const ok=await ask('Break the pact?',`<p>You have a pact with ${dom(t.p)}. Attacking now is a betrayal: every domain will trust you less.</p>`,[{t:'Keep the peace',v:false},{t:'Betray them',v:true,cls:'red'}]);if(!ok)return}}
+          waiting=null;const mv={id:V.sel,r:m.r,c:m.c,attack:m.attack};V.sel=null;V.legal=[];$('#diploBox').hidden=true;res(mv);return}
+      }
+      if(x&&x.p===p){if(V.sel===x.id){V.sel=null;V.legal=[]}else{V.sel=x.id;V.legal=LD.movesFor(G,x);SND.play('select');if(!V.legal.length)toast(x.rank===0?'A Keep never moves.':'That piece has nowhere to go.',1600)}inspect(x);renderDiplo(p)}
+      else{V.sel=null;V.legal=[];if(x)inspect(x)}
+    }};
+  });
+}
+// ---------- performing moves with animation ----------
+async function perform(m){
+  const x=G.pieces[m.id];const vw=V.viewer;
+  const t=m.attack?LD.at(G,m.r,m.c):null;
+  const preA=LD.visibleTo(x,vw<0?x.p:vw),preD=t?LD.visibleTo(t,vw<0?t.p:vw):false;
+  const positions=G.pieces.map(q=>({r:q.r,c:q.c}));
+  const ev=LD.doMove(G,m.id,m.r,m.c);
+  V.last={from:{r:positions[m.id].r,c:positions[m.id].c},to:{r:m.r,c:m.c}};
+  for(const e of ev){
+    if(e.type==='move'){RD.animMove(e.id,e.from,e.to,S.speed==='fast'?160:260);SND.play('move');await sleep(S.speed==='fast'?170:280)}
+    else if(e.type==='clash'){
+      // keep both fighters on the board during the lunge, then restore the real outcome
+      const finalAlive=G.pieces.map(q=>q.alive);const A=G.pieces[e.att];const realA={r:A.r,c:A.c};
+      A.alive=true;G.pieces[e.def].alive=true;A.r=e.from.r;A.c=e.from.c;
+      RD.animMove(e.att,e.from,{r:(e.from.r*.6+e.to.r*.4),c:(e.from.c*.6+e.to.c*.4)},220,true);
+      await sleep(240);
+      if(S.battle!=='off'){await BT.play({...e,preA,preD},G,vw<0?-1:vw,S.battle)}
+      else{SND.play('clash');RD.V.shake=5;await sleep(250)}
+      A.r=realA.r;A.c=realA.c;G.pieces.forEach((q,i)=>q.alive=finalAlive[i]);
+      // a domain that fell keeps its pieces dead
+      for(const q of G.pieces)if(!G.alive[q.p])q.alive=false;
+      const wA=RD.worldOf(e.from.r,e.from.c),wD=RD.worldOf(e.to.r,e.to.c);
+      if(e.result<=0)RD.burst(wA.x,wA.y,[TM[e.ap].P,TM[e.ap].L,'#fff'],26,1.2);
+      if(e.result>=0)RD.burst(wD.x,wD.y,[TM[e.dp].P,TM[e.dp].L,'#fff'],26,1.2);
+      if(e.result>0)RD.animMove(e.att,e.from,e.to,200);
+      RD.floatText(wD.x,wD.y,e.result>0?'VICTORY':e.result<0?'REPELLED':'BOTH FALL',e.result>0?'#ffe070':'#ff9090');
+      await sleep(350);
+    }
+    else if(e.type==='fall'){
+      SND.play('fall');V.shake=10;
+      for(const q of G.pieces)if(q.p===e.p){const w=RD.worldOf(q.r,q.c);RD.burst(w.x,w.y,[TM[e.p].P,TM[e.p].L,TM[e.p].Q,'#ffe070'],18,1.5,2.5)}
+      toast(`<b style="color:${TM[e.p].L}">The Lord of ${D[e.p].name} has fallen!</b><br>The whole domain collapses${e.by!=null&&e.by!==e.p?` before ${D[e.by].name}`:''}.`,3600);
+      await sleep(1400);
+      if(humans().length===1&&e.p===humans()[0]&&!G.over){
+        const c=await ask('Your Lord has fallen',`<p>${dom(e.p)} is no more. The other domains fight on.</p>`,[{t:'Title screen',v:'title'},{t:'Watch the rest',v:'watch'},{t:'New game',v:'new',cls:'gold'}]);
+        if(c==='title'){token++;waiting=null;store.set('save',null);showTitle();return}
+        if(c==='new'){begin(store.get('seats',['human','normal','normal','normal','normal']));return}
+        S.speed='fast';
+      }
+    }
+    else if(e.type==='betray'){SND.play('betray');toast(`<b style="color:#ff8080">Betrayal!</b> ${D[e.a].name} breaks its pact with ${D[e.b].name}.`,3000);await sleep(600)}
+  }
+  renderAll();
+}
+// ---------- diplomacy panel ----------
+function renderDiplo(p){
+  const box=$('#diploBox');if(!G||G.ctrl[p]!=='human'||G.phase!=='play'){box.hidden=true;return}
+  box.hidden=false;
+  const others=[0,1,2,3,4].filter(q=>q!==p&&G.alive[q]);
+  const used=G.actedDiplo;
+  const sel=V.sel!=null?G.pieces[V.sel]:null;
+  $('#diplo').innerHTML=`<p class="muted" style="font-size:.88rem">One diplomatic act per turn, before you move.${used?' <b style="color:#ffe070">Used this turn.</b>':''}</p>
+   <div class="drow"><select id="dTarget" aria-label="Domain">${others.map(q=>`<option value="${q}">${D[q].name}${LD.hasPact(G,p,q)?' (allied)':''}</option>`).join('')}</select></div>
+   <div class="drow"><button class="btn sm" id="dPact" ${used?'disabled':''}>Offer a pact</button><button class="btn sm" id="dAccuse" ${used?'disabled':''}>Point the finger</button></div>
+   <div class="drow"><button class="btn sm" id="dRumor" ${used||!sel||sel.p!==p?'disabled':''} title="Select one of your pieces first">Rumour: "this is my Lord"</button></div>
+   <p class="muted" style="font-size:.8rem">Point the finger turns the other domains against a rival. A rumour marks one of your pieces with a crown so enemies think it is your Lord. Try it on a Keep.</p>`;
+  $('#dPact').onclick=async()=>{const q=+$('#dTarget').value;if(LD.hasPact(G,p,q)){toast('You already have a pact with them.');return}
+    G.actedDiplo=true;
+    if(G.ctrl[q]==='human'){G.offers.push({from:p,to:q,round:G.round});LD.addLog(G,`${D[p].name} sends an envoy to ${D[q].name}.`,p);toast(`Your envoy rides to ${D[q].name}. They will answer on their turn.`)}
+    else{const r=LD.wouldAccept(G,q,p);if(r.ok){const shown=LD.makePact(G,p,q);SND.play('pact');toast(`${dom(q)}: "${esc(r.why)}"`,3200);setTimeout(()=>showTokens(shown,p),900)}else{SND.play('lose');LD.addLog(G,`${D[q].name} refuses ${D[p].name}'s pact.`,q);toast(`${dom(q)}: "${esc(r.why)}"`,3000)}}
+    renderAll();renderDiplo(p)};
+  $('#dAccuse').onclick=()=>{const q=+$('#dTarget').value;G.actedDiplo=true;LD.accuse(G,p,q);SND.play('rumor');toast(`Word spreads that ${dom(q)} cannot be trusted.`);renderAll();renderDiplo(p)};
+  $('#dRumor').onclick=()=>{if(!sel||sel.p!==p)return;G.actedDiplo=true;LD.plantRumor(G,sel.id);SND.play('rumor');toast(`A rumour spreads that your <b>${LD.RANK_NAME[sel.rank]}</b> is your Lord.`);renderAll();renderDiplo(p)};
+}
+// ---------- side panels ----------
+function inspect(x){
+  const v=V.viewer;const vis=v<0||LD.visibleTo(x,v);
+  const c=document.createElement('canvas');c.width=16;c.height=24;c.getContext('2d').drawImage(vis?PX.sprite(x.rank,x.p):PX.sprite('hidden',x.p),0,0);
+  let body='';
+  if(vis){body=`<b>${D[x.p].name} ${LD.RANK_NAME[x.rank]}</b>${x.rank!==9&&x.rank!==0?` · rank ${x.rank}`:''}${x.p!==v&&!x.revealed?' <span class="muted">(shown to you in secret)</span>':''}<p style="font-size:.9rem">${LD.RANK_TIP[x.rank]}</p>`}
+  else{
+    const B=LD.belief(G,x,v<0?9:v);const top=Object.entries(B).sort((a,b)=>b[1]-a[1]).slice(0,4);
+    body=`<b>Unknown ${D[x.p].name} piece</b><p style="font-size:.88rem" class="muted">${x.moves?`Has moved ${x.moves} time${x.moves>1?'s':''}, so it is not a Keep.`:'Has not moved yet.'}${x.rumor?' Rumoured to be their Lord.':''}</p>
+    ${S.hints?`<div class="bars">${top.map(([k,p])=>`<div class="bar"><span>${LD.RANK_NAME[k]}</span><i style="width:${Math.round(p*100)}%"></i><span>${Math.round(p*100)}%</span></div>`).join('')}</div><p class="muted" style="font-size:.78rem">Your spies' best guess from what has been revealed.</p>`:''}`;
+  }
+  $('#infoBox').innerHTML=`<h3>Inspect</h3><div class="info"></div>`;$('#infoBox .info').append(c);$('#infoBox .info').insertAdjacentHTML('beforeend',`<div>${body}</div>`);
+}
+function renderDomains(){
+  if(!G){$('#doms').innerHTML='';return}
+  const v=V.viewer;
+  $('#doms').innerHTML=D.map((d,p)=>{
+    const pcs=G.pieces.filter(x=>x.p===p&&x.alive);
+    const hidden=[];if(G.alive[p]&&v!==p){const all=new Set([0,1,2,3,4,5,6,7,8,9]);for(const x of G.pieces)if(x.p===p&&(!x.alive||LD.visibleTo(x,v<0?p:v)))all.delete(x.rank);hidden.push(...[...all].sort((a,b)=>b-a))}
+    const who=G.ctrl[p]==='human'?(humans().length>1?'Human':'You'):`Computer · ${G.diff[p]}`;
+    const att=v>=0&&v<5&&v!==p&&G.alive[p]&&G.ctrl[p]==='ai'?`<span class="att ${LD.attitude(G,p,v)}">${LD.attitude(G,p,v)}</span>`:v>=0&&v<5&&LD.hasPact(G,p,v)?'<span class="att Allied">Allied</span>':'';
+    const pact=[0,1,2,3,4].filter(q=>LD.hasPact(G,p,q)).map(q=>D[q].name).join(', ');
+    return `<div class="dom ${G.alive[p]?'':'dead'} ${G.phase==='play'&&G.turn===p?'turn':''}"><span class="sw" style="background:${TM[p].P}"></span><span><b>${d.name}</b> <span class="muted" style="font-size:.8rem">${who}</span></span>${att}
+      <div class="meta">${G.alive[p]?`${pcs.length} pieces · ${G.kills[p]} victories${G.rep[p]?` · <span style="color:#ff9090">broke ${G.rep[p]} pact${G.rep[p]>1?'s':''}</span>`:''}${pact?` · pact: ${pact}`:''}
+      ${hidden.length&&G.phase==='play'?`<br>Still hidden: <span class="chips">${hidden.map(k=>`<span class="chip ${k===9?'l':''}">${LD.RANK_SHORT[k]}</span>`).join('')}</span>`:''}`:`Fallen${G.fallenBy[p]!=null?' to '+D[G.fallenBy[p]].name:''}`}</div></div>`}).join('');
+}
+function renderLog(){if(!G){$('#log').innerHTML='';return}$('#log').innerHTML=G.log.slice(-40).reverse().map(l=>`<div style="border-color:${l.p>=0?TM[l.p].P:'transparent'}"><span class="muted">${l.round}</span> ${esc(l.t)}</div>`).join('')}
+function renderAll(){renderDomains();renderLog();if(G&&G.phase==='play'&&G.ctrl[G.turn]==='human'&&waiting)renderDiplo(G.turn);else if(!waiting)$('#diploBox').hidden=true}
+// ---------- game over ----------
+function gameOver(){
+  V.viewer=-1;V.sel=null;V.legal=[];renderAll();
+  const w=G.winner;const human=G.ctrl[w]==='human';const solo=humans().length===1;
+  SND.play(human||!solo?'victory':'lose');
+  const lords=G.pieces.filter(x=>x.rank===9);
+  modal(`<h2>${solo?(human?'Victory!':'Defeat'):`${D[w].name} wins`}</h2>
+   <p>${G.stalemate?`The war ground to a halt. ${dom(w)} held the strongest army.`:`${dom(w)} is the last domain standing.`}</p>
+   <p class="muted">${G.round} rounds · ${G.stats.clashes} clashes · ${G.stats.betrayals} betrayals</p>
+   <p>Every piece is now revealed on the field. The computer rulers were: ${[0,1,2,3,4].filter(p=>G.ctrl[p]==='ai').map(p=>`${D[p].name} (${G.persona[p]})`).join(', ')||'none'}.</p>
+   <div class="row"><button class="btn" data-a="menu">Title screen</button><button class="btn" data-a="look">Look at the board</button><button class="btn gold" data-a="again">Play again</button></div>`,m=>{
+    m.querySelector('[data-a=menu]').onclick=()=>{closeModal();store.set('save',null);showTitle()};
+    m.querySelector('[data-a=look]').onclick=closeModal;
+    m.querySelector('[data-a=again]').onclick=()=>{closeModal();begin(store.get('seats',['human','normal','normal','normal','normal']))};
+  });
+  store.set('save',null);
+  $('#turnBox').innerHTML=`<h3>The war is over</h3><p>${dom(w)} rules the island. Every piece is revealed.</p><div class="drow"><button class="btn gold" id="again2">Play again</button><button class="btn" id="title2">Title screen</button></div>`;
+  $('#again2').onclick=()=>begin(store.get('seats',['human','normal','normal','normal','normal']));$('#title2').onclick=showTitle;
+}
+// ---------- save / continue ----------
+function save(){if(G&&!G.over&&G.phase==='play')store.set('save',G)}
+function cont(){const g=store.get('save',null);if(!g)return;token++;G=g;RD.CUR.G=G;V.title=false;$('#titleMenu').hidden=true;V.mode=S.view;V.sel=null;V.legal=[];setViewer();if(humans().length===1)RD.faceDomain(humans()[0],true);renderAll();turnLoop(token)}
+// ---------- rules ----------
+function rules(){
+  const rows=[9,8,7,6,5,4,3,2,1,0].map(k=>`<img src="${sprURL(k,0)}" alt=""><div><b>${LD.RANK_NAME[k]}</b>${k!==9&&k!==0?` (${k})`:''} · ${LD.RANK_TIP[k]}</div>`).join('');
+  modal(`<h2>How to play</h2><div class="rules">
+  <p>Five domains share one island. Each has ten pieces, and one of them is its <b>Lord</b>. You know where your own Lord is. Everyone else's is a mystery.</p>
+  <h3>Winning</h3><ul><li>If a Lord falls, its whole domain falls with it.</li><li>The last Lord standing wins.</li><li>If no one fights for 40 rounds (or after 200 rounds), the strongest remaining army wins.</li></ul>
+  <h3>Your turn</h3><ul><li>Move one piece one square up, down, left or right. Scouts may run any distance in a straight line. Keeps never move.</li><li>Water cannot be crossed.</li><li>Moving onto an enemy is an attack. Both pieces are revealed to everyone. The higher rank wins; equal ranks both fall.</li><li>Special fights: a <b>Spy</b> that attacks a Lord kills it. Any attacker except a <b>Sapper</b> is destroyed by a <b>Keep</b>. A Lord who attacks another Lord wins.</li></ul>
+  <h3>Reading the field</h3><ul><li>Enemy pieces look like hooded figures until they fight or are shown to you.</li><li>Pieces that have moved show small footprints. Keeps never move, so an unmoved piece might be a Keep, or a Lord staying hidden.</li><li>The Domains panel lists each rival's ranks that are still hidden. Inspect any piece to see your best guess.</li></ul>
+  <h3>Diplomacy</h3><ul><li><b>Offer a pact:</b> for ${LD.PACT_LEN} rounds neither side attacks the other. Each side is shown one of the other's pieces.</li><li><b>Point the finger:</b> turn the other domains against a rival.</li><li><b>Rumour:</b> crown one of your pieces so rivals think it is your Lord. A Keep makes a nasty surprise.</li><li>You can attack an ally, but that breaks the pact, and every domain trusts you less.</li><li>Computer rulers have hidden personalities. Some keep their word. Some do not.</li></ul>
+  <h3>The pieces</h3><div class="rtbl">${rows}</div>
+  <h3>Views</h3><ul><li><b>Field</b> is the low view from behind your domain. Rotate with ⟲ ⟳ (Q/E) and zoom with + and −.</li><li><b>Map</b> is the view from above. Press V to switch.</li></ul>
+  </div><div class="row"><button class="btn gold" data-x>Close</button></div>`,m=>m.querySelector('[data-x]').onclick=closeModal);
+}
+// ---------- settings ----------
+function seg(key,opts){return `<span class="seg" data-k="${key}">${opts.map(([v,l])=>`<button data-v="${v}" class="${String(S[key])===String(v)?'on':''}">${l}</button>`).join('')}</span>`}
+function settings(){
+  modal(`<h2>Settings</h2>
+   <div class="setrow"><span>View</span>${seg('view',[['field','Field'],['map','Map']])}</div>
+   <div class="setrow"><span>Battle scenes</span>${seg('battle',[['full','Full'],['quick','Quick'],['off','Off']])}</div>
+   <div class="setrow"><span>Computer speed</span>${seg('speed',[['slow','Slow'],['normal','Normal'],['fast','Fast']])}</div>
+   <div class="setrow"><span>Sound effects</span>${seg('sound',[[true,'On'],[false,'Off']])}</div>
+   <div class="setrow"><span>Music</span>${seg('music',[[true,'On'],[false,'Off']])}</div>
+   <div class="setrow"><span>Guess bars on unknown pieces</span>${seg('hints',[[true,'On'],[false,'Off']])}</div>
+   <div class="setrow"><span>Page theme</span>${seg('theme',[['auto','Auto'],['light','Light'],['dark','Dark']])}</div>
+   <div class="setrow"><span>Watching computers: show all pieces</span>${seg('revealAll',[[true,'Yes'],[false,'No']])}</div>
+   <div class="row"><button class="btn gold" data-x>Done</button></div>`,m=>{
+    m.querySelector('[data-x]').onclick=closeModal;
+    m.querySelectorAll('.seg').forEach(sg=>sg.onclick=e=>{const b=e.target.closest('button');if(!b)return;let v=b.dataset.v;if(v==='true')v=true;if(v==='false')v=false;S[sg.dataset.k]=v;saveS();
+      sg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+      if(sg.dataset.k==='view'){V.mode=v;syncView()}if(sg.dataset.k==='sound')SND.set(v);if(sg.dataset.k==='music')SND.music(v);if(sg.dataset.k==='theme')applyTheme();if(sg.dataset.k==='revealAll'&&G){setViewer();renderAll()}});
+  });
+}
+function syncView(){$('#bView').textContent='View: '+(V.mode==='field'?'Field':'Map');const f=V.mode==='field';['#bRotL','#bRotR','#bZoomIn','#bZoomOut'].forEach(s=>$(s).disabled=!f)}
+// ---------- input ----------
+function toInternal(e){const r=RD.cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*RD.W,y:(e.clientY-r.top)/r.height*RD.H}}
+RD.cv.addEventListener('click',e=>{
+  SND.unlock();
+  if(BT.active){BT.skip();return}
+  if(V.title){newGameModal();return}
+  if(!waiting||busy)return;
+  const p=toInternal(e);const hit=RD.pick(p.x,p.y);
+  if(!hit){if(waiting.kind==='move'){V.sel=null;V.legal=[]}return}
+  if(hit.id==null){const x=LD.at(G,hit.r,hit.c);if(x)hit.id=x.id}
+  waiting.click(hit);
+});
+RD.cv.addEventListener('mousemove',e=>{
+  if(!G||V.title||BT.active)return;const p=toInternal(e);const hit=RD.pick(p.x,p.y);
+  V.hover=hit?{r:hit.r,c:hit.c}:null;
+  if(hit){const x=hit.id!=null?G.pieces[hit.id]:LD.at(G,hit.r,hit.c);if(x&&x.id!==lastInspect){lastInspect=x.id;inspect(x)}}
+});
+let lastInspect=null;
+RD.cv.addEventListener('mouseleave',()=>{V.hover=null});
+addEventListener('keydown',e=>{
+  if(!$('#modalBg').hidden){if(e.key==='Escape'&&!G?.over)closeModal();return}
+  if(e.target.tagName==='SELECT'||e.target.tagName==='INPUT')return;
+  const k=e.key.toLowerCase();
+  if(k==='v'){V.mode=V.mode==='field'?'map':'field';S.view=V.mode;saveS();syncView()}
+  if(k==='q')RD.rotate(-Math.PI/4);if(k==='e')RD.rotate(Math.PI/4);
+  if(k==='+'||k==='=')RD.zoom(-20);if(k==='-')RD.zoom(20);
+  if(k==='escape'){V.sel=null;V.legal=[];V.swapSel=null}
+  if(k===' '&&BT.active){e.preventDefault();BT.skip()}
+});
+$('#bView').onclick=()=>{V.mode=V.mode==='field'?'map':'field';S.view=V.mode;saveS();syncView()};
+$('#bRotL').onclick=()=>RD.rotate(-Math.PI/4);$('#bRotR').onclick=()=>RD.rotate(Math.PI/4);
+$('#bZoomIn').onclick=()=>RD.zoom(-20);$('#bZoomOut').onclick=()=>RD.zoom(20);
+$('#bRules').onclick=rules;$('#tRules').onclick=rules;$('#bSettings').onclick=settings;$('#tSet').onclick=settings;
+$('#tNew').onclick=newGameModal;$('#tCont').onclick=cont;
+$('#bMenu').onclick=async()=>{if(G&&!V.title&&!G.over){const ok=await ask('Leave this game?','<p>Your game is saved after every turn. You can continue it from the title screen.</p>',[{t:'Stay',v:false},{t:'Title screen',v:true,cls:'gold'}]);if(!ok)return}token++;waiting=null;showTitle()};
+$('#modalBg').addEventListener('click',e=>{if(e.target.id==='modalBg'&&!$('#modal [data-i]'))closeModal()});
+// expose for tests
+window.LDG={get G(){return G},S,V,begin,perform,store,get waiting(){return waiting}};
+syncView();RD.start();showTitle();if(S.music)SND.music(true);
+})();
+
+</script>
+</body>
+</html>
