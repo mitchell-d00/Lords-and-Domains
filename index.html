@@ -151,23 +151,62 @@ body{padding-bottom:64px}
 // ===================== Lords & Domains: rules, diplomacy and AI =====================
 // Pure game logic. No DOM. The same code runs in the page and in tests.
 const LD=(()=>{
-// ---------- the board: a five-sided field of hexes ----------
-// Axial hex coordinates (q = c, r = r), pointy-top. Stored shifted so indices run 0..N-1.
-const M=15,N=2*M+1,TILE=16,PENT_R=14.8,SQ3=Math.sqrt(3);
-const DIRS=[[0,1],[0,-1],[1,0],[-1,0],[-1,1],[1,-1]];
-// hex diagonals: the six directions that pass between two neighbours
-const DIAGS=[[-1,2],[1,1],[2,-1],[1,-2],[-1,-1],[-2,1]];
-const angled=rank=>false; // every piece moves in the six hex directions
-// the unit step that reaches (dr,dc) along a straight line or a diagonal, if any
-function stepFor(dr,dc){for(const v of DIRS){const k=v[0]?dr/v[0]:dc/v[1];if(k>0&&Number.isInteger(k)&&v[0]*k===dr&&v[1]*k===dc)return{v,k,diag:DIAGS.includes(v)}}return null}
-const hexDist=(r1,c1,r2,c2)=>{const dr=r2-r1,dc=c2-c1;return (Math.abs(dr)+Math.abs(dc)+Math.abs(dr+dc))/2};
-const inLine=(dr,dc)=>dr===0||dc===0||dr===-dc;
-// unit-size hex centre (centre-to-corner = 1)
-const cellXY=(r,c)=>({x:SQ3*((c-M)+(r-M)/2),y:1.5*(r-M)});
+// ---------- the board: a five-sided field tiled with five-sided spaces (the Cairo pentagonal tiling) ----------
+// Built on a square lattice: every lattice cell holds a short "bond" (horizontal or vertical, alternating), and each
+// lattice edge becomes one pentagon made of the two cell pieces that face it. Every tile has five sides and touches
+// up to five neighbours. A tile id is stored as (r,c) = (floor(id/N), id%N) so the rest of the code can keep using r,c.
+const TILE=16,PENT_R=6.9,BOND=.274,GR=9;
 const PENT=[0,1,2,3,4].map(k=>{const a=Math.PI/2+Math.PI/5+k*2*Math.PI/5;return{x:PENT_R*Math.cos(a),y:PENT_R*Math.sin(a)}});
 function inPent(x,y){for(let k=0;k<5;k++){const a=PENT[k],b=PENT[(k+1)%5];if((b.x-a.x)*(y-a.y)-(b.y-a.y)*(x-a.x)<0)return false}return true}
+const ALLT=[];
+(function buildTiles(){
+  const isH=(i,j)=>((i+j)%2+2)%2===0;
+  // the pieces of a lattice cell facing each of its four sides
+  const pieces=(i,j)=>{const cx=i+.5,cy=j+.5,b=BOND;
+    const A=[i,j],Bp=[i+1,j],C=[i+1,j+1],D=[i,j+1];
+    if(isH(i,j)){const L=[cx-b,cy],R=[cx+b,cy];return{n:[A,Bp,R,L],s:[D,C,R,L],w:[A,D,L],e:[Bp,C,R]}}
+    const T=[cx,cy-b],U=[cx,cy+b];return{n:[A,Bp,T],s:[D,C,U],w:[A,D,U,T],e:[Bp,C,U,T]};
+  };
+  const add=(p1,p2)=>{const pts=[];for(const p of p1.concat(p2))if(!pts.some(q=>Math.abs(q[0]-p[0])<1e-9&&Math.abs(q[1]-p[1])<1e-9))pts.push(p);
+    const cx=pts.reduce((s,p)=>s+p[0],0)/pts.length,cy=pts.reduce((s,p)=>s+p[1],0)/pts.length;pts.sort((a,b)=>Math.atan2(a[1]-cy,a[0]-cx)-Math.atan2(b[1]-cy,b[0]-cx));
+    // centre the lattice on the board (y grows downward)
+    ALLT.push({poly:pts.map(p=>({x:p[0],y:p[1]})),x:cx,y:cy})};
+  for(let i=-GR;i<GR;i++)for(let j=-GR;j<GR;j++){
+    if(j<GR-1)add(pieces(i,j).s,pieces(i,j+1).n);   // the edge between this cell and the one below
+    if(i<GR-1)add(pieces(i,j).e,pieces(i+1,j).w);   // the edge between this cell and the one to the right
+  }
+  // tiles that share a side are neighbours
+  const key=(p,q)=>{const a=p.x.toFixed(4)+','+p.y.toFixed(4),b=q.x.toFixed(4)+','+q.y.toFixed(4);return a<b?a+'|'+b:b+'|'+a};
+  const edges={};ALLT.forEach((t,ti)=>{t.nb=[];for(let k=0;k<t.poly.length;k++){const e=key(t.poly[k],t.poly[(k+1)%t.poly.length]);(edges[e]=edges[e]||[]).push(ti)}});
+  for(const e in edges){const L=edges[e];if(L.length===2){ALLT[L[0]].nb.push(L[1]);ALLT[L[1]].nb.push(L[0])}}
+})();
+// keep the tiles whose centre lies inside the pentagon
+const KEEP=ALLT.map((t,i)=>inPent(t.x,t.y)?i:-1).filter(i=>i>=0);
+const N=Math.ceil(Math.sqrt(KEEP.length))+1,M=0;
+const TID={};KEEP.forEach((ti,k)=>TID[ti]=k);
+const TILES=KEEP.map((ti,k)=>({id:k,x:ALLT[ti].x,y:ALLT[ti].y,poly:ALLT[ti].poly,nb:ALLT[ti].nb.filter(n=>TID[n]!=null).map(n=>TID[n])}));
 const VALID=new Set(),CELLS=[];
-for(let r=0;r<N;r++)for(let c=0;c<N;c++){const p=cellXY(r,c);if(inPent(p.x,p.y)){VALID.add(r*N+c);CELLS.push([r,c])}}
+TILES.forEach(t=>{const r=Math.floor(t.id/N),c=t.id%N;t.r=r;t.c=c;VALID.add(r*N+c);CELLS.push([r,c])});
+const tileOf=(r,c)=>TILES[r*N+c];
+const cellXY=(r,c)=>{const t=TILES[r*N+c];return t?{x:t.x,y:t.y}:{x:0,y:0}};
+// neighbours of a tile, as [r,c]
+const NB=TILES.map(t=>t.nb.map(n=>[TILES[n].r,TILES[n].c]));
+const nbrs=(r,c)=>NB[r*N+c]||[];
+const DIRS=null,DIAGS=[];
+// shortest walking distance between any two tiles (ignoring water), for the computer rulers' planning
+const DIST=(()=>{const n=TILES.length,D=new Array(n);for(let s=0;s<n;s++){const d=new Int16Array(n).fill(99);d[s]=0;const q=[s];for(let h=0;h<q.length;h++)for(const m of TILES[q[h]].nb)if(d[m]>d[q[h]]+1){d[m]=d[q[h]]+1;q.push(m)}D[s]=d}return D})();
+const hexDist=(r1,c1,r2,c2)=>{const a=TILES[r1*N+c1],b=TILES[r2*N+c2];return a&&b?DIST[a.id][b.id]:99};
+// Scouts run "straight": through each tile they keep to the neighbour most in line with where they started heading
+const RAYS=TILES.map(t=>t.nb.map(n0=>{const ray=[n0];const dx=TILES[n0].x-t.x,dy=TILES[n0].y-t.y,L=Math.hypot(dx,dy);let prev=t.id,cur=n0;
+  for(let k=0;k<30;k++){let best=-1,bd=.72;for(const m of TILES[cur].nb){if(m===prev||ray.includes(m)||m===t.id)continue;const ex=TILES[m].x-TILES[cur].x,ey=TILES[m].y-TILES[cur].y;const dot=(ex*dx+ey*dy)/(Math.hypot(ex,ey)*L);if(dot>bd){bd=dot;best=m}}
+    if(best<0)break;ray.push(best);prev=cur;cur=best}
+  return ray}));
+// where along which ray from tile a does tile b sit?
+const RAYAT=TILES.map((t,i)=>{const m={};RAYS[i].forEach((ray,ri)=>ray.forEach((b,k)=>{if(m[b]==null)m[b]={ri,k:k+1}}));return m});
+const angled=()=>false;
+const rescueNbrs=(r,c)=>nbrs(r,c);
+function stepFor(dr,dc){return null}
+const inLine=()=>false;
 const RANK_NAME={9:'Lord',8:'Marshal',7:'Knight',6:'Captain',5:'Guard',4:'Raider',3:'Scout',2:'Spy',1:'Sapper',0:'Keep'};
 const RANK_SHORT={9:'L',8:'8',7:'7',6:'6',5:'5',4:'4',3:'3',2:'2',1:'1',0:'K'};
 const RANK_TIP={
@@ -177,7 +216,7 @@ const RANK_TIP={
  6:'A veteran officer. Beats every rank below 6.',
  5:'Steady infantry. Beats every rank below 5.',
  4:'A fast striker. Beats every rank below 4.',
- 3:'Runs any number of open hexes in a straight line, in any of the six directions. Every domain has four. Good for probing unknown pieces.',
+ 3:'Runs any number of open spaces in a straight line, in any of the five directions. Every domain has four. Good for probing unknown pieces.',
  2:'Weak in a fair fight, but a Spy that strikes a Lord first kills it. Every domain has two.',
  1:'The only piece that can break a Keep, and breaking a Keep topples that whole domain.',
  0:'Your fortress. It never moves. Anything that attacks it is destroyed, except a Sapper. If a Sapper breaks it, your whole domain falls.'};
@@ -191,7 +230,7 @@ const DOMAINS=[
  {name:'Golden',banner:'the Sun Court'},
  {name:'Violet',banner:'the Dusk Spire'}];
 // Five homes roughly evenly spaced around the board. Each: 3x3 block on the edge + two forward squares.
-// each domain holds one side of the pentagon: a strip two hexes deep along the middle of its edge
+// each domain holds one side of the pentagon: a strip two spaces deep along the middle of its edge
 const SIDES=[0,1,2,3,4].map(k=>{const a=PENT[(k+4)%5],b=PENT[k];const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;const L=Math.hypot(mx,my);return{mx,my,nx:mx/L,ny:my/L,tx:(b.x-a.x)/Math.hypot(b.x-a.x,b.y-a.y),ty:(b.y-a.y)/Math.hypot(b.x-a.x,b.y-a.y),L}});
 // side 0 is the bottom edge (Crimson), then round the field
 const SIDE_OF=(()=>{const order=[];for(let k=0;k<5;k++){const S=SIDES[k];order.push({k,ang:Math.atan2(S.my,S.mx)})}const bottom=order.reduce((a,b)=>Math.abs(b.ang-Math.PI/2)<Math.abs(a.ang-Math.PI/2)?b:a).k;return [0,1,2,3,4].map(i=>(bottom+i)%5)})();
@@ -199,13 +238,13 @@ const HOMES=[0,1,2,3,4].map(p=>{const S=SIDES[SIDE_OF[p]];
   const sc=([r,c])=>{const q=cellXY(r,c);const depth=S.L-(q.x*S.nx+q.y*S.ny),lat=Math.abs(q.x*S.tx+q.y*S.ty);return depth*2.6+lat};
   return CELLS.slice().sort((a,b)=>sc(a)-sc(b)).slice(0,14).map(x=>x.concat([S]))});
 function homeCells(p){
-  // back to front: the hexes nearest the edge come first, the middle of the line before the flanks
+  // back to front: the spaces nearest the edge come first, the middle of the line before the flanks
   return HOMES[p].map(([r,c,S])=>{const q=cellXY(r,c);return{r,c,depth:S.L-(q.x*S.nx+q.y*S.ny),lat:Math.abs(q.x*S.tx+q.y*S.ty)}}).sort((a,b)=>a.depth-b.depth||a.lat-b.lat).map(o=>[o.r,o.c]);
 }
 // lakes: one in the middle and five between the domains
 const WATER=(()=>{const w=new Set();const near=(x,y)=>CELLS.slice().sort((a,b)=>{const pa=cellXY(a[0],a[1]),pb=cellXY(b[0],b[1]);return Math.hypot(pa.x-x,pa.y-y)-Math.hypot(pb.x-x,pb.y-y)});
   const home=new Set(HOMES.flat().map(([r,c])=>r+','+c));
-  for(const k of [...home]){const [r,c]=k.split(',').map(Number);for(const [dr,dc] of DIRS)home.add((r+dr)+','+(c+dc))}
+  for(const k of [...home]){const [r,c]=k.split(',').map(Number);for(const [rr,cc] of nbrs(r,c))home.add(rr+','+cc)}
   const c0=near(0,0)[0];w.add(c0[0]+','+c0[1]);
   for(let k=0;k<5;k++){const v=PENT[k];const x=v.x*.5,y=v.y*.5;for(const cc of near(x,y).filter(q=>!home.has(q[0]+','+q[1])).slice(0,2))w.add(cc[0]+','+cc[1])}
   return w})();
@@ -273,15 +312,15 @@ function startPlay(G){G.phase='play';G.turn=0;while(!G.alive[G.turn])G.turn=(G.t
 // ---------- movement ----------
 function movesFor(G,x){
   if(!x||!x.alive||x.rank===0)return[];
-  const out=[];const far=x.rank===3;
-  const dirs=angled(x.rank)?DIRS.concat(DIAGS):DIRS;
-  for(const [dr,dc] of dirs){
-    for(let s=1;s<=(far?N:1);s++){
-      const r=x.r+dr*s,c=x.c+dc*s;
-      if(!inB(r,c)||blocked(r,c,G))break;
-      const t=at(G,r,c);
-      if(!t){out.push({r,c,attack:false});continue}
-      if(t.p!==x.p)out.push({r,c,attack:true,target:t.id});
+  const out=[];const t=tileOf(x.r,x.c);
+  const paths=x.rank===3?RAYS[t.id]:t.nb.map(n=>[n]);
+  for(const path of paths){
+    for(const id of path){
+      const r=TILES[id].r,c=TILES[id].c;
+      if(blocked(r,c,G))break;
+      const q=at(G,r,c);
+      if(!q){out.push({r,c,attack:false});continue}
+      if(q.p!==x.p)out.push({r,c,attack:true,target:q.id});
       break;
     }
   }
@@ -372,18 +411,18 @@ function endRound(G){
 // wants the war to finish, so it raises land that shortens the routes between rivals and sinks the places armies
 // could hide. It never sinks an occupied square or cuts any piece off; once nothing more can go, it only keeps the
 // roads between the Lords. It sinks a little more than it raises, so the island slowly shrinks.
-const QUAKE_START=6,D4=DIRS;
+const QUAKE_START=6;
 function landConnected(G,skip,lordsOnly){
   const alive=G.pieces.filter(x=>x.alive&&(!lordsOnly||x.rank===9));if(alive.length<2)return true;
   const seen=new Set([alive[0].r+','+alive[0].c]);const st=[[alive[0].r,alive[0].c]];
-  while(st.length){const [r,c]=st.pop();for(const [dr,dc] of D4){const rr=r+dr,cc=c+dc,k=rr+','+cc;if(!inB(rr,cc)||seen.has(k)||k===skip||blocked(rr,cc,G))continue;seen.add(k);st.push([rr,cc])}}
+  while(st.length){const [r,c]=st.pop();for(const [rr,cc] of nbrs(r,c)){const k=rr+','+cc;if(!inB(rr,cc)||seen.has(k)||k===skip||blocked(rr,cc,G))continue;seen.add(k);st.push([rr,cc])}}
   return alive.every(x=>seen.has(x.r+','+x.c));
 }
 // breadth-first distances over land from a set of start squares
 function bfs(G,starts){
   const d=new Array(N*N).fill(999);const q=[];
   for(const [r,c] of starts){d[r*N+c]=0;q.push(r*N+c)}
-  for(let h=0;h<q.length;h++){const i=q[h],r=(i/N)|0,c=i%N;for(const [dr,dc] of D4){const rr=r+dr,cc=c+dc;if(!inB(rr,cc)||blocked(rr,cc,G))continue;const j=rr*N+cc;if(d[j]>d[i]+1){d[j]=d[i]+1;q.push(j)}}}
+  for(let h=0;h<q.length;h++){const i=q[h],r=(i/N)|0,c=i%N;for(const [rr,cc] of nbrs(r,c)){if(!inB(rr,cc)||blocked(rr,cc,G))continue;const j=rr*N+cc;if(d[j]>d[i]+1){d[j]=d[i]+1;q.push(j)}}}
   return d;
 }
 // how far apart the rival armies are: for every pair of living domains, the shortest route between them
@@ -395,8 +434,8 @@ function separation(G){
 }
 // would sinking (r,c) leave a neighbouring piece with no open land beside it at all?
 function boxesIn(G,r,c){
-  for(const [dr,dc] of D4){const q=at(G,r+dr,c+dc);if(!q||q.rank===0)continue;
-    let open=0;for(const [er,ec] of D4){const rr=q.r+er,cc=q.c+ec;if((rr===r&&cc===c)||!inB(rr,cc)||blocked(rr,cc,G))continue;if(!at(G,rr,cc)||at(G,rr,cc).p!==q.p)open++}
+  for(const [nr,nc] of nbrs(r,c)){const q=at(G,nr,nc);if(!q||q.rank===0)continue;
+    let open=0;for(const [rr,cc] of nbrs(q.r,q.c)){if((rr===r&&cc===c)||!inB(rr,cc)||blocked(rr,cc,G))continue;if(!at(G,rr,cc)||at(G,rr,cc).p!==q.p)open++}
     if(open===0)return true}
   return false;
 }
@@ -406,7 +445,7 @@ function rescue(G,tiles){
   const pcs=G.pieces.filter(x=>x.alive);const main=bfs(G,[[pcs[0].r,pcs[0].c]]);
   for(const x of pcs){if(main[x.r*N+x.c]<999)continue;
     // walk from the stranded piece toward the main body, raising seabed as we go
-    let r=x.r,c=x.c;for(let k=0;k<26;k++){let best=null,bd=1e9;for(const [dr,dc] of D4){const rr=r+dr,cc=c+dc;if(!inB(rr,cc))continue;const d=Math.min(...pcs.filter(q=>main[q.r*N+q.c]<999).map(q=>hexDist(q.r,q.c,rr,cc)));if(d<bd){bd=d;best=[rr,cc]}}
+    let r=x.r,c=x.c;for(let k=0;k<26;k++){let best=null,bd=1e9;for(const [rr,cc] of rescueNbrs(r,c)){const d=Math.min(...pcs.filter(q=>main[q.r*N+q.c]<999).map(q=>hexDist(q.r,q.c,rr,cc)));if(d<bd){bd=d;best=[rr,cc]}}
       if(!best)break;[r,c]=best;if(blocked(r,c,G)){G.sunk[r+','+c]='land';tiles.push({r,c,kind:'rise'})}if(main[r*N+c]<999)break}
   }
 }
@@ -415,7 +454,7 @@ function quake(G){
   G.sunk=G.sunk||{};
   const occ=new Set(G.pieces.filter(x=>x.alive).map(x=>x.r+','+x.c));
   const step=Math.floor((G.round-QUAKE_START)/10);
-  const nSink=Math.min(5,2+step),nRise=Math.max(1,nSink-1);
+  const nSink=Math.min(6,3+step),nRise=Math.max(1,nSink-2);
   const all=CELLS;
   const near=bfs(G,G.pieces.filter(x=>x.alive).map(x=>[x.r,x.c]));
   const tiles=[];rescue(G,tiles);const F0=separation(G);
@@ -435,7 +474,7 @@ function quake(G){
   // rise: seabed that shortens the routes between rivals the most (the island takes no sides)
   const F1=separation(G);
   for(let i=0;i<nRise;i++){
-    const cands=all.filter(([r,c])=>blocked(r,c,G)&&D4.some(([dr,dc])=>inB(r+dr,c+dc)&&!blocked(r+dr,c+dc,G)));
+    const cands=all.filter(([r,c])=>blocked(r,c,G)&&nbrs(r,c).some(([a,b])=>!blocked(a,b,G)));
     let best=null,bg=0;const base=separation(G);
     for(const [r,c] of shuffle(cands).slice(0,20)){const k=r+','+c;const prev=G.sunk[k];G.sunk[k]='land';const F=separation(G);if(prev)G.sunk[k]=prev;else delete G.sunk[k];
       const g=base-F+rnd()*.3;if(g>bg){bg=g;best=[r,c]}}
@@ -444,7 +483,7 @@ function quake(G){
   // a quiet front: raise ground beside the armies so they can manoeuvre and flank
   if(G.round-G.lastCapture>=6){
     const pcs=G.pieces.filter(x=>x.alive);
-    const cands=all.filter(([r,c])=>blocked(r,c,G)&&D4.some(([dr,dc])=>inB(r+dr,c+dc)&&!blocked(r+dr,c+dc,G))&&pcs.some(x=>hexDist(x.r,x.c,r,c)<=2));
+    const cands=all.filter(([r,c])=>blocked(r,c,G)&&nbrs(r,c).some(([a,b])=>!blocked(a,b,G))&&pcs.some(x=>hexDist(x.r,x.c,r,c)<=2));
     // prefer seabed that sits near pieces of two or more domains
     const score=([r,c])=>new Set(pcs.filter(x=>hexDist(x.r,x.c,r,c)<=3).map(x=>x.p)).size+rnd();
     cands.sort((x,y)=>score(y)-score(x));
@@ -585,9 +624,8 @@ function danger(G,a,x,r,c){
   for(const q of G.pieces){
     if(!q.alive||q.p===a||q.rank===0&&visibleTo(q,a))continue;
     const dist=hexDist(q.r,q.c,r,c);if(dist>12)continue;
-    const st=stepFor(r-q.r,c-q.c);if(!st)continue;
-    const adj=st.k===1,diag1=false;
-    if(!adj&&!(st.k<8&&scoutLine(G,q,r,c,a)))continue;
+    const tq=tileOf(q.r,q.c),tt=tileOf(r,c);const ra=RAYAT[tq.id][tt.id];const adj=tq.nb.includes(tt.id),diag1=false;
+    if(!adj&&!(ra&&ra.k<8&&scoutLine(G,q,r,c,a)))continue;
     const B=belief(G,q,a);let pk=0;
     for(const k in B){const kr=+k;if(kr===0)continue;if(!adj&&!(kr===3||(diag1&&kr===2)))continue;if(x.rank===0&&kr!==1)continue;
       // q attacks x: does q win?
@@ -599,8 +637,8 @@ function danger(G,a,x,r,c){
   return d;
 }
 function scoutLine(G,q,r,c,a){ // could a scout at q slide to (r,c)?
-  const st=stepFor(r-q.r,c-q.c);if(!st)return false;
-  for(let i=1;i<st.k;i++){const rr=q.r+st.v[0]*i,cc=q.c+st.v[1]*i;if(!inB(rr,cc)||blocked(rr,cc,G)||at(G,rr,cc))return false}
+  const tq=tileOf(q.r,q.c),tt=tileOf(r,c);const ra=RAYAT[tq.id][tt.id];if(!ra)return false;const ray=RAYS[tq.id][ra.ri];
+  for(let i=0;i<ra.k-1;i++){const T=TILES[ray[i]];if(blocked(T.r,T.c,G)||at(G,T.r,T.c))return false}
   return true;
 }
 function aiChoose(G,a){
@@ -637,7 +675,7 @@ function aiChoose(G,a){
       const d0=danger(G,a,x,x.r,x.c),d1=danger(G,a,x,m.r,m.c);
       s+=(d0-d1)*.35*D.look/bold;
       if(x.rank===9){s-=4/bold;if(lordDanger>6)s+=(d0-d1)*.6;
-        const fr=(r,c)=>DIRS.filter(([dr,dc])=>{const q=at(G,r+dr,c+dc);return q&&q.p===a}).length;
+        const fr=(r,c)=>nbrs(r,c).filter(([a2,b2])=>{const q=at(G,a2,b2);return q&&q.p===a}).length;
         s+=(fr(m.r,m.c)-fr(x.r,x.c))*.6;}
       if(x.rank!==9||bold>2.2||alivePieces(G,a).length<=2||G.islandDone){
         // approach the most interesting target
@@ -657,7 +695,7 @@ function aiChoose(G,a){
   return best;
 }
 
-return {DIAGS,stepFor,angled,M,DIRS,hexDist,inLine,cellXY,PENT,PENT_R,CELLS,ARMY,blocked,landConnected,quake,QUAKE_START,setG:g=>{CURG=g},N,TILE,RANK_NAME,RANK_SHORT,RANK_TIP,VALUE,DOMAINS,HOMES,PERSONAS,PACT_LEN,homeCells,WATER,isWater,inB,newGame,swapSetup,shuffleSetup,suggestSetup,startPlay,
+return {TILES,RAYS,nbrs,tileOf,DIAGS,stepFor,angled,M,DIRS,hexDist,inLine,cellXY,PENT,PENT_R,CELLS,ARMY,blocked,landConnected,quake,QUAKE_START,setG:g=>{CURG=g},N,TILE,RANK_NAME,RANK_SHORT,RANK_TIP,VALUE,DOMAINS,HOMES,PERSONAS,PACT_LEN,homeCells,WATER,isWater,inB,newGame,swapSetup,shuffleSetup,suggestSetup,startPlay,
   movesFor,allMoves,resolve,doMove,nextTurn,visibleTo,belief,threat,leader,hostility,attitude,wouldAccept,makePact,accuse,plantRumor,aiDiplomacy,aiChoose,
   hasPact,breakPact,alivePieces,lordOf,at,strength,credibility,pactCount,setRandom,addLog};
 })();
@@ -1000,7 +1038,7 @@ return{TIMES,TIME_NAME,PRESETS,apply,SEASONS,SEASON_NAME,HOLIDAYS,WEATHER_NAME,c
 // ===================== Renderer: board texture, Mode 7 field view, map view, battle scenes =====================
 const RD=(()=>{
 // ----- hex geometry in world pixels -----
-const HS=8;                         // hex size: centre to corner, in pixels
+const HS=17;                        // pixels per lattice unit of the pentagon tiling
 const BW=240,BH=230,BX0=120,BY0=124; // board box and the pentagon centre inside it
 const W=384,H=240,T=16,OFF=96,TX=Math.max(BW,BH)+OFF*2,BOARD=BW;
 const cv=document.getElementById('screen');cv.width=W;cv.height=H;
@@ -1019,26 +1057,20 @@ function worldOf(r,c){return cellWorld(r,c)}
 // pentagon outline in world pixels, and point-in-pentagon
 const PENTW=LD.PENT.map(v=>({x:CX+v.x*HS,y:CY+v.y*HS}));
 function inPentW(x,y,grow){for(let k=0;k<5;k++){const a=PENTW[k],b=PENTW[(k+1)%5];const ex=b.x-a.x,ey=b.y-a.y,L=Math.hypot(ex,ey);if((ex*(y-a.y)-ey*(x-a.x))/L<-(grow||0))return false}return true}
-// world pixel -> hex (cube rounding)
-function hexAt(wx,wy){
-  const ux=(wx-CX)/HS,uy=(wy-CY)/HS;const rf=uy/1.5,qf=ux/Math.sqrt(3)-rf/2;
-  let x=qf,z=rf,y=-x-z;let rx=Math.round(x),ry=Math.round(y),rz=Math.round(z);
-  const dx=Math.abs(rx-x),dy=Math.abs(ry-y),dz=Math.abs(rz-z);
-  if(dx>dy&&dx>dz)rx=-ry-rz;else if(dy>dz)ry=-rx-rz;else rz=-rx-ry;
-  return{r:rz+LD.M,c:rx+LD.M};
-}
-// ----- per-pixel cell map of the board texture: which hex each pixel belongs to -----
-const NCELL=LD.N*LD.N;
+// ----- per-pixel cell map of the board texture: which five-sided tile each pixel belongs to -----
 const CELLMAP=new Int32Array(TX*TX).fill(-1),EDGE=new Uint8Array(TX*TX),BEACH=new Uint8Array(TX*TX);
 const CELLPIX=[];
+function inPoly(P,x,y){let pos=0,neg=0;for(let k=0;k<P.length;k++){const a=P[k],b=P[(k+1)%P.length];const cr=(b.x-a.x)*(y-a.y)-(b.y-a.y)*(x-a.x);if(cr>0)pos++;else if(cr<0)neg++;if(pos&&neg)return false}return true}
 (function buildCellMap(){
-  for(let y=0;y<TX;y++)for(let x=0;x<TX;x++){
-    const i=y*TX+x,px=x+.5,py=y+.5;
-    if(inPentW(px,py)){let h=hexAt(px,py);
-      if(!LD.inB(h.r,h.c)){let best=null,bd=1e9;for(const [dr,dc] of LD.DIRS){const r=h.r+dr,c=h.c+dc;if(!LD.inB(r,c))continue;const w=cellWorld(r,c);const d=Math.hypot(w.x-px,w.y-py);if(d<bd){bd=d;best={r,c}}}h=best}
-      if(h){const id=h.r*LD.N+h.c;CELLMAP[i]=id;(CELLPIX[id]=CELLPIX[id]||[]).push(i)}}
+  for(const t of LD.TILES){const P=t.poly.map(p=>({x:CX+p.x*HS,y:CY+p.y*HS}));const id=t.r*LD.N+t.c;
+    const x0=Math.floor(Math.min(...P.map(p=>p.x))),x1=Math.ceil(Math.max(...P.map(p=>p.x))),y0=Math.floor(Math.min(...P.map(p=>p.y))),y1=Math.ceil(Math.max(...P.map(p=>p.y)));
+    for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){if(x<0||y<0||x>=TX||y>=TX)continue;const px=x+.5,py=y+.5;if(!inPentW(px,py)||!inPoly(P,px,py))continue;const i=y*TX+x;if(CELLMAP[i]<0)CELLMAP[i]=id}}
+  // pixels inside the outline that belong to tiles cut off by the edge join their nearest tile
+  const cent=LD.TILES.map(t=>({id:t.r*LD.N+t.c,x:CX+t.x*HS,y:CY+t.y*HS}));
+  for(let y=0;y<TX;y++)for(let x=0;x<TX;x++){const i=y*TX+x,px=x+.5,py=y+.5;
+    if(inPentW(px,py)){if(CELLMAP[i]<0){let b=-1,bd=1e9;for(const c of cent){const d=(c.x-px)**2+(c.y-py)**2;if(d<bd){bd=d;b=c.id}}CELLMAP[i]=b}}
     else if(inPentW(px,py,7))BEACH[i]=1;
-  }
+    const id=CELLMAP[i];if(id>=0)(CELLPIX[id]=CELLPIX[id]||[]).push(i)}
   for(let y=1;y<TX-1;y++)for(let x=1;x<TX-1;x++){const i=y*TX+x,c=CELLMAP[i];if(c<0)continue;if(CELLMAP[i-1]!==c||CELLMAP[i+1]!==c||CELLMAP[i-TX]!==c||CELLMAP[i+TX]!==c)EDGE[i]=1}
 })();
 const P32=(r,g,b)=>(0xff000000|(b<<16)|(g<<8)|r)>>>0;
@@ -1189,7 +1221,8 @@ function renderMap(t){
 // ---------- pieces ----------
 function pieceWorld(x,t){
   const a=V.anims[x.id];let r=x.r,c=x.c,hop=0;
-  if(a){const k=Math.min(1,(t-a.t0)/a.dur);const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;r=a.fr+(a.tr-a.fr)*e;c=a.fc+(a.tc-a.fc)*e;hop=Math.sin(Math.PI*k)*(a.lunge?2:5);if(k>=1)delete V.anims[x.id]}
+  if(a){const k=Math.min(1,(t-a.t0)/a.dur);const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;hop=Math.sin(Math.PI*k)*(a.lunge?2:5);if(k>=1)delete V.anims[x.id];
+    return{wx:a.fx+(a.tx-a.fx)*e,wy:a.fy+(a.ty-a.fy)*e,hop}}
   const w=cellWorld(r,c);return{wx:w.x,wy:w.y,hop};
 }
 function spriteFor(x){
@@ -1347,8 +1380,8 @@ function setViewer(p){V.viewer=p}
 function faceDomain(p,instant){V.cam.want=homeAngle(p);if(instant)V.cam.ang=V.cam.want}
 function rotate(d){V.cam.want+=d}
 function zoom(k){V.cam.dist=Math.max(150,Math.min(340,V.cam.dist+k));V.cam.h=Math.max(60,Math.min(170,V.cam.h+k*.45))}
-function animMove(id,from,to,dur,lunge){V.anims[id]={fr:from.r,fc:from.c,tr:to.r,tc:to.c,t0:performance.now(),dur:dur||260,lunge}}
-return {cellWorld,hexAt,cellAtWorld,curEnv,curTime,curLight,V,W,H,CUR,start,pick,project,MAP,OFF,setViewer,faceDomain,rotate,zoom,animMove,burst,floatText,worldOf,ctx,cv,homeAngle};
+function animMove(id,from,to,dur,lunge,frac){const a=cellWorld(from.r,from.c),b=cellWorld(to.r,to.c);const f=frac||1;V.anims[id]={fx:a.x,fy:a.y,tx:a.x+(b.x-a.x)*f,ty:a.y+(b.y-a.y)*f,t0:performance.now(),dur:dur||260,lunge}}
+return {cellWorld,cellAtWorld,curEnv,curTime,curLight,V,W,H,CUR,start,pick,project,MAP,OFF,setViewer,faceDomain,rotate,zoom,animMove,burst,floatText,worldOf,ctx,cv,homeAngle};
 })();
 
 // ===================== Battle cinematics and chiptune sound =====================
@@ -1788,7 +1821,7 @@ function showTokens(shown,viewer){
 function humanTurn(p){
   return new Promise(res=>{
     V.sel=null;V.legal=[];
-    $('#turnBox').innerHTML=`<h3>${D[p].name}: your move</h3><p>Pick one of your pieces, then a highlighted hex. A <span style="color:#ff8080">red frame</span> is an attack.${S.tips&&G.round<=2?' Unknown enemies appear as hooded figures until they fight.':''}</p><p class="kbd">V switch view · Q/E rotate · +/- zoom · Esc cancel</p>`;
+    $('#turnBox').innerHTML=`<h3>${D[p].name}: your move</h3><p>Pick one of your pieces, then a highlighted space. A <span style="color:#ff8080">red frame</span> is an attack.${S.tips&&G.round<=2?' Unknown enemies appear as hooded figures until they fight.':''}</p><p class="kbd">V switch view · Q/E rotate · +/- zoom · Esc cancel</p>`;
     renderDiplo(p);
     waiting={kind:'move',p,async click(hit){
       if(!hit)return;
@@ -1818,7 +1851,7 @@ async function perform(m){
       // keep both fighters on the board during the lunge, then restore the real outcome
       const finalAlive=G.pieces.map(q=>q.alive);const A=G.pieces[e.att];const realA={r:A.r,c:A.c};
       A.alive=true;G.pieces[e.def].alive=true;A.r=e.from.r;A.c=e.from.c;
-      RD.animMove(e.att,e.from,{r:(e.from.r*.6+e.to.r*.4),c:(e.from.c*.6+e.to.c*.4)},220,true);
+      RD.animMove(e.att,e.from,e.to,220,true,.4);
       await sleep(240);
       if(S.battle!=='off'){$('#toast').hidden=true;await BT.play({...e,preA,preD},G,vw<0?-1:vw,S.battle)}
       else{SND.play('clash');RD.V.shake=5;await sleep(250)}
@@ -1911,7 +1944,7 @@ function coachNext(){coach.i++;if(coach.i>=coach.steps.length){coachStop();toast
 // put a revealed, weak enemy right in front of one of your strong pieces so the first attack is a sure thing
 function stageAttack(){
   const me=humans()[0];const mine=LD.alivePieces(G,me).filter(x=>x.rank>=5&&x.rank<=8);
-  for(const x of mine){for(const [dr,dc] of LD.DIRS){const r=x.r+dr,c=x.c+dc;if(!LD.inB(r,c)||LD.blocked(r,c,G)||LD.at(G,r,c))continue;
+  for(const x of mine){for(const [r,c] of LD.nbrs(x.r,x.c)){if(!LD.inB(r,c)||LD.blocked(r,c,G)||LD.at(G,r,c))continue;
     const foe=G.pieces.find(q=>q.alive&&q.p!==me&&q.rank>=3&&q.rank<=4);if(!foe)return;foe.r=r;foe.c=c;foe.revealed=true;
     const w=RD.worldOf(r,c);RD.burst(w.x,w.y,['#ffffff','#ffe070'],20,1,2.5);RD.floatText(w.x,w.y,'A SCOUTING PARTY!','#ffe070');renderAll();return}}
 }
@@ -1922,10 +1955,10 @@ function startWalkthrough(){
    {title:'Deploy your army',t:'Your fourteen pieces line up along your side of the five-sided field. Click one of your pieces, then another, to swap them. Your <b>Lord</b> is marked L: hide it where enemies will not look.',wait:'swap'},
    {title:'Ready for war',t:'When your army is arranged, press <b>Ready</b> below the board.',wait:'ready'},
    {title:'Two ways to look',t:'Press <b>View</b> at the top (or the V key) to switch between the low field view behind your army and the map from above. In the field view, ⟲ ⟳ rotate the island and ＋ − zoom.',wait:'view'},
-   {title:'Make a move',t:'Click one of your pieces, then a highlighted hex. Pieces move one hex in any of the six directions. Your four Scouts (3) run any distance in a straight line. Keeps never move.',wait:'moved'},
+   {title:'Make a move',t:'Click one of your pieces, then a highlighted space. Each space has five sides, and pieces move to any of the five spaces that share a side. Your four Scouts (3) run any distance in a straight line. Keeps never move.',wait:'moved'},
    {title:'Hooded strangers',t:'Every enemy looks like a hooded figure until it fights. Hover over or tap an enemy piece: the Inspect panel shows your spies\' best guess at what it is.',wait:'inspectEnemy'},
    {title:'Diplomacy',t:'Before you move, you may make one diplomatic act: <b>offer a pact</b> (no attacks for 6 rounds), <b>point the finger</b> at a rival, or crown one of your pieces with a <b>rumour</b> that it is your Lord. Try one in the Diplomacy panel.',wait:'diplo'},
-   {title:'To battle',t:'A revealed enemy Scout has wandered up to your lines. Attack it: select the piece beside it, then click the enemy (its hex has a red frame). Both pieces are revealed and the higher rank wins.',wait:'attack',enter:stageAttack},
+   {title:'To battle',t:'A revealed enemy Scout has wandered up to your lines. Attack it: select the piece beside it, then click the enemy (its space has a red frame). Both pieces are revealed and the higher rank wins.',wait:'attack',enter:stageAttack},
    {title:'Killing a Lord',t:'Only three things beat a Lord: a <b>Spy</b> that strikes it first, another <b>Lord</b> that strikes first, or a <b>Keep</b> it is foolish enough to attack. A Lord that strikes a Spy first wins. You have two Spies. Keep them close to where you think an enemy Lord hides.'},
    {title:'Breaking a Keep',t:'A Keep destroys anything that attacks it, except a <b>Sapper</b>. If a Sapper breaks a domain\'s Keep, that whole domain falls. Guard your Keep, and send your Sapper after theirs.'},
    {title:'The restless island',t:`In Decisive mode, from round 6 the island reshapes itself every round. ${LORE_ISLAND}`},
@@ -1962,10 +1995,10 @@ function rules(){
   const rows=[9,8,7,6,5,4,3,2,1,0].map(k=>`<img src="${sprURL(k,0)}" alt=""><div><b>${LD.RANK_NAME[k]}</b>${k!==9&&k!==0?` (${k})`:''} · ${LD.RANK_TIP[k]}</div>`).join('');
   modal(`<h2>How to play</h2><div class="rules">
   <p>${LORE_SHORT}</p>
-  <p>Five domains share the island. Each has fourteen pieces, and one of them is its <b>Lord</b>. The island is a five-sided field of hexes, and each army starts along one side. You know where your own Lord is. Everyone else's is a mystery.</p>
+  <p>Five domains share the island. Each has fourteen pieces, and one of them is its <b>Lord</b>. The island is a five-sided field of five-sided spaces, and each army starts along one side. You know where your own Lord is. Everyone else's is a mystery.</p>
   <h3>Winning</h3><ul><li>If a Lord falls, its whole domain falls with it.</li><li>If a Sapper breaks a domain's Keep, that domain falls too.</li><li>The last domain standing wins.</li><li>Classic mode: if no one fights for 40 rounds (or after 200 rounds), the strongest remaining army wins.</li></ul>
   <h3>Modes</h3><ul><li><b>Classic:</b> the island stands still.</li><li><b>Decisive, the restless island:</b> from round 6, every round empty land far from the fighting sinks into the sea and seabed rises as new land where it brings rivals closer. It never sinks a square with a piece on it and never cuts any piece off from the rest; if a piece is ever stranded, the seabed rises to bridge it back. ${LORE_ISLAND}</li></ul>
-  <h3>Your turn</h3><ul><li>Move one piece one hex in any of the six directions. Scouts may run any distance in a straight line along any of the six. Keeps never move.</li><li>Water cannot be crossed.</li><li>Moving onto an enemy is an attack. Both pieces are revealed to everyone. The higher rank wins; equal ranks both fall.</li><li>Special fights: a <b>Spy</b> that strikes a Lord first kills it; a Lord that strikes a Spy first wins. Any attacker except a <b>Sapper</b> is destroyed by a <b>Keep</b>, and a Sapper who breaks a Keep topples that domain. A Lord who attacks another Lord wins.</li><li>Each domain has 14 pieces: Lord, Marshal, Knight, Captain, Guard, Raider, four Scouts, two Spies, Sapper and Keep.</li></ul>
+  <h3>Your turn</h3><ul><li>Every space has five sides. Move one piece to any of the five spaces that share a side with it. Scouts may run any distance in a straight line in any of the five directions. Keeps never move.</li><li>Water cannot be crossed.</li><li>Moving onto an enemy is an attack. Both pieces are revealed to everyone. The higher rank wins; equal ranks both fall.</li><li>Special fights: a <b>Spy</b> that strikes a Lord first kills it; a Lord that strikes a Spy first wins. Any attacker except a <b>Sapper</b> is destroyed by a <b>Keep</b>, and a Sapper who breaks a Keep topples that domain. A Lord who attacks another Lord wins.</li><li>Each domain has 14 pieces: Lord, Marshal, Knight, Captain, Guard, Raider, four Scouts, two Spies, Sapper and Keep.</li></ul>
   <h3>Reading the field</h3><ul><li>Enemy pieces look like hooded figures until they fight or are shown to you.</li><li>Pieces that have moved show small footprints. Keeps never move, so an unmoved piece might be a Keep, or a Lord staying hidden.</li><li>The Domains panel lists each rival's ranks that are still hidden. Inspect any piece to see your best guess.</li></ul>
   <h3>Diplomacy</h3><ul><li><b>Offer a pact:</b> for ${LD.PACT_LEN} rounds neither side attacks the other. Each side is shown one of the other's pieces.</li><li><b>Point the finger:</b> turn the other domains against a rival.</li><li><b>Rumour:</b> crown one of your pieces so rivals think it is your Lord. A Keep makes a nasty surprise.</li><li>You can attack an ally, but that breaks the pact, and every domain trusts you less.</li><li>Computer rulers have hidden personalities. Some keep their word. Some do not.</li></ul>
   <h3>The pieces</h3><div class="rtbl">${rows}</div>

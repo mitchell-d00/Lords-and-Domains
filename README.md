@@ -4,7 +4,7 @@ A five-player hidden-Lord strategy game, inspired by games like Stratego but bui
 
 > Long ago the First Crown raised the isle of Thalmar from the sea and bound its stones with an oath: the land would stand for as long as one Lord ruled it. The last High Lord drowned without an heir, and now five domains claim the crown.
 
-The island is a five-sided field of hexes, and each domain starts along one side. Each domain hides its Lord somewhere among its own pieces. You know where your Lord is. Everyone else's is a mystery. Protect yours, hunt theirs, make friends, and decide when to turn on them.
+The island is a five-sided field made of five-sided spaces, and each domain starts along one side. Each domain hides its Lord somewhere among its own pieces. You know where your Lord is. Everyone else's is a mystery. Protect yours, hunt theirs, make friends, and decide when to turn on them.
 
 Trust carefully.
 
@@ -35,10 +35,10 @@ Each computer ruler has a hidden personality: Honourable, Opportunist, Warlike, 
 
 ## Rules
 
-- **The board:** a five-sided field of hexes with lakes. Each army starts along its own side of the pentagon.
+- **The board:** a five-sided field of 228 five-sided spaces (the Cairo pentagonal tiling, where every space has five equal sides) with lakes. Each army starts along its own side of the pentagon.
 - **Your army:** each domain has 14 pieces: Lord, Marshal (8), Knight (7), Captain (6), Guard (5), Raider (4), four Scouts (3), two Spies (2), Sapper (1) and Keep.
 - **Before the battle:** each human ruler arranges their own pieces in secret.
-- **Moving:** on your turn, move one piece one hex in any of the six directions. Scouts run any distance in a straight line in all six directions. Keeps never move. Water can't be crossed.
+- **Moving:** on your turn, move one piece to any of the five spaces that share a side with it. Scouts run any distance in a straight line in any of the five directions. Keeps never move. Water can't be crossed.
 - **Fights:** moving onto an enemy is an attack. Both pieces are revealed to everyone. The higher rank wins, and equal ranks both fall.
 - **Special fights:**
   - A Spy that strikes a Lord first kills it. A Lord that strikes a Spy first wins.
