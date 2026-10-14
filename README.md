@@ -1,10 +1,10 @@
 # Lords & Domains
 
-A five-player hidden-Lord strategy game, inspired by games like Stratego but built around alliances, deception, and figuring out who everyone really is.
+A six-player hidden-Lord strategy game, inspired by games like Stratego but built around alliances, deception, and figuring out who everyone really is.
 
-> Long ago the First Crown raised the isle of Thalmar from the sea and bound its stones with an oath: the land would stand for as long as one Lord ruled it. The last High Lord drowned without an heir, and now five domains claim the crown.
+> Long ago the First Crown raised the isle of Thalmar from the sea and bound its stones with an oath: the land would stand for as long as one Lord ruled it. The last High Lord drowned without an heir, and now six domains claim the crown.
 
-The island is a five-sided field made of five-sided spaces, and each domain starts along one side. Each domain hides its Lord somewhere among its own pieces. You know where your Lord is. Everyone else's is a mystery. Protect yours, hunt theirs, make friends, and decide when to turn on them.
+The island is a six-sided field made of hexes, and each of the six domains (Crimson, Azure, Verdant, Golden, Violet and Teal) starts along one side. Each domain hides its Lord somewhere among its own pieces. You know where your Lord is. Everyone else's is a mystery. Protect yours, hunt theirs, make friends, and decide when to turn on them.
 
 Trust carefully.
 
@@ -22,27 +22,30 @@ You choose a mode at the start of every game.
 - **Decisive, the restless island:** from round 6 the island reshapes itself every round.
   - Empty land far from the fighting sinks into the sea.
   - Seabed rises as new land wherever it brings rival domains closer together.
-  - The island never sinks a square with a piece on it and never cuts any piece off from the rest. If a piece is ever stranded, the seabed rises to bridge it back.
+  - The island never sinks a space with a piece on it and never cuts any piece off from the rest. If a piece is ever stranded, the seabed rises to bridge it back.
+  - When the fighting stalls, a causeway rises: a whole line of cobbled seabed between the nearest rivals that the sea keeps apart. It lasts six rounds, flickers with foam when it is about to go, then sinks back. The sea makes obstacles, never prisons.
+  - The island never drowns more than half of itself.
   - It takes no side. It only wants the oath kept, and the oath can only be kept when a single Lord stands. Every war ends with a fallen Lord or a breached Keep.
 
 Players can be any mix of humans and computers (Easy, Normal, Hard):
 
-- **Me vs 4 computers.**
-- **5 players, one screen (hotseat):** the board hides between turns.
-- **Watch 5 computers.**
+- **Me vs 5 computers.**
+- **6 players, one screen (hotseat):** the board hides between turns.
+- **2 players + 4 computers.**
+- **Watch 6 computers.**
 
-Each computer ruler has a hidden personality: Honourable, Opportunist, Warlike, Schemer or Cautious.
+Each computer ruler has a hidden personality: Honourable, Opportunist, Warlike, Schemer, Cautious or Hunter.
 
 ## Rules
 
-- **The board:** a five-sided field of 228 five-sided spaces (the Cairo pentagonal tiling, where every space has five equal sides) with lakes. Each army starts along its own side of the pentagon.
+- **The board:** a six-sided field of 271 hexes with lakes. Each army starts in two rows along its own side of the hexagon.
 - **Your army:** each domain has 14 pieces: Lord, Marshal (8), Knight (7), Captain (6), Guard (5), Raider (4), four Scouts (3), two Spies (2), Sapper (1) and Keep.
 - **Before the battle:** each human ruler arranges their own pieces in secret.
-- **Moving:** on your turn, move one piece to any of the five spaces that share a side with it. Scouts run any distance in a straight line in any of the five directions. Keeps never move. Water can't be crossed.
+- **Moving:** on your turn, move one piece to any of the six spaces that share a side with it. Scouts run any distance in a straight line in any of the six directions. Keeps never move. Water can't be crossed.
 - **Fights:** moving onto an enemy is an attack. Both pieces are revealed to everyone. The higher rank wins, and equal ranks both fall.
 - **Special fights:**
   - A Spy that strikes a Lord first kills it. A Lord that strikes a Spy first wins.
-  - A Lord who strikes another Lord first wins.
+  - A Lord who strikes another Lord first wins, and the Lord who waits falls. Lord against Lord is all about timing the attack.
   - A Keep destroys any attacker except a Sapper.
 - **How a domain falls:** if its Lord falls, or if a Sapper breaks its Keep, the whole domain falls with it.
 - **Winning:** the last domain standing wins.
@@ -55,6 +58,19 @@ You can make one diplomatic move per turn, before you move a piece.
 - **Point the finger:** turn the other domains against a rival.
 - **Rumour:** crown one of your pieces so rivals think it is your Lord.
 - **Betrayal:** attacking an ally breaks the pact, and every domain trusts you less afterwards.
+
+## The computer rulers
+
+The computer rulers don't just pick the biggest number. On every turn they:
+
+- **Read the field:** they track which ranks each rival still hides, which pieces have never moved (a Keep, or a Lord lying low), and what every fight has revealed.
+- **Weigh every attack:** the chance of winning against the risk of losing the piece.
+- **Look one move ahead:** before moving, they check what the enemy could hit next and how exposed their Lord, Keep and best pieces would be.
+- **Hunt when it counts:** when few domains remain or the war drags on, they stop guarding and go for Lords. A Lord that spots a rival Lord within reach strikes first, because the Lord who waits falls.
+- **Send the right piece:** Spies stalk suspected Lords, Sappers go for Keeps, Scouts probe unknown pieces.
+- **Play politics:** they make pacts, point fingers, spread rumours and, depending on their personality, betray.
+
+Easy rulers make careless mistakes, Normal ones think ahead, and Hard ones rarely miss a chance.
 
 ## Sky, seasons and holidays
 
@@ -80,7 +96,7 @@ You can make one diplomatic move per turn, before you move a piece.
   - *The Restless Isle* (title)
   - *Banners at Dawn* (deployment)
   - *Blossom Road* (spring)
-  - *Five Crowns* (summer)
+  - *Six Crowns* (summer)
   - *Falling Leaves* (autumn)
   - *Frost on the Keep* (winter)
   - *Night Watch* (night and fog)
