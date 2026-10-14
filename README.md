@@ -4,7 +4,7 @@ A five-player hidden-Lord strategy game, inspired by games like Stratego but bui
 
 > Long ago the First Crown raised the isle of Thalmar from the sea and bound its stones with an oath: the land would stand for as long as one Lord ruled it. The last High Lord drowned without an heir, and now five domains claim the crown.
 
-Each domain hides its Lord somewhere among its own pieces. You know where your Lord is. Everyone else's is a mystery. Protect yours, hunt theirs, make friends, and decide when to turn on them.
+The island is a five-sided field of hexes, and each domain starts along one side. Each domain hides its Lord somewhere among its own pieces. You know where your Lord is. Everyone else's is a mystery. Protect yours, hunt theirs, make friends, and decide when to turn on them.
 
 Trust carefully.
 
@@ -35,13 +35,14 @@ Each computer ruler has a hidden personality: Honourable, Opportunist, Warlike, 
 
 ## Rules
 
-- **Your army:** each domain has 11 pieces: Lord, Marshal (8), Knight (7), Captain (6), Guard (5), Raider (4), Scout (3), two Spies (2), Sapper (1) and Keep.
+- **The board:** a five-sided field of hexes with lakes. Each army starts along its own side of the pentagon.
+- **Your army:** each domain has 14 pieces: Lord, Marshal (8), Knight (7), Captain (6), Guard (5), Raider (4), four Scouts (3), two Spies (2), Sapper (1) and Keep.
 - **Before the battle:** each human ruler arranges their own pieces in secret.
-- **Moving:** on your turn, move one piece one square up, down, left or right. Scouts run any distance in a straight line. Keeps never move. Water can't be crossed.
+- **Moving:** on your turn, move one piece one hex in any of the six directions. Scouts run any distance in a straight line in all six directions. Keeps never move. Water can't be crossed.
 - **Fights:** moving onto an enemy is an attack. Both pieces are revealed to everyone. The higher rank wins, and equal ranks both fall.
 - **Special fights:**
-  - When a Spy and a Lord meet, the Lord dies, whoever attacks.
-  - A Lord who attacks another Lord wins.
+  - A Spy that strikes a Lord first kills it. A Lord that strikes a Spy first wins.
+  - A Lord who strikes another Lord first wins.
   - A Keep destroys any attacker except a Sapper.
 - **How a domain falls:** if its Lord falls, or if a Sapper breaks its Keep, the whole domain falls with it.
 - **Winning:** the last domain standing wins.
@@ -57,9 +58,11 @@ You can make one diplomatic move per turn, before you move a piece.
 
 ## Sky, seasons and holidays
 
-- **Time of day:** time passes as you play, with a full day every 10 rounds: dawn, midday, golden hour, dusk, and night under the moon and stars.
-- **Seasons:** every game starts in a random season (or the one you pick): spring flowers, summer, autumn leaves, or winter snow with frozen lakes. Seasons turn as the war drags on.
-- **Weather** follows the season: sun, cloud, rain, thunderstorms, snow and fog.
+- **Normal board:** leave the board on Normal and every game starts in a random season, with the time of day and the weather changing as you play.
+- **Choosing a look:** pick a season, a weather (clear, cloudy, rain, thunderstorm, snow, fog) and a time of day (dawn, midday, golden hour, dusk, night).
+- **Presets:** one tap for Rainy day, Summer storm, Golden autumn, Foggy dawn, Snowy night or Starry night.
+- **Changing it mid-game:** use Settings to change the board's look while a game is running.
+- **Time of day:** when it passes, a full day takes 10 rounds, from dawn through golden hour to night under the moon and stars.
 - **Holiday boards:**
   - **Harvest Night:** pumpkins, candles and bats.
   - **Midwinter Lights:** snow, little pines and coloured lights.
@@ -72,7 +75,7 @@ You can make one diplomatic move per turn, before you move a piece.
 
 - **Field view:** a low, Mode 7-style view from behind your domain. Rotate it with ⟲ ⟳ (Q/E) and zoom with + and −.
 - **Map view:** the board from above. Press V to switch views.
-- **Battle scenes:** every clash cuts to a pixel-art battle with a reveal, a strike and a shatter, under the current sky and weather. Set them to Full, Quick or Off in Settings.
+- **Battle scenes:** every clash cuts to a cinematic pixel-art battle. Each side's colours sweep in, the rank match-up pops up (8 > 5, STRIKE!, KEEP!), the attacker charges with afterimages and dust, and the hit freezes the frame with a zoom, a shockwave and sparks. All of it plays under the current sky and weather. Set battle scenes to Full, Quick or Off in Settings.
 - **Music:** ten chiptune songs that follow the mood and the season:
   - *The Restless Isle* (title)
   - *Banners at Dawn* (deployment)
@@ -85,7 +88,7 @@ You can make one diplomatic move per turn, before you move a piece.
   - *The Last Lord* (the final fight)
   - *Crowned at Last* (victory)
 
-  The song that's playing is shown next to the mute buttons.
+  The song that's playing is shown next to the mute buttons. Tap its name to pick any of the ten songs, or choose Auto to let the music follow the mood again.
 - **Mute buttons:** sound and music each have their own mute button, always in the bottom-right corner.
 - **Saving:** the game saves after every turn, so you can continue later from the title screen.
 
