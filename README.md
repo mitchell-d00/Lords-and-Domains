@@ -22,7 +22,7 @@ You choose a mode at the start of every game.
 - **Decisive, the restless island:** from round 6 the island reshapes itself every round.
   - Empty land far from the fighting sinks into the sea.
   - Seabed rises as new land wherever it brings rival domains closer together.
-  - The island never sinks a square with a piece on it, and never cuts the roads between Lords.
+  - The island never sinks a square with a piece on it and never cuts any piece off from the rest. If a piece is ever stranded, the seabed rises to bridge it back.
   - It takes no side. It only wants the oath kept, and the oath can only be kept when a single Lord stands. Every war ends with a fallen Lord or a breached Keep.
 
 Players can be any mix of humans and computers (Easy, Normal, Hard):
@@ -73,12 +73,19 @@ You can make one diplomatic move per turn, before you move a piece.
 - **Field view:** a low, Mode 7-style view from behind your domain. Rotate it with ⟲ ⟳ (Q/E) and zoom with + and −.
 - **Map view:** the board from above. Press V to switch views.
 - **Battle scenes:** every clash cuts to a pixel-art battle with a reveal, a strike and a shatter, under the current sky and weather. Set them to Full, Quick or Off in Settings.
-- **Music:** five chiptune songs that change with the moment:
+- **Music:** ten chiptune songs that follow the mood and the season:
   - *The Restless Isle* (title)
   - *Banners at Dawn* (deployment)
-  - *Five Crowns* (day)
+  - *Blossom Road* (spring)
+  - *Five Crowns* (summer)
+  - *Falling Leaves* (autumn)
+  - *Frost on the Keep* (winter)
   - *Night Watch* (night and fog)
+  - *Thunder over Thalmar* (rain and storms)
   - *The Last Lord* (the final fight)
+  - *Crowned at Last* (victory)
+
+  The song that's playing is shown next to the mute buttons.
 - **Mute buttons:** sound and music each have their own mute button, always in the bottom-right corner.
 - **Saving:** the game saves after every turn, so you can continue later from the title screen.
 

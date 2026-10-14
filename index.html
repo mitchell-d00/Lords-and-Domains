@@ -84,6 +84,7 @@ button,select,input{font:inherit}
 .seg button.on{background:var(--gold);color:#2a1800}
 .kbd{font-size:.8rem;color:var(--win-muted)}
 .corner{position:fixed;right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));z-index:80;display:flex;gap:6px}
+.corner .nowplay{align-self:center;font-size:.8rem;color:#fff;background:rgba(10,14,50,.82);border:2px solid var(--edge2);border-radius:6px;padding:3px 8px;white-space:nowrap;max-width:46vw;overflow:hidden;text-overflow:ellipsis}
 .corner .btn{box-shadow:0 3px 0 rgba(0,0,0,.35),inset 0 -3px 0 rgba(0,0,0,.3)}
 .coach{border-color:var(--gold);box-shadow:inset 0 0 0 1px #c08020,var(--shadow)}
 .coach .cstep{font-size:.8rem;color:var(--win-muted);letter-spacing:.06em;text-transform:uppercase}
@@ -364,6 +365,23 @@ function separation(G){
   let F=0;for(let i=0;i<al.length;i++)for(let j=i+1;j<al.length;j++){const a=al[i],b=al[j];let m=999;for(const x of alivePieces(G,b))m=Math.min(m,ds[a][x.r*N+x.c]);F+=Math.min(m,60)}
   return F;
 }
+// would sinking (r,c) leave a neighbouring piece with no open land beside it at all?
+function boxesIn(G,r,c){
+  for(const [dr,dc] of D4){const q=at(G,r+dr,c+dc);if(!q||q.rank===0)continue;
+    let open=0;for(const [er,ec] of D4){const rr=q.r+er,cc=q.c+ec;if((rr===r&&cc===c)||!inB(rr,cc)||blocked(rr,cc,G))continue;if(!at(G,rr,cc)||at(G,rr,cc).p!==q.p)open++}
+    if(open===0)return true}
+  return false;
+}
+// raise a bridge for any piece the sea has cut off (older saves, or a domain hemmed in by its own pieces)
+function rescue(G,tiles){
+  if(landConnected(G,null,false))return;
+  const pcs=G.pieces.filter(x=>x.alive);const main=bfs(G,[[pcs[0].r,pcs[0].c]]);
+  for(const x of pcs){if(main[x.r*N+x.c]<999)continue;
+    // walk from the stranded piece toward the main body, raising seabed as we go
+    let r=x.r,c=x.c;for(let k=0;k<26;k++){let best=null,bd=1e9;for(const [dr,dc] of D4){const rr=r+dr,cc=c+dc;if(!inB(rr,cc))continue;const d=Math.min(...pcs.filter(q=>main[q.r*N+q.c]<999).map(q=>Math.abs(q.r-rr)+Math.abs(q.c-cc)));if(d<bd){bd=d;best=[rr,cc]}}
+      if(!best)break;[r,c]=best;if(blocked(r,c,G)){G.sunk[r+','+c]='land';tiles.push({r,c,kind:'rise'})}if(main[r*N+c]<999)break}
+  }
+}
 function quake(G){
   if(!G.decisive||G.round<QUAKE_START)return;
   G.sunk=G.sunk||{};
@@ -372,15 +390,15 @@ function quake(G){
   const nSink=Math.min(5,2+step),nRise=Math.max(1,nSink-1);
   const all=[];for(let r=0;r<N;r++)for(let c=0;c<N;c++)all.push([r,c]);
   const near=bfs(G,G.pieces.filter(x=>x.alive).map(x=>[x.r,x.c]));
-  const tiles=[];const F0=separation(G);
+  const tiles=[];rescue(G,tiles);const F0=separation(G);
   // sink: empty land far from everyone, which changes rival routes the least
   for(let i=0;i<nSink;i++){
     let done=false;
-    for(const lordsOnly of [false,true]){
-      if(done||(lordsOnly&&!G.islandDone&&i>0))break;
+    for(const lordsOnly of [false]){
+      if(done)break;
       const cands=all.filter(([r,c])=>!blocked(r,c,G)&&!occ.has(r+','+c)).map(t=>({t,s:Math.min(near[t[0]*N+t[1]],12)+rnd()*2.5})).sort((a,b)=>b.s-a.s).slice(0,10);
       let best=null,bs=Infinity;
-      for(const {t:[r,c],s:far} of cands){const k=r+','+c;if(!landConnected(G,k,lordsOnly))continue;
+      for(const {t:[r,c],s:far} of cands){const k=r+','+c;if(!landConnected(G,k,false)||boxesIn(G,r,c))continue;
         const prev=G.sunk[k];G.sunk[k]='sea';const F=separation(G);if(prev)G.sunk[k]=prev;else delete G.sunk[k];
         const sc=(F-F0)*3-far;if(sc<bs){bs=sc;best=[r,c]}}
       if(best){const k=best[0]+','+best[1];G.sunk[k]='sea';tiles.push({r:best[0],c:best[1],kind:'sea'});done=true;if(lordsOnly&&!G.saidSqueeze){G.saidSqueeze=true;addLog(G,'The sea closes in. Now only the roads between the Lords are spared.')}}
@@ -1230,7 +1248,7 @@ function titleOverlay(t){
   PX.text(ctx,s1,Math.round(W/2-PX.textW(s1,4)/2),40,'#ffe070',4,'#5a2c08');
   PX.text(ctx,s2,Math.round(W/2-PX.textW(s2,3)/2),74,'#ffffff',3,'#20184c');
   const sub='FIVE DOMAINS. FIVE HIDDEN LORDS. TRUST CAREFULLY.';PX.text(ctx,sub,Math.round(W/2-PX.textW(sub)/2),104,'#c8d8ff',1,'#000');
-  if(Math.floor(t/500)%2){const s='PRESS START';PX.text(ctx,s,Math.round(W/2-PX.textW(s,2)/2),196,'#fff',2,'#000')}
+
 }
 let raf=null;function loop(t){frame(t);raf=requestAnimationFrame(loop)}
 function start(){if(!raf)raf=requestAnimationFrame(loop)}
@@ -1271,16 +1289,26 @@ const SND=(()=>{
   };
   // ----- five songs: tokens are eighth notes; '=' holds, '-' rests; drums k kick, s snare, h hat -----
   const SONGS={
-   title:{name:'The Restless Isle',bpm:96,lead:'A4 = C5 E5 A5 = G5 E5 F5 = E5 D5 C5 = B4 C5 D5 = C5 B4 A4 = G4 A4 E4 = = = - - - - A4 = C5 E5 A5 = B5 C6 B5 = A5 G5 E5 = D5 E5 F5 = E5 D5 C5 B4 A4 G#4 A4 = = = - - - -',
-     bass:'A2 = A2 = A2 = A2 = F2 = F2 = F2 = F2 = D2 = D2 = D2 = D2 = E2 = E2 = E2 = E2 = A2 = A2 = A2 = A2 = G2 = G2 = G2 = G2 = F2 = F2 = E2 = E2 = A2 = E2 = A2 = - -',drums:'k - h - s - h -',wave:'square'},
-   deploy:{name:'Banners at Dawn',bpm:116,lead:'D5 = F#5 A5 D6 = A5 F#5 G5 = B5 G5 E5 = C#5 E5 F#5 = A5 F#5 D5 = F#5 A5 E5 = = = C#5 = E5 = D5 = F#5 A5 D6 = C#6 B5 A5 = G5 F#5 E5 = F#5 G5 A5 = F#5 D5 E5 = C#5 A4 D5 = = = - - - -',
-     bass:'D3 = A2 = D3 = A2 = G2 = D3 = G2 = D3 = D3 = A2 = D3 = A2 = A2 = E3 = A2 = C#3 = D3 = A2 = D3 = F#3 = G2 = B2 = A2 = C#3 = D3 = B2 = A2 = A2 = D3 = A2 = D3 = - -',drums:'k - s - k k s -',wave:'square'},
-   field:{name:'Five Crowns',bpm:124,lead:'E5 - G5 - B5 A5 G5 F#5 E5 = = - D5 - E5 - G5 - A5 - B5 = D6 B5 A5 = = - - - - - C6 - B5 A5 G5 - A5 - B5 - A5 G5 F#5 - G5 - A5 - G5 F#5 E5 - D#5 - E5 = = = - - - -',
-     bass:'E2 E3 E2 E3 E2 E3 E2 E3 C3 C2 C3 C2 D3 D2 D3 D2 G2 G3 G2 G3 G2 G3 G2 G3 D3 D2 D3 D2 D3 D2 D3 D2 A2 A3 A2 A3 A2 A3 A2 A3 E2 E3 E2 E3 E2 E3 E2 E3 C3 C2 C3 C2 B2 B1 B2 B1 E2 E3 E2 E3 E2 - - -',drums:'k h s h k k s h',wave:'square'},
-   night:{name:'Night Watch',bpm:84,lead:'D5 = = F5 A5 = = = G5 = F5 = E5 = = = F5 = = E5 D5 = = = A4 = = = = = - - D5 = = F5 A5 = = C6 A#5 = = A5 G5 = = = F5 = E5 = D5 = C#5 = D5 = = = = = - -',
-     bass:'D3 = = = A2 = = = C3 = = = C3 = = = A#2 = = = A#2 = = = A2 = = = A2 = = = D3 = = = F3 = = = G2 = = = G2 = = = A2 = = = A2 = = = D3 = = = - - - -',drums:'k - - - h - - -',wave:'triangle'},
-   last:{name:'The Last Lord',bpm:148,lead:'C5 C5 D#5 C5 G5 C5 D#5 C5 A#4 A#4 D5 A#4 F5 A#4 D5 A#4 G#4 G#4 C5 G#4 D#5 G#4 C5 G#4 G4 G4 B4 G4 D5 G4 B4 D5 C5 C5 D#5 G5 C6 = G5 D#5 A#4 D5 F5 A#5 = F5 D5 A#4 G#4 C5 D#5 G#5 G5 F5 D#5 D5 C5 = G4 = C5 = - -',
-     bass:'C2 C3 C2 C3 C2 C3 C2 C3 A#1 A#2 A#1 A#2 A#1 A#2 A#1 A#2 G#1 G#2 G#1 G#2 G#1 G#2 G#1 G#2 G1 G2 G1 G2 G1 G2 G1 G2 C2 C3 C2 C3 C2 C3 C2 C3 A#1 A#2 A#1 A#2 A#1 A#2 A#1 A#2 G#1 G#2 G#1 G#2 G1 G2 G1 G2 C2 C3 C2 C3 C2 - - -',drums:'k h s h k s s h',wave:'square'}
+   title:{name:'The Restless Isle',mood:'Title',bpm:96,wave:'square',lead:'A4 = C5 E5 A5 = G5 E5 F5 = E5 D5 C5 = B4 C5 D5 = C5 B4 A4 = G4 A4 E4 = = = - - - - A4 = C5 E5 A5 = B5 C6 B5 = A5 G5 E5 = D5 E5 F5 = E5 D5 C5 B4 A4 G#4 A4 = = = - - - -',
+     bass:'A2 = A2 = A2 = A2 = F2 = F2 = F2 = F2 = D2 = D2 = D2 = D2 = E2 = E2 = E2 = E2 = A2 = A2 = A2 = A2 = G2 = G2 = G2 = G2 = F2 = F2 = E2 = E2 = A2 = E2 = A2 = - -',drums:'k - h - s - h -'},
+   deploy:{name:'Banners at Dawn',mood:'Deploying',bpm:116,wave:'square',lead:'D5 = F#5 A5 D6 = A5 F#5 G5 = B5 G5 E5 = C#5 E5 F#5 = A5 F#5 D5 = F#5 A5 E5 = = = C#5 = E5 = D5 = F#5 A5 D6 = C#6 B5 A5 = G5 F#5 E5 = F#5 G5 A5 = F#5 D5 E5 = C#5 A4 D5 = = = - - - -',
+     bass:'D3 = A2 = D3 = A2 = G2 = D3 = G2 = D3 = D3 = A2 = D3 = A2 = A2 = E3 = A2 = C#3 = D3 = A2 = D3 = F#3 = G2 = B2 = A2 = C#3 = D3 = B2 = A2 = A2 = D3 = A2 = D3 = - -',drums:'k - s - k k s -'},
+   spring:{name:'Blossom Road',mood:'Spring',bpm:112,wave:'square',vol:.05,lead:'G4 = B4 D5 G5 = F#5 E5 D5 = B4 = C5 = A4 = B4 = D5 G5 B5 = A5 G5 A5 = = = - - - - E5 = G5 E5 D5 = B4 G4 C5 = E5 C5 B4 = A4 = G4 = A4 B4 D5 = C5 A4 G4 = = = - - - -',
+     bass:'G2 = D3 = G2 = D3 = C3 = G3 = D3 = A2 = G2 = D3 = G2 = B2 = D3 = A2 = D3 = F#2 = E2 = B2 = E2 = B2 = C3 = G2 = C3 = G2 = D3 = A2 = D3 = F#2 = G2 = D3 = G2 = - -',drums:'k - h - s - h h'},
+   summer:{name:'Five Crowns',mood:'Summer',bpm:124,wave:'square',lead:'E5 - G5 - B5 A5 G5 F#5 E5 = = - D5 - E5 - G5 - A5 - B5 = D6 B5 A5 = = - - - - - C6 - B5 A5 G5 - A5 - B5 - A5 G5 F#5 - G5 - A5 - G5 F#5 E5 - D#5 - E5 = = = - - - -',
+     bass:'E2 E3 E2 E3 E2 E3 E2 E3 C3 C2 C3 C2 D3 D2 D3 D2 G2 G3 G2 G3 G2 G3 G2 G3 D3 D2 D3 D2 D3 D2 D3 D2 A2 A3 A2 A3 A2 A3 A2 A3 E2 E3 E2 E3 E2 E3 E2 E3 C3 C2 C3 C2 B2 B1 B2 B1 E2 E3 E2 E3 E2 - - -',drums:'k h s h k k s h'},
+   autumn:{name:'Falling Leaves',mood:'Autumn',bpm:100,wave:'triangle',vol:.12,lead:'A4 = = C5 E5 = D5 = C5 = = B4 A4 = G4 = F4 = = A4 C5 = B4 = A4 = = = - - - - C5 = = E5 G5 = F5 = E5 = = D5 C5 = B4 = A4 = = C5 B4 = G#4 = A4 = = = - - - -',
+     bass:'A2 = = = E3 = = = F2 = = = C3 = = = D2 = = = A2 = = = E2 = = = E3 = = = A2 = = = E3 = = = F2 = = = C3 = = = D2 = = = E2 = = = A2 = = = - - - -',drums:'k - - h s - - h'},
+   winter:{name:'Frost on the Keep',mood:'Winter',bpm:84,wave:'triangle',vol:.15,lead:'D5 = = = A4 = = = C5 = B4 = A4 = = = G4 = = = A4 = = = D4 = = = - - - - F5 = = = E5 = = = D5 = C5 = A4 = = = B4 = = = C5 = = = D5 = = = - - - -',
+     bass:'D2 = = = = = = = C2 = = = = = = = G2 = = = = = = = D2 = = = = = = = F2 = = = = = = = C2 = = = = = = = G2 = = = A2 = = = D2 = = = - - - -',drums:'- - - - h - - -',bells:true},
+   night:{name:'Night Watch',mood:'Night and fog',bpm:84,wave:'triangle',vol:.14,lead:'D5 = = F5 A5 = = = G5 = F5 = E5 = = = F5 = = E5 D5 = = = A4 = = = = = - - D5 = = F5 A5 = = C6 A#5 = = A5 G5 = = = F5 = E5 = D5 = C#5 = D5 = = = = = - -',
+     bass:'D3 = = = A2 = = = C3 = = = C3 = = = A#2 = = = A#2 = = = A2 = = = A2 = = = D3 = = = F3 = = = G2 = = = G2 = = = A2 = = = A2 = = = D3 = = = - - - -',drums:'k - - - h - - -'},
+   storm:{name:'Thunder over Thalmar',mood:'Rain and storms',bpm:136,wave:'sawtooth',vol:.035,lead:'B4 B4 D5 B4 F#5 = E5 D5 C#5 C#5 E5 C#5 A5 = G5 F#5 B4 B4 D5 B4 F#5 = A5 B5 F#5 = = = E5 = D5 = G5 = F#5 E5 D5 = C#5 B4 A4 = B4 C#5 D5 = E5 F#5 G5 = F#5 E5 D5 C#5 B4 A#4 B4 = = = - - - -',
+     bass:'B1 B2 B1 B2 B1 B2 B1 B2 A1 A2 A1 A2 A1 A2 A1 A2 G1 G2 G1 G2 G1 G2 G1 G2 F#1 F#2 F#1 F#2 F#1 F#2 F#1 F#2 E2 E3 E2 E3 E2 E3 E2 E3 F#2 F#3 F#2 F#3 F#2 F#3 F#2 F#3 G2 G3 G2 G3 F#2 F#3 F#2 F#3 B1 B2 B1 B2 B1 - - -',drums:'k k s h k k s s'},
+   last:{name:'The Last Lord',mood:'The final fight',bpm:148,wave:'square',lead:'C5 C5 D#5 C5 G5 C5 D#5 C5 A#4 A#4 D5 A#4 F5 A#4 D5 A#4 G#4 G#4 C5 G#4 D#5 G#4 C5 G#4 G4 G4 B4 G4 D5 G4 B4 D5 C5 C5 D#5 G5 C6 = G5 D#5 A#4 D5 F5 A#5 = F5 D5 A#4 G#4 C5 D#5 G#5 G5 F5 D#5 D5 C5 = G4 = C5 = - -',
+     bass:'C2 C3 C2 C3 C2 C3 C2 C3 A#1 A#2 A#1 A#2 A#1 A#2 A#1 A#2 G#1 G#2 G#1 G#2 G#1 G#2 G#1 G#2 G1 G2 G1 G2 G1 G2 G1 G2 C2 C3 C2 C3 C2 C3 C2 C3 A#1 A#2 A#1 A#2 A#1 A#2 A#1 A#2 G#1 G#2 G#1 G#2 G1 G2 G1 G2 C2 C3 C2 C3 C2 - - -',drums:'k h s h k s s h'},
+   crowned:{name:'Crowned at Last',mood:'Victory',bpm:92,wave:'square',lead:'C5 = = E5 G5 = = = A5 = G5 = E5 = = = F5 = = A5 G5 = E5 = D5 = = = - - - - C5 = = E5 G5 = = C6 B5 = A5 = G5 = = = A5 = F5 = E5 = D5 = C5 = = = = = - -',
+     bass:'C3 = G2 = C3 = G2 = F2 = C3 = A2 = E2 = F2 = C3 = C3 = E2 = G2 = D3 = G2 = B2 = C3 = G2 = C3 = E3 = F2 = C3 = G2 = E2 = F2 = C3 = G2 = B2 = C3 = G2 = C3 = - -',drums:'k - s - k - s h',bells:true}
   };
   const NOTE={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
   const midi=t=>{const m=/^([A-G])(#|b)?(\d)$/.exec(t);if(!m)return null;return 12*(+m[3]+1)+NOTE[m[1]]+(m[2]==='#'?1:m[2]==='b'?-1:0)};
@@ -1292,7 +1320,7 @@ const SND=(()=>{
     while(next<ac.currentTime+.25){
       const w=next-ac.currentTime;const i=step%S.L.length;
       if(i%8===0&&want&&want!==cur){cur=want;step=0;continue}
-      const l=S.L[i];if(l){tone(hz(l.n),st*l.len*.95,S.wave,S.wave==='triangle'?.14:.055,null,w,mbus);tone(hz(l.n-12),st*l.len*.9,'triangle',.04,null,w+.012,mbus)}
+      const l=S.L[i];if(l){tone(hz(l.n),st*l.len*.95,S.wave,S.vol||(S.wave==='triangle'?.14:.055),null,w,mbus);tone(hz(l.n-12),st*l.len*.9,'triangle',.04,null,w+.012,mbus);if(S.bells)tone(hz(l.n+12),.25,'sine',.05,null,w,mbus)}
       const b=S.B[i%S.B.length];if(b)tone(hz(b.n),st*b.len*.92,'triangle',.13,null,w,mbus);
       const d=S.D[i%S.D.length];if(d==='k')tone(110,.12,'sine',.35,40,w,mbus);else if(d==='s')noise(.1,.12,w,1500,mbus);else if(d==='h')noise(.03,.05,w,6000,mbus);
       step++;next+=st;
@@ -1301,7 +1329,7 @@ const SND=(()=>{
   function song(name){want=name;if(!musicOn)return;if(!ctx())return;if(!cur){cur=name;step=0;next=ac.currentTime+.08}if(!timer)timer=setInterval(tick,60)}
   function stopMusic(){clearInterval(timer);timer=null;cur=null}
   return{play(n){if(on&&fx[n])try{fx[n]()}catch(e){}},set(v){on=v},music(v){musicOn=v;if(v){if(want)song(want)}else stopMusic()},song,
-    get on(){return on},get musicOn(){return musicOn},get songName(){return cur?SONGS[cur].name:''},unlock(){ctx();if(musicOn&&want&&!timer)song(want)},SONGS};
+    get on(){return on},get musicOn(){return musicOn},get songName(){return cur?SONGS[cur].name:''},get wantName(){return want&&SONGS[want]?SONGS[want].name:''},unlock(){ctx();if(musicOn&&want&&!timer)song(want)},SONGS};
 })();
 
 const BT=(()=>{
@@ -1443,15 +1471,19 @@ const LORE_ISLAND='The island cannot obey five masters, so it will not keep stil
 function musicFor(){
   if(V.title||!G)return 'title';
   if(G.phase==='setup')return 'deploy';
-  if(G.over)return 'title';
-  if(G.alive.filter(Boolean).length<=2||G.saidSqueeze)return 'last';
-  const L=RD.curLight();return L.night>.5||(G.env&&G.env.weather==='fog')?'night':'field';
+  if(G.over)return 'crowned';
+  if(G.alive.filter(Boolean).length<=2)return 'last';
+  const e=G.env||{};const L=RD.curLight();
+  if(e.weather==='storm'||e.weather==='rain')return 'storm';
+  if(L.night>.5||e.weather==='fog')return 'night';
+  return e.season||'spring';
 }
 function cueMusic(){SND.song(musicFor());renderCorner()}
 // ---------- sound and music switches, always in the corner ----------
 function renderCorner(){
   const c=$('#corner');if(!c)return;
-  c.innerHTML=`<button class="btn sm" id="cSnd" aria-pressed="${S.sound}" title="Sound effects">${S.sound?'🔊 Sound':'🔇 Sound'}</button><button class="btn sm" id="cMus" aria-pressed="${S.music}" title="${S.music&&SND.songName?'Now playing: '+esc(SND.songName):'Music'}">${S.music?'♪ Music':'✕ Music'}</button>`;
+  const nm=S.music?SND.wantName:'';
+  c.innerHTML=`${nm?`<span class="nowplay">♪ ${esc(nm)}</span>`:''}<button class="btn sm" id="cSnd" aria-pressed="${S.sound}" title="Sound effects">${S.sound?'🔊 Sound':'🔇 Sound'}</button><button class="btn sm" id="cMus" aria-pressed="${S.music}" title="${S.music&&SND.songName?'Now playing: '+esc(SND.songName):'Music'}">${S.music?'♪ Music':'✕ Music'}</button>`;
   $('#cSnd').onclick=()=>{S.sound=!S.sound;saveS();SND.set(S.sound);SND.unlock();if(S.sound)SND.play('select');renderCorner()};
   $('#cMus').onclick=()=>{S.music=!S.music;saveS();SND.unlock();SND.music(S.music);if(S.music)cueMusic();renderCorner()};
 }
@@ -1770,12 +1802,12 @@ function rules(){
   <p>${LORE_SHORT}</p>
   <p>Five domains share the island. Each has eleven pieces, and one of them is its <b>Lord</b>. You know where your own Lord is. Everyone else's is a mystery.</p>
   <h3>Winning</h3><ul><li>If a Lord falls, its whole domain falls with it.</li><li>If a Sapper breaks a domain's Keep, that domain falls too.</li><li>The last domain standing wins.</li><li>Classic mode: if no one fights for 40 rounds (or after 200 rounds), the strongest remaining army wins.</li></ul>
-  <h3>Modes</h3><ul><li><b>Classic:</b> the island stands still.</li><li><b>Decisive, the restless island:</b> from round 6, every round empty land far from the fighting sinks into the sea and seabed rises as new land where it brings rivals closer. It never sinks a square with a piece on it and never cuts the roads between Lords. ${LORE_ISLAND}</li></ul>
+  <h3>Modes</h3><ul><li><b>Classic:</b> the island stands still.</li><li><b>Decisive, the restless island:</b> from round 6, every round empty land far from the fighting sinks into the sea and seabed rises as new land where it brings rivals closer. It never sinks a square with a piece on it and never cuts any piece off from the rest; if a piece is ever stranded, the seabed rises to bridge it back. ${LORE_ISLAND}</li></ul>
   <h3>Your turn</h3><ul><li>Move one piece one square up, down, left or right. Scouts may run any distance in a straight line. Keeps never move.</li><li>Water cannot be crossed.</li><li>Moving onto an enemy is an attack. Both pieces are revealed to everyone. The higher rank wins; equal ranks both fall.</li><li>Special fights: a <b>Spy</b> and a Lord who meet: the Lord dies, whoever attacks. Any attacker except a <b>Sapper</b> is destroyed by a <b>Keep</b>, and a Sapper who breaks a Keep topples that domain. A Lord who attacks another Lord wins.</li><li>Each domain has 11 pieces: Lord, Marshal, Knight, Captain, Guard, Raider, Scout, two Spies, Sapper and Keep.</li></ul>
   <h3>Reading the field</h3><ul><li>Enemy pieces look like hooded figures until they fight or are shown to you.</li><li>Pieces that have moved show small footprints. Keeps never move, so an unmoved piece might be a Keep, or a Lord staying hidden.</li><li>The Domains panel lists each rival's ranks that are still hidden. Inspect any piece to see your best guess.</li></ul>
   <h3>Diplomacy</h3><ul><li><b>Offer a pact:</b> for ${LD.PACT_LEN} rounds neither side attacks the other. Each side is shown one of the other's pieces.</li><li><b>Point the finger:</b> turn the other domains against a rival.</li><li><b>Rumour:</b> crown one of your pieces so rivals think it is your Lord. A Keep makes a nasty surprise.</li><li>You can attack an ally, but that breaks the pact, and every domain trusts you less.</li><li>Computer rulers have hidden personalities. Some keep their word. Some do not.</li></ul>
   <h3>The pieces</h3><div class="rtbl">${rows}</div>
-  <h3>Sky, seasons and holidays</h3><ul><li>Time passes as you play: a full day every ${ENV.DAY_ROUNDS} rounds, from dawn through golden hour to night.</li><li>Every game starts in a random season (or the one you pick), and the weather follows it: sun, cloud, rain, storms, snow and fog.</li><li>Holiday boards: ${Object.values(ENV.HOLIDAYS).map(h=>h.name).join(', ')}.</li><li>Music changes with the moment: five songs, from the title theme to the last stand.</li></ul>
+  <h3>Sky, seasons and holidays</h3><ul><li>Time passes as you play: a full day every ${ENV.DAY_ROUNDS} rounds, from dawn through golden hour to night.</li><li>Every game starts in a random season (or the one you pick), and the weather follows it: sun, cloud, rain, storms, snow and fog.</li><li>Holiday boards: ${Object.values(ENV.HOLIDAYS).map(h=>h.name).join(', ')}.</li><li>Music follows the mood: ten songs for the title, deploying, each season, night and fog, rain and storms, the last fight and victory.</li></ul>
   <h3>Views</h3><ul><li><b>Field</b> is the low view from behind your domain. Rotate with ⟲ ⟳ (Q/E) and zoom with + and −.</li><li><b>Map</b> is the view from above. Press V to switch.</li></ul>
   </div><div class="row"><button class="btn gold" data-x>Close</button></div>`,m=>m.querySelector('[data-x]').onclick=closeModal);
 }
