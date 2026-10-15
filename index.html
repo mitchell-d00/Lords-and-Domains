@@ -995,7 +995,7 @@ function attackOnce(G,from,to,nd){
 function conquer(G,from,to,dice,res){
   const p=G.owner[from],q=G.owner[to];
   G.owner[to]=p;G.armies[to]=0;G.conquered=true;G.stats.conquests++;
-  const max=G.armies[from]-1,min=Math.min(dice,max);
+  const max=G.armies[from]-1,min=Math.min(1,max);
   G.pendingMove={from,to,min,max};
   addLog(G,`${DOMAINS[p].name} takes ${T[to].name} from ${DOMAINS[q].name}.`,p);
   if(owned(G,q).length===0){G.alive[q]=false;G.elim[q]=p;G.cards[p].push(...G.cards[q]);G.cards[q]=[];res.eliminated=q;
@@ -1055,10 +1055,11 @@ function aiPlaceTarget(G,p){
 }
 function aiReinforce(G,p){while(findSet(G.cards[p])&&(G.cards[p].length>=5||G.diff[p]!=='hard'||G.trades>=2))tradeCards(G,p);autoDeploy(G,p)}
 // the best attack worth making now, or null
-function aiBestAttack(G,p){
+function aiKeep(G,p,from){const k=G.diff[p]==='easy'?1:threatOn(G,from)>0?2:1;return Math.min(k,Math.max(1,G.armies[from]-1))}
+function aiBestAttack(G,p,skip){
   const D=DIFF[G.diff[p]]||DIFF.normal;const goal=goalContinent(G,p);let best=null,bv=0;
   for(const from of owned(G,p)){if(G.armies[from]<2)continue;
-    for(const to of attackTargets(G,from)){const q=G.owner[to];
+    for(const to of attackTargets(G,from)){if(skip&&skip.has(from+'>'+to))continue;const q=G.owner[to];
       const w=winChance(G.armies[from],G.armies[to]);
       let v=w-D.ratio;
       if(T[to].cont===goal)v+=.18;
@@ -1084,8 +1085,9 @@ function aiFortify(G,p){
 function aiTurnSteps(G,p){
   const ev=[];aiReinforce(G,p);ev.push({type:'reinforce',p});
   let guard=0;
-  while(!G.over&&guard++<60){const a=aiBestAttack(G,p);if(!a)break;
-    const rolls=blitz(G,a.from,a.to,G.diff[p]==='easy'?1:Math.min(3,Math.max(1,threatOn(G,a.from)>0?2:1)));
+  const skip=new Set();
+  while(!G.over&&guard++<60){const a=aiBestAttack(G,p,skip);if(!a)break;
+    const rolls=blitz(G,a.from,a.to,aiKeep(G,p,a.from));if(!rolls.length||!rolls[rolls.length-1].conquered)skip.add(a.from+'>'+a.to);
     ev.push({type:'attack',p,from:a.from,to:a.to,rolls});
     if(G.pendingMove){const n=aiMoveIn(G);ev.push({type:'move',p,from:G.pendingMove.from,to:G.pendingMove.to,n});moveIn(G,n)}
     if(G.over)break}
@@ -1094,7 +1096,7 @@ function aiTurnSteps(G,p){
 }
 function stats(G,p){const ids=owned(G,p);return{terr:ids.length,armies:ids.reduce((s,id)=>s+G.armies[id],0),conts:CONTINENTS.filter((C,ci)=>contOwned(G,ci,p)).map(C=>C.name),cards:G.cards[p].length}}
 return {MW,MH,RAST,CONT,T,CONTINENTS,LANES,THRONE,THALMAR,DOMAINS,VICTORY,CARD_KIND,START,newGame,autoDeploy,deployDone,startPlay,income,beginTurn,findSet,tradeCards,tradeValue,place,undoPlacement,
-  canAttack,attackTargets,attackOnce,blitz,moveIn,reachable,fortify,endTurn,checkVictory,winners,ally,owned,contOwned,winChance,aiReinforce,aiBestAttack,aiMoveIn,aiFortify,aiTurnSteps,aiPlaceTarget,
+  canAttack,attackTargets,attackOnce,blitz,moveIn,reachable,fortify,endTurn,checkVictory,winners,ally,owned,contOwned,winChance,aiReinforce,aiBestAttack,aiKeep,aiMoveIn,aiFortify,aiTurnSteps,aiPlaceTarget,
   threatOn,stats,setRandom,addLog,ROLL};
 })();
 if(typeof module!=='undefined')module.exports=CW;
@@ -3009,13 +3011,15 @@ async function aiTurn(p,my){
   for(const t of T)if(G.armies[t.id]>before[t.id]){floatText(t.id,'+'+(G.armies[t.id]-before[t.id]),TM[p].L);flash(t.id,TM[p].L,500)}
   SND.play('place');renderAll();await sleep(650*k);if(my!==token)return;
   G.phase='attack';let guard=0;
+  const skip=new Set();
   while(!G.over&&guard++<60&&my===token){
-    const a=CW.aiBestAttack(G,p);if(!a)break;
+    const a=CW.aiBestAttack(G,p,skip);if(!a)break;
     const q=G.owner[a.to],fa=G.armies[a.from],fd=G.armies[a.to];
     V.arrow={from:a.from,to:a.to,t0:performance.now(),until:performance.now()+900*k,c:TM[p].L};
     await sleep(380*k);if(my!==token)return;
-    const keep=G.diff[p]==='easy'?1:Math.min(3,Math.max(1,CW.threatOn(G,a.from)>0?2:1));
-    const rolls=CW.blitz(G,a.from,a.to,keep);
+    const rolls=CW.blitz(G,a.from,a.to,CW.aiKeep(G,p,a.from));
+    // a failed attack is not tried again this turn, so a beaten army never stalls the turn
+    if(!rolls.length||!rolls[rolls.length-1].conquered)skip.add(a.from+'>'+a.to);
     const humanSide=G.ctrl[q]==='human';
     if(rolls.length&&S.battle==='full'&&(humanSide||(watch&&rolls[rolls.length-1].conquered&&a.to===CW.THRONE)))await playBattle(p,q,a.from,a.to,rolls,fa,fd);
     else{SND.play('dice');await sleep(220*k)}
@@ -3147,7 +3151,7 @@ function zoom(k){V.cam.dist=Math.max(130,Math.min(300,V.cam.dist+k));V.cam.h=Mat
 const RULES=`<h3>The First Crown</h3>
  <p>The prequel to Lords &amp; Domains. Before the domains and before the oath, warlords fought for the whole world. Whoever united it would raise the drowned isle of Thalmar and set the First Crown upon it.</p>
  <h3>The world</h3><ul><li>33 territories on seven continents: Nordhal, the Pearl Isles, Verdance, Emberreach, Sunmere, Ashkar, and Thalmar in the middle of the sea.</li><li>Dotted lines are sea lanes: territories joined by one border each other.</li><li>Hold a whole continent at the start of your turn to earn its bonus. Whoever holds <b>the Throne</b> earns one extra army.</li></ul>
- <h3>A turn</h3><ol><li><b>Reinforce.</b> You get a third of your territories (at least 3), plus continent bonuses, plus the Throne. Place them on your territories. Trade card sets for more.</li><li><b>Attack</b> as often as you like from any territory with 2 or more armies. You roll up to 3 dice (one fewer than your armies), the defender up to 2. The highest dice are compared in pairs; the higher wins each pair and <b>ties go to the defender</b>. <b>Blitz</b> keeps rolling until the territory falls or you are down to one army. The odds are shown before you attack.</li><li>When a territory falls, march in at least as many armies as dice you rolled.</li><li><b>Fortify:</b> one march along a chain of your own territories, then your turn ends.</li></ol>
+ <h3>A turn</h3><ol><li><b>Reinforce.</b> You get a third of your territories (at least 3), plus continent bonuses, plus the Throne. Place them on your territories. Trade card sets for more.</li><li><b>Attack</b> as often as you like from any territory with 2 or more armies, using the Risk rules. You roll 1, 2 or 3 dice, and you need at least one more army than the dice you roll. The defender rolls 2 dice with two or more armies, or 1 die with one. The highest dice are compared in pairs: the higher wins each pair, <b>ties go to the defender</b>, and each lost pair costs that side one army. <b>Roll</b> rolls once; <b>Blitz</b> keeps rolling until the territory falls or you are down to one army. The odds are shown before you attack.</li><li>When a territory falls, march in as many armies as you like: anything from 1 to all but the one that must stay behind.</li><li><b>Fortify:</b> one march along a chain of your own territories, then your turn ends.</li></ol>
  <h3>Cards</h3><ul><li>Take at least one territory in a turn and you earn a card: Footman ⚔, Rider 🐎, Siege 🏹 or Wild ★.</li><li>Trade three of a kind, one of each, or any two with a wild, for 4, 6, 8, 10, 12, 15 armies, then 5 more each time. A card showing a territory you hold adds 2 armies there.</li><li>With five cards you must trade. Drive a warlord out and you take their cards.</li></ul>
  <h3>Winning</h3><ul><li><b>World conquest:</b> take every territory.</li><li><b>The Throne:</b> hold all of Thalmar and any two other continents at the start of your turn.</li><li><b>Dominion:</b> hold 21 of the 33 territories at the start of your turn.</li><li>With teams, allies cannot attack each other and win together.</li></ul>
  <h3>Fair play</h3><ul><li>The first round is a truce, so moving first is no great edge. Later seats start with a few extra armies.</li></ul>

@@ -93,10 +93,11 @@ Each computer ruler has a hidden personality: Honourable, Opportunist, Warlike, 
    - You can trade a set of cards for more armies.
 2. **Attack.**
    - Attack from any territory with 2 or more armies into a neighbouring enemy territory.
-   - You roll up to 3 dice and the defender rolls up to 2. The highest dice are compared in pairs, and ties go to the defender.
+   - Attacks follow the Risk rules. You roll 1, 2 or 3 dice, and you need at least one more army than the dice you roll. The defender rolls 2 dice with two or more armies, or 1 die with one.
+   - The highest dice are compared in pairs. The higher die wins each pair, ties go to the defender, and each lost pair costs that side one army.
    - **Roll** rolls once. **Blitz** keeps rolling until the territory falls or you're down to one army.
    - Your chance of taking a territory is shown before you attack. **💡 Suggest an attack** points out a good one.
-3. **March in.** When a territory falls, choose how many armies move into it.
+3. **March in.** When a territory falls, choose how many armies move into it: anything from 1 to all but the one that must stay behind.
 4. **Fortify.** Make one march along a chain of your own territories, and your turn ends.
 
 ### Cards
