@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="Lords & Domains: a five-player hidden-Lord strategy game with alliances, bluffs and betrayals.">
+<meta name="description" content="Lords & Domains: two strategy games in one. A hidden-Lord board game for 2 to 6 domains, and The First Crown, a world conquest prequel.">
 <link rel="icon" href="logo.svg" type="image/svg+xml">
 <title>Lords &amp; Domains</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,6 +25,7 @@ button,select,input{font:inherit}
 .app{max-width:1280px;margin:0 auto;display:grid;gap:10px}
 .top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .brand{font-weight:700;font-size:1.35rem;letter-spacing:.04em;margin-right:auto;display:flex;align-items:center;gap:8px}
+.brand .sub{font-size:.8rem;color:var(--muted);font-weight:400}
 .brand i{display:inline-block;width:14px;height:14px;background:var(--gold);box-shadow:3px 3px 0 #c08020;transform:rotate(45deg)}
 .btn{background:linear-gradient(#4a60d8,#24308c);color:#fff;border:2px solid var(--edge);border-radius:6px;padding:6px 12px;cursor:pointer;box-shadow:inset 0 -3px 0 rgba(0,0,0,.3);text-shadow:1px 1px 0 #000;min-height:36px}
 .btn:hover{filter:brightness(1.15)}.btn:active{transform:translateY(1px)}
@@ -69,7 +70,7 @@ button,select,input{font:inherit}
 .modal h2{margin:0 0 8px;color:var(--gold);font-size:1.4rem}
 .modal .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:12px}
 .seats{display:grid;gap:6px;margin:8px 0}
-.seat{display:grid;grid-template-columns:20px 1fr 170px;gap:8px;align-items:center}
+.seat{display:grid;grid-template-columns:20px 1fr 200px;gap:8px;align-items:center}
 .seat select{background:#101c58;color:#fff;border:2px solid var(--edge2);border-radius:6px;padding:4px;min-height:34px}
 .presets{display:flex;gap:6px;flex-wrap:wrap}
 .rules h3{color:var(--gold);margin:12px 0 4px}
@@ -77,7 +78,19 @@ button,select,input{font:inherit}
 .rtbl{display:grid;grid-template-columns:36px 1fr;gap:6px 10px;align-items:center}
 .rtbl img{width:32px;height:48px;image-rendering:pixelated}
 .toast{position:absolute;left:50%;top:26px;transform:translateX(-50%);max-width:90%;z-index:5;pointer-events:none;font-size:.95rem;text-align:center}
-.titlemenu{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);display:flex;gap:8px;flex-wrap:wrap;justify-content:center;z-index:4}
+.titlemenu{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);display:flex;gap:8px;flex-wrap:wrap;justify-content:center;z-index:4;width:min(96%,640px)}
+.titlemenu .br{flex-basis:100%;height:0}
+.btn.big{font-size:1.15rem;padding:8px 18px;min-height:46px}
+.cards{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0}
+.card{display:grid;justify-items:center;gap:1px;width:58px;padding:4px 2px;border:2px solid #fff4c0;border-radius:6px;background:linear-gradient(#f4ecd4,#d8c89c);color:#2a1800;font-size:1.05rem;line-height:1}
+.card small{font-size:.6rem;text-align:center;line-height:1.05;color:#4a3410}
+.card.k3{background:linear-gradient(#ffe880,#e0a020)}
+.odds{display:grid;grid-template-columns:1fr auto;gap:2px 6px;margin-top:6px;font-size:.85rem;align-items:center}
+.odds i{grid-column:1/3;display:block;height:6px;background:var(--gold);border-radius:3px}
+.lore{font-style:italic;color:#e8dcc0;border-left:3px solid var(--gold);padding-left:10px}
+.tabs{display:flex;gap:6px;margin-bottom:8px}
+input[type=range]{accent-color:#ffd860}
+.vol{display:flex;align-items:center;gap:8px}.vol input{width:140px}
 .setrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.18)}
 .seg{display:inline-flex;border:2px solid var(--edge2);border-radius:6px;overflow:hidden}
 .seg button{background:#101c58;color:#fff;border:0;padding:4px 10px;cursor:pointer;min-height:32px}
@@ -103,22 +116,37 @@ button,select,input{font:inherit}
 .mcard span{font-size:.86rem;color:var(--win-muted);line-height:1.3}
 @media (max-width:560px){.modes2{grid-template-columns:1fr}}
 body{padding-bottom:64px}
+.sec{color:var(--gold);margin:12px 0 6px;font-size:.95rem;letter-spacing:.04em;text-transform:uppercase}
+.pres{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;margin:4px 0 6px}
+.pcard2{display:grid;gap:3px;text-align:left;padding:8px 10px;border:2px solid var(--edge2);border-radius:8px;background:rgba(0,0,0,.22);color:#fff;cursor:pointer;font:inherit}
+.pcard2 b{color:var(--gold)}.pcard2 span{font-size:.8rem;color:var(--win-muted);line-height:1.25}
+.pcard2:hover,.pcard2.on{border-color:var(--gold);background:rgba(255,224,112,.12)}
+.ngrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 14px}
+.ngrid .seg{flex-wrap:wrap}
+.seat .sw{width:16px;height:16px;border:2px solid #fff;border-radius:3px}
+.tm{font-size:.72rem;padding:0 6px;border-radius:999px;border:1px solid rgba(255,255,255,.5);vertical-align:middle}
+.tm.t0{background:#8c2c3c}.tm.t1{background:#2c4c9c}.tm.t2{background:#2c7c4c}
+.sum{margin:12px 0 0;padding:8px 10px;border-radius:8px;background:rgba(0,0,0,.25);border-left:4px solid var(--gold);line-height:1.4}
+details.look{margin-top:12px;border:2px solid var(--edge2);border-radius:8px;padding:6px 10px;background:rgba(0,0,0,.15)}
+details.look summary{cursor:pointer;color:var(--gold);font-weight:600}
+details.look[open] summary{margin-bottom:6px}
+@media (max-width:560px){.ngrid{grid-template-columns:1fr}}
 @media (max-width:900px){.layout{grid-template-columns:1fr}.brand{font-size:1.1rem}}
-@media (max-width:520px){.titlemenu{bottom:10px}.titlemenu .btn{padding:4px 8px;min-height:32px;font-size:.85rem}.seat{grid-template-columns:20px 1fr 130px}}
+@media (max-width:520px){.titlemenu{bottom:6px;gap:4px}.titlemenu .btn{padding:3px 7px;min-height:28px;font-size:.78rem}.titlemenu .btn.big{font-size:.9rem;min-height:34px}.seat{grid-template-columns:20px 1fr 150px}.seat select{font-size:.8rem}}
 </style>
 </head>
 <body>
 
 <div class="app">
   <div class="top">
-    <div class="brand"><i></i>Lords &amp; Domains</div>
+    <div class="brand"><i></i>Lords &amp; Domains <span class="sub">· The First Crown</span></div>
     <button class="btn sm" id="bView" title="Switch between the field and the map (V)">View: Map</button>
     <button class="btn sm" id="bRotL" title="Rotate left (Q)" aria-label="Rotate left">⟲</button>
     <button class="btn sm" id="bRotR" title="Rotate right (E)" aria-label="Rotate right">⟳</button>
     <button class="btn sm" id="bZoomIn" title="Closer (+)" aria-label="Zoom in">＋</button>
     <button class="btn sm" id="bZoomOut" title="Further (-)" aria-label="Zoom out">－</button>
     <button class="btn sm" id="bRules">Rules</button>
-    <button class="btn sm" id="bSettings">Settings</button>
+    <button class="btn sm" id="bSettings">Options</button>
     <button class="btn sm" id="bMenu">Menu</button>
   </div>
   <div class="layout">
@@ -126,15 +154,18 @@ body{padding-bottom:64px}
       <div class="screenwrap"><canvas id="screen"></canvas>
         <div class="win toast" id="toast" hidden></div>
         <div class="titlemenu" id="titleMenu">
-          <button class="btn gold" id="tNew">New game</button>
-          <button class="btn" id="tCont" hidden>Continue</button>
+          <button class="btn gold big" id="tNew" title="The hidden-Lord board game for 2 to 6 domains">⚔ Lords &amp; Domains</button>
+          <button class="btn gold big" id="tCrown" title="The world conquest prequel">👑 The First Crown</button>
+          <span class="br"></span>
+          <button class="btn" id="tCont" hidden>Continue Lords</button>
+          <button class="btn" id="tCCont" hidden>Continue Crown</button>
           <button class="btn" id="tWalk">Walkthrough</button>
           <button class="btn" id="tRules">How to play</button>
-          <button class="btn" id="tSet">Settings</button>
+          <button class="btn" id="tSet">Options</button>
         </div>
       </div>
       <div class="win coach" id="coach" hidden></div>
-      <div class="win" id="turnBox"><h3>Welcome</h3><p>Six domains. Six hidden Lords. Press <b>New game</b> to begin.</p></div>
+      <div class="win" id="turnBox"><h3>Welcome</h3><p>Two games, one world. Pick one to begin.</p></div>
     </div>
     <div class="side">
       <div class="win" id="infoBox"><h3>Inspect</h3><p class="muted">Hover over or tap a piece to read about it.</p></div>
@@ -151,65 +182,122 @@ body{padding-bottom:64px}
 // ===================== Lords & Domains: rules, diplomacy and AI =====================
 // Pure game logic. No DOM. The same code runs in the page and in tests.
 const LD=(()=>{
-// ---------- the board: a six-sided field of six-sided hexes ----------
-// Pointy-top hexes in axial coordinates, every hex within HR steps of the centre. Each tile is stored by id, and
-// (r,c) = (floor(id/N), id%N) so the rest of the code can keep using r,c.
-const NP=6;                       // six domains, one on each side
-const ALLP=[0,1,2,3,4,5];
-const TILE=16,HR=9,SQ3=Math.sqrt(3);
-const BR=HR+.62;                  // board outline radius, in hex units, just outside the corner hexes
-// outline: a flat-topped hexagon, flat side at the bottom
-const PENT=[0,1,2,3,4,5].map(k=>{const a=k*Math.PI/3;return{x:BR*SQ3*Math.cos(a),y:BR*SQ3*Math.sin(a)}});
-const PENT_R=BR*SQ3;
+// ---------- the board ----------
+// Every board is a graph of tiles. A tile has a centre (x,y), an outline polygon and its neighbours. Tiles are stored
+// by id, and (r,c) = (floor(id/N), id%N) so the rest of the code can keep using r,c.
+// Two shapes: a six-sided field of hexes, or a square field of squares. 2 to 6 domains, each starting along a side.
+let NP=6,ALLP=[0,1,2,3,4,5],CFG={shape:'hex',np:6,army:'full'};
+const TILE=16,SQ3=Math.sqrt(3);
+let PENT=[],PENT_R=0,ALLT=[],N=0,TILES=[],VALID=new Set(),CELLS=[],NB=[],DIST=[],RAYS=[],RAYAT=[],SIDES=[],SLOTS=[],HOMES=[],WATER=new Set(),ROWW=7;
+const M=0,DIRS=null,DIAGS=[];
+let ARMY=[9,8,7,6,5,4,3,3,3,3,2,2,1,0];
+const ARMIES={full:[9,8,7,6,5,4,3,3,3,3,2,2,1,0],classic:[9,8,7,6,5,4,3,2,1,0]};
+// hex: board radius by number of domains (smaller wars, smaller island)
+const HEX_R={full:{2:6,3:7,4:8,5:9,6:9},classic:{2:5,3:6,4:7,5:8,6:8}};
 function inPent(x,y){const n=PENT.length;for(let k=0;k<n;k++){const a=PENT[k],b=PENT[(k+1)%n];if((b.x-a.x)*(y-a.y)-(b.y-a.y)*(x-a.x)<0)return false}return true}
-const ALLT=[];
-for(let r=-HR;r<=HR;r++)for(let q=-HR;q<=HR;q++){if(Math.abs(q)>HR||Math.abs(r)>HR||Math.abs(q+r)>HR)continue;
-  const x=SQ3*(q+r/2),y=1.5*r;const poly=[0,1,2,3,4,5].map(k=>{const a=Math.PI/6+k*Math.PI/3;return{x:x+Math.cos(a),y:y+Math.sin(a)}});
-  ALLT.push({q,r,x,y,poly,nb:[]})}
-{const idx={};ALLT.forEach((t,i)=>idx[t.q+','+t.r]=i);
- for(const t of ALLT)for(const [dq,dr] of [[1,0],[-1,0],[0,1],[0,-1],[1,-1],[-1,1]]){const j=idx[(t.q+dq)+','+(t.r+dr)];if(j!=null)t.nb.push(j)}}
-const KEEP=ALLT.map((t,i)=>i);
-const N=Math.ceil(Math.sqrt(KEEP.length))+1,M=0;
-const TID={};KEEP.forEach((ti,k)=>TID[ti]=k);
-const TILES=KEEP.map((ti,k)=>({id:k,x:ALLT[ti].x,y:ALLT[ti].y,poly:ALLT[ti].poly,nb:ALLT[ti].nb.filter(n=>TID[n]!=null).map(n=>TID[n])}));
-const VALID=new Set(),CELLS=[];
-TILES.forEach(t=>{const r=Math.floor(t.id/N),c=t.id%N;t.r=r;t.c=c;VALID.add(r*N+c);CELLS.push([r,c])});
 const tileOf=(r,c)=>TILES[r*N+c];
 const cellXY=(r,c)=>{const t=TILES[r*N+c];return t?{x:t.x,y:t.y}:{x:0,y:0}};
-// neighbours of a tile, as [r,c]
-const NB=TILES.map(t=>t.nb.map(n=>[TILES[n].r,TILES[n].c]));
 const nbrs=(r,c)=>NB[r*N+c]||[];
-const DIRS=null,DIAGS=[];
-// shortest walking distance between any two tiles (ignoring water), for the computer rulers' planning
-const DIST=(()=>{const n=TILES.length,D=new Array(n);for(let s=0;s<n;s++){const d=new Int16Array(n).fill(99);d[s]=0;const q=[s];for(let h=0;h<q.length;h++)for(const m of TILES[q[h]].nb)if(d[m]>d[q[h]]+1){d[m]=d[q[h]]+1;q.push(m)}D[s]=d}return D})();
 const hexDist=(r1,c1,r2,c2)=>{const a=TILES[r1*N+c1],b=TILES[r2*N+c2];return a&&b?DIST[a.id][b.id]:99};
-// Scouts run "straight": through each tile they keep to the neighbour most in line with where they started heading
-const RAYS=TILES.map(t=>t.nb.map(n0=>{const ray=[n0];const dx=TILES[n0].x-t.x,dy=TILES[n0].y-t.y,L=Math.hypot(dx,dy);let prev=t.id,cur=n0;
-  for(let k=0;k<30;k++){let best=-1,bd=.72;for(const m of TILES[cur].nb){if(m===prev||ray.includes(m)||m===t.id)continue;const ex=TILES[m].x-TILES[cur].x,ey=TILES[m].y-TILES[cur].y;const dot=(ex*dx+ey*dy)/(Math.hypot(ex,ey)*L);if(dot>bd){bd=dot;best=m}}
-    if(best<0)break;ray.push(best);prev=cur;cur=best}
-  return ray}));
-// where along which ray from tile a does tile b sit?
-const RAYAT=TILES.map((t,i)=>{const m={};RAYS[i].forEach((ray,ri)=>ray.forEach((b,k)=>{if(m[b]==null)m[b]={ri,k:k+1}}));return m});
 const angled=()=>false;
 const rescueNbrs=(r,c)=>nbrs(r,c);
 function stepFor(dr,dc){return null}
 const inLine=()=>false;
+function boardSize(cfg){
+  const W=ARMIES[cfg.army||'full'].length/2;
+  if(cfg.shape==='square'){const per=cfg.np>=5?2:1;return cfg.size||(cfg.np<=2?10:per===2?2*W+5:Math.max(W+4,11))}
+  return cfg.size||HEX_R[cfg.army||'full'][cfg.np];
+}
+function configure(cfg){
+  cfg=Object.assign({shape:'hex',np:6,army:'full'},cfg||{});cfg.np=Math.max(2,Math.min(6,cfg.np|0));
+  CFG=cfg;NP=cfg.np;ALLP=Array.from({length:NP},(_,i)=>i);ARMY=ARMIES[cfg.army]||ARMIES.full;ROWW=ARMY.length/2;
+  const size=boardSize(cfg);cfg.size=size;
+  ALLT=[];
+  if(cfg.shape==='square'){
+    const h=(size-1)/2,B=size/2+.12;
+    PENT=[[1,1],[-1,1],[-1,-1],[1,-1]].map(([a,b])=>({x:a*B,y:b*B}));
+    const idx={};
+    for(let r=0;r<size;r++)for(let q=0;q<size;q++){const x=q-h,y=r-h;idx[q+','+r]=ALLT.length;
+      ALLT.push({q,r,x,y,poly:[[.5,.5],[-.5,.5],[-.5,-.5],[.5,-.5]].map(([a,b])=>({x:x+a,y:y+b})),nb:[]})}
+    for(const t of ALLT)for(const [dq,dr] of [[1,0],[-1,0],[0,1],[0,-1]]){const j=idx[(t.q+dq)+','+(t.r+dr)];if(j!=null)t.nb.push(j)}
+  }else{
+    const HR=size,BR=HR+.62;
+    PENT=[0,1,2,3,4,5].map(k=>{const a=k*Math.PI/3;return{x:BR*SQ3*Math.cos(a),y:BR*SQ3*Math.sin(a)}});
+    for(let r=-HR;r<=HR;r++)for(let q=-HR;q<=HR;q++){if(Math.abs(q)>HR||Math.abs(r)>HR||Math.abs(q+r)>HR)continue;
+      const x=SQ3*(q+r/2),y=1.5*r;const poly=[0,1,2,3,4,5].map(k=>{const a=Math.PI/6+k*Math.PI/3;return{x:x+Math.cos(a),y:y+Math.sin(a)}});
+      ALLT.push({q,r,x,y,poly,nb:[]})}
+    const idx={};ALLT.forEach((t,i)=>idx[t.q+','+t.r]=i);
+    for(const t of ALLT)for(const [dq,dr] of [[1,0],[-1,0],[0,1],[0,-1],[1,-1],[-1,1]]){const j=idx[(t.q+dq)+','+(t.r+dr)];if(j!=null)t.nb.push(j)}
+  }
+  PENT_R=Math.max(...PENT.map(v=>Math.hypot(v.x,v.y)));
+  N=Math.ceil(Math.sqrt(ALLT.length))+1;
+  TILES=ALLT.map((t,k)=>({id:k,x:t.x,y:t.y,poly:t.poly,nb:t.nb.slice()}));
+  VALID=new Set();CELLS=[];
+  TILES.forEach(t=>{const r=Math.floor(t.id/N),c=t.id%N;t.r=r;t.c=c;VALID.add(r*N+c);CELLS.push([r,c])});
+  NB=[];TILES.forEach(t=>{NB[t.r*N+t.c]=t.nb.map(n=>[TILES[n].r,TILES[n].c])});
+  // shortest walking distance between any two tiles (ignoring water), for the computer rulers' planning
+  {const n=TILES.length;DIST=new Array(n);for(let s=0;s<n;s++){const d=new Int16Array(n).fill(99);d[s]=0;const q=[s];for(let h=0;h<q.length;h++)for(const m of TILES[q[h]].nb)if(d[m]>d[q[h]]+1){d[m]=d[q[h]]+1;q.push(m)}DIST[s]=d}}
+  // Scouts run "straight": through each tile they keep to the neighbour most in line with where they started heading
+  RAYS=TILES.map(t=>t.nb.map(n0=>{const ray=[n0];const dx=TILES[n0].x-t.x,dy=TILES[n0].y-t.y,L=Math.hypot(dx,dy);let prev=t.id,cur=n0;
+    for(let k=0;k<40;k++){let best=-1,bd=.72;for(const m of TILES[cur].nb){if(m===prev||ray.includes(m)||m===t.id)continue;const ex=TILES[m].x-TILES[cur].x,ey=TILES[m].y-TILES[cur].y;const dot=(ex*dx+ey*dy)/(Math.hypot(ex,ey)*L);if(dot>bd){bd=dot;best=m}}
+      if(best<0)break;ray.push(best);prev=cur;cur=best}
+    return ray}));
+  RAYAT=TILES.map((t,i)=>{const m={};RAYS[i].forEach((ray,ri)=>ray.forEach((b,k)=>{if(m[b]==null)m[b]={ri,k:k+1}}));return m});
+  // the sides of the field, starting with the bottom edge and going round
+  const n=PENT.length;
+  const raw=PENT.map((_,k)=>{const a=PENT[(k+n-1)%n],b=PENT[k];const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;const L=Math.hypot(mx,my);const len=Math.hypot(b.x-a.x,b.y-a.y);return{mx,my,nx:mx/L,ny:my/L,tx:(b.x-a.x)/len,ty:(b.y-a.y)/len,L,len}});
+  const bottom=raw.reduce((bi,S,k)=>Math.abs(Math.atan2(S.my,S.mx)-Math.PI/2)<Math.abs(Math.atan2(raw[bi].my,raw[bi].mx)-Math.PI/2)?k:bi,0);
+  SIDES=raw.map((_,i)=>raw[(bottom+i)%n]);
+  // where each domain sets up: a side, and a place along it (two domains share a side on a crowded square field)
+  const half=ROWW/2+1;
+  const SQ={2:[[0,0],[2,0]],3:[[0,0],[1,0],[3,0]],4:[[0,0],[1,0],[2,0],[3,0]],5:[[0,-half],[0,half],[1,0],[2,0],[3,0]],6:[[0,-half],[0,half],[1,0],[2,-half],[2,half],[3,0]]};
+  const HX={2:[0,3],3:[0,2,4],4:[0,1,3,4],5:[0,1,2,3,4],6:[0,1,2,3,4,5]};
+  SLOTS=cfg.shape==='square'?SQ[NP].map(([k,off])=>({S:SIDES[k],off})):HX[NP].map(k=>({S:SIDES[k],off:0}));
+  HOMES=SLOTS.map(({S,off})=>{
+    const info=CELLS.map(([r,c])=>{const q=cellXY(r,c);return{r,c,depth:S.L-(q.x*S.nx+q.y*S.ny),lat:q.x*S.tx+q.y*S.ty-off}});
+    const levels=[];for(const o of info.map(o=>o.depth).sort((a,b)=>a-b))if(!levels.length||o-levels[levels.length-1]>.3)levels.push(o);
+    const row=k=>info.filter(o=>Math.abs(o.depth-levels[k])<.3).sort((a,b)=>Math.abs(a.lat)-Math.abs(b.lat)||a.lat-b.lat).slice(0,ROWW);
+    return row(0).concat(row(1)).map(o=>({r:o.r,c:o.c,S,off}))});
+  // lakes: one in the middle and a few between the domains, never on or beside a home
+  WATER=new Set();
+  {const near=(x,y)=>CELLS.slice().sort((a,b)=>{const pa=cellXY(a[0],a[1]),pb=cellXY(b[0],b[1]);return Math.hypot(pa.x-x,pa.y-y)-Math.hypot(pb.x-x,pb.y-y)});
+   const home=new Set(HOMES.flat().map(o=>o.r+','+o.c));
+   for(const k of [...home]){const [r,c]=k.split(',').map(Number);for(const [rr,cc] of nbrs(r,c))home.add(rr+','+cc)}
+   if(cfg.shape==='square'){
+     // two-by-two lakes, Stratego style, across the middle and between the domains
+     const odd=size%2===1,snap=v=>odd?Math.round(v-.5)+.5:Math.round(v);
+     const pts=NP<=2?[[-size/4,0],[size/4,0]]:[[0,0]].concat(PENT.map(v=>[v.x*.46,v.y*.46]));
+     for(const [x,y] of pts){const X=snap(x),Y=snap(y);const blk=CELLS.filter(([r,c])=>{const q=cellXY(r,c);return Math.abs(q.x-X)<.9&&Math.abs(q.y-Y)<.9});
+       if(blk.some(([r,c])=>home.has(r+','+c)))continue;for(const [r,c] of blk)WATER.add(r+','+c)}
+   }else{
+     const c0=near(0,0)[0];WATER.add(c0[0]+','+c0[1]);
+     for(let k=0;k<PENT.length;k++){const v=PENT[k];const x=v.x*.5,y=v.y*.5;for(const cc of near(x,y).filter(q=>!home.has(q[0]+','+q[1])).slice(0,2))WATER.add(cc[0]+','+cc[1])}
+   }}
+  for(const f of LISTENERS)f(cfg);
+  return cfg;
+}
+const LISTENERS=[];
+function homeCells(p){
+  // back to front: the spaces nearest the edge come first, the middle of the line before the flanks
+  return HOMES[p].map(({r,c,S,off})=>{const q=cellXY(r,c);return{r,c,depth:S.L-(q.x*S.nx+q.y*S.ny),lat:Math.abs(q.x*S.tx+q.y*S.ty-off)}}).sort((a,b)=>a.depth-b.depth||a.lat-b.lat).map(o=>[o.r,o.c]);
+}
+configure({shape:'hex',np:6,army:'full'});
 const RANK_NAME={9:'Lord',8:'Marshal',7:'Knight',6:'Captain',5:'Guard',4:'Raider',3:'Scout',2:'Spy',1:'Sapper',0:'Keep'};
 const RANK_SHORT={9:'L',8:'8',7:'7',6:'6',5:'5',4:'4',3:'3',2:'2',1:'1',0:'K'};
-const RANK_TIP={
+function rankTips(){const dirs=CFG.shape==='square'?'four':'six',sc=countOf(3),sp=countOf(2);return{
  9:'Your ruler and your strongest piece. It beats every rank, and a Lord who strikes first wins against another Lord or a Spy. A Spy that strikes first kills it. Attacking a Keep destroys it. If it falls, your whole domain falls.',
  8:'The strongest fighter. Loses only to the Lord, a Keep, or another Marshal (both fall).',
  7:'Heavy cavalry. Beats every rank below 7.',
  6:'A veteran officer. Beats every rank below 6.',
  5:'Steady infantry. Beats every rank below 5.',
  4:'A fast striker. Beats every rank below 4.',
- 3:'Runs any number of open spaces in a straight line, in any of the six directions. Every domain has four. Good for probing unknown pieces.',
- 2:'Weak in a fair fight, but a Spy that strikes a Lord first kills it. Every domain has two.',
+ 3:`Runs any number of open spaces in a straight line, in any of the ${dirs} directions. Every domain has ${NUMW[sc]||sc}. Good for probing unknown pieces.`,
+ 2:`Weak in a fair fight, but a Spy that strikes a Lord first kills it. Every domain has ${NUMW[sp]||sp}.`,
  1:'The only piece that can break a Keep, and breaking a Keep topples that whole domain.',
- 0:'Your fortress. It never moves. Anything that attacks it is destroyed, except a Sapper. If a Sapper breaks it, your whole domain falls.'};
+ 0:'Your fortress. It never moves. Anything that attacks it is destroyed, except a Sapper. If a Sapper breaks it, your whole domain falls.'}}
 const VALUE={9:40,8:9,7:7,6:5.5,5:4,4:3.2,3:2.6,2:3.4,1:3,0:2.2};
-const ARMY=[9,8,7,6,5,4,3,3,3,3,2,2,1,0];
 const countOf=k=>ARMY.filter(x=>x===k).length;
+const NUMW=['no','one','two','three','four','five'];
 const DOMAINS=[
  {name:'Crimson',banner:'the Ember Crown'},
  {name:'Azure',banner:'the Tide Throne'},
@@ -217,28 +305,6 @@ const DOMAINS=[
  {name:'Golden',banner:'the Sun Court'},
  {name:'Violet',banner:'the Dusk Spire'},
  {name:'Teal',banner:'the Reef Hall'}];
-// Five homes roughly evenly spaced around the board. Each: 3x3 block on the edge + two forward squares.
-// each domain holds one side of the pentagon: a strip two spaces deep along the middle of its edge
-const SIDES=PENT.map((_,k)=>{const n=PENT.length,a=PENT[(k+n-1)%n],b=PENT[k];const mx=(a.x+b.x)/2,my=(a.y+b.y)/2;const L=Math.hypot(mx,my);return{mx,my,nx:mx/L,ny:my/L,tx:(b.x-a.x)/Math.hypot(b.x-a.x,b.y-a.y),ty:(b.y-a.y)/Math.hypot(b.x-a.x,b.y-a.y),L}});
-// side 0 is the bottom edge (Crimson), then round the field
-const SIDE_OF=(()=>{const order=[];for(let k=0;k<NP;k++){const S=SIDES[k];order.push({k,ang:Math.atan2(S.my,S.mx)})}const bottom=order.reduce((a,b)=>Math.abs(b.ang-Math.PI/2)<Math.abs(a.ang-Math.PI/2)?b:a).k;return ALLP.map(i=>(bottom+i)%NP)})();
-const HOMES=ALLP.map(p=>{const S=SIDES[SIDE_OF[p]];
-  // two rows along the edge: the seven most central hexes of the outer row and of the row behind it
-  const info=CELLS.map(([r,c])=>{const q=cellXY(r,c);return{r,c,depth:S.L-(q.x*S.nx+q.y*S.ny),lat:q.x*S.tx+q.y*S.ty}});
-  const d0=Math.min(...info.map(o=>o.depth));
-  const row=k=>info.filter(o=>Math.abs(o.depth-(d0+1.5*k))<.4).sort((a,b)=>Math.abs(a.lat)-Math.abs(b.lat)||a.lat-b.lat).slice(0,7);
-  return row(0).concat(row(1)).map(o=>[o.r,o.c,S])});
-function homeCells(p){
-  // back to front: the spaces nearest the edge come first, the middle of the line before the flanks
-  return HOMES[p].map(([r,c,S])=>{const q=cellXY(r,c);return{r,c,depth:S.L-(q.x*S.nx+q.y*S.ny),lat:Math.abs(q.x*S.tx+q.y*S.ty)}}).sort((a,b)=>a.depth-b.depth||a.lat-b.lat).map(o=>[o.r,o.c]);
-}
-// lakes: one in the middle and five between the domains
-const WATER=(()=>{const w=new Set();const near=(x,y)=>CELLS.slice().sort((a,b)=>{const pa=cellXY(a[0],a[1]),pb=cellXY(b[0],b[1]);return Math.hypot(pa.x-x,pa.y-y)-Math.hypot(pb.x-x,pb.y-y)});
-  const home=new Set(HOMES.flat().map(([r,c])=>r+','+c));
-  for(const k of [...home]){const [r,c]=k.split(',').map(Number);for(const [rr,cc] of nbrs(r,c))home.add(rr+','+cc)}
-  const c0=near(0,0)[0];w.add(c0[0]+','+c0[1]);
-  for(let k=0;k<NP;k++){const v=PENT[k];const x=v.x*.5,y=v.y*.5;for(const cc of near(x,y).filter(q=>!home.has(q[0]+','+q[1])).slice(0,2))w.add(cc[0]+','+cc[1])}
-  return w})();
 const isWater=(r,c)=>WATER.has(r+','+c);
 // lakes, plus (in Decisive mode) squares the sea has swallowed or the seabed has filled
 let CURG=null;
@@ -261,25 +327,33 @@ const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 
 // ---------- new game ----------
+// teams: null for every domain for itself, otherwise team[p] is the team number of domain p
+let TEAM=null;
+const ally=(a,b)=>a===b||(!!TEAM&&a>=0&&b>=0&&TEAM[a]===TEAM[b]);
+const teamsFor=(np,k)=>k&&k>1&&np%k===0&&np>k?Array.from({length:np},(_,p)=>p%k):null;
 function newGame(opts){
-  const ctrl=opts.ctrl||['human','ai','ai','ai','ai'];
+  configure({shape:opts.shape||'hex',np:opts.np||(opts.ctrl?opts.ctrl.length:6),army:opts.army||'full',size:opts.size});
+  const ctrl=(opts.ctrl||['human','ai','ai','ai','ai','ai']).slice(0,NP);while(ctrl.length<NP)ctrl.push('ai');
   const diff=opts.diff||ALLP.map(()=>'normal');
   const personas=shuffle(PERSONAS.slice());
   const G={v:2,n:N,round:1,turn:0,phase:'setup',ctrl,diff,pieces:[],alive:ALLP.map(()=>true),
     persona:personas.map(p=>p.name),trust:ALLP.map(()=>Array(NP).fill(50)),pacts:ALLP.map(()=>Array(NP).fill(0)),
     rep:Array(NP).fill(0),accused:Array(NP).fill(0),grudge:ALLP.map(()=>Array(NP).fill(0)),kills:Array(NP).fill(0),
     offers:[],log:[],lastCapture:1,over:false,winner:null,fallenBy:Array(NP).fill(null),actedDiplo:false,
-    stats:{clashes:0,betrayals:0},ready:Array(NP).fill(false),decisive:!!opts.decisive,sunk:{},quakes:0,lastQuake:null};
+    stats:{clashes:0,betrayals:0},ready:Array(NP).fill(false),decisive:!!opts.decisive,sunk:{},quakes:0,lastQuake:null,
+    cfg:{shape:CFG.shape,np:NP,army:CFG.army,size:CFG.size},team:teamsFor(NP,opts.teams),lastAccuse:Array(NP).fill(-9)};
+  TEAM=G.team;CURG=G;
   for(let p=0;p<NP;p++){
     const cells=homeCells(p);
     const ranks=ctrl[p]==='ai'?aiSetup():shuffle(ARMY.slice());
     cells.forEach(([r,c],i)=>G.pieces.push({id:G.pieces.length,p,rank:ranks[i],r,c,alive:true,moves:0,revealed:false,known:[],rumor:false,prev:null,lastMoved:0}));
   }
-  addLog(G,'The six domains take the field. Each Lord is hidden among its own.');
+  addLog(G,`${['','','Two','Three','Four','Five','Six'][NP]} domains take the field${G.team?` in ${new Set(G.team).size} teams`:''}. Each Lord is hidden among its own.`);
   return G;
 }
 // AI setup: Lord in the back, a Keep beside it, Spy and Scouts forward.
 function aiSetup(){
+  if(ARMY.length===10){const r=[9,0,5,8,1,6,7,4,2,3];if(rnd()<.5){[r[0],r[2]]=[r[2],r[0]]}if(rnd()<.35){[r[0],r[4]]=[r[4],r[0]]}if(rnd()<.5){[r[5],r[7]]=[r[7],r[5]]}if(rnd()<.5){[r[8],r[9]]=[r[9],r[8]]}return r}
   const order=[9,0,5,8,1,6,7,4,2,2,3,3,3,3]; // index 0 = back row middle; the last few are the front line
   const r=order.slice();
   // a little variety so the Lord is not always in the same corner
@@ -312,7 +386,7 @@ function movesFor(G,x){
       if(blocked(r,c,G))break;
       const q=at(G,r,c);
       if(!q){out.push({r,c,attack:false});continue}
-      if(q.p!==x.p)out.push({r,c,attack:true,target:q.id});
+      if(!ally(q.p,x.p))out.push({r,c,attack:true,target:q.id});
       break;
     }
   }
@@ -358,6 +432,7 @@ function doMove(G,id,r,c){
   }
   return ev;
 }
+function teamName(G,t){const ms=ALLP.filter(p=>G.team&&G.team[p]===t);return ms.map(p=>DOMAINS[p].name).join(' and ')}
 function fallDomain(G,p,by,ev,how){
   G.alive[p]=false;G.fallenBy[p]=by;
   for(const q of G.pieces)if(q.p===p&&q.alive){q.alive=false;q.revealed=true}
@@ -375,11 +450,16 @@ function breakPact(G,a,b,ev){
 function nextTurn(G){
   const al=G.alive.filter(Boolean).length;
   if(al<=1){G.over=true;G.winner=G.alive.indexOf(true);addLog(G,`${DOMAINS[G.winner].name} claims every domain.`,G.winner);return}
+  if(G.team){const ts=new Set(ALLP.filter(p=>G.alive[p]).map(p=>G.team[p]));if(ts.size<=1){G.over=true;G.winTeam=[...ts][0];G.winner=G.alive.indexOf(true);
+    addLog(G,`${teamName(G,G.winTeam)} hold${ALLP.filter(p=>G.team[p]===G.winTeam).length>1?'':'s'} the island together.`,G.winner);return}}
   // stalemate: long quiet stretch or round limit
   // in Decisive mode the quiet clock only runs once the island has stopped sinking
   const quietFrom=G.decisive?Math.max(G.lastCapture,G.islandDone?G.doneSince:G.round):G.lastCapture;
   if(G.round-quietFrom>=(G.decisive?25:40)||G.round>=200){
-    let best=-1,bv=-1;for(let p=0;p<NP;p++)if(G.alive[p]){const v=alivePieces(G,p).reduce((s,x)=>s+(x.rank===9?0:VALUE[x.rank]),0);if(v>bv){bv=v;best=p}}
+    const sv=p=>alivePieces(G,p).reduce((s,x)=>s+(x.rank===9?0:VALUE[x.rank]),0);
+    if(G.team){const tv={};for(const p of ALLP)if(G.alive[p])tv[G.team[p]]=(tv[G.team[p]]||0)+sv(p);const bt=+Object.keys(tv).sort((a,b)=>tv[b]-tv[a])[0];
+      G.over=true;G.winTeam=bt;G.winner=ALLP.find(p=>G.alive[p]&&G.team[p]===bt);G.stalemate=true;addLog(G,`The war grinds to a halt. ${teamName(G,bt)} hold the strongest armies and share the crown.`,G.winner);return}
+    let best=-1,bv=-1;for(let p=0;p<NP;p++)if(G.alive[p]){const v=sv(p);if(v>bv){bv=v;best=p}}
     G.over=true;G.winner=best;G.stalemate=true;addLog(G,`The war grinds to a halt. ${DOMAINS[best].name} holds the strongest army and is named High Lord.`,best);return;
   }
   let t=G.turn;
@@ -421,7 +501,7 @@ function bfs(G,starts){
 function separation(G){
   const al=ALLP.filter(p=>G.alive[p]);const ds={};
   for(const p of al)ds[p]=bfs(G,alivePieces(G,p).map(x=>[x.r,x.c]));
-  let F=0;for(let i=0;i<al.length;i++)for(let j=i+1;j<al.length;j++){const a=al[i],b=al[j];let m=999;for(const x of alivePieces(G,b))m=Math.min(m,ds[a][x.r*N+x.c]);F+=Math.min(m,60)}
+  let F=0;for(let i=0;i<al.length;i++)for(let j=i+1;j<al.length;j++){const a=al[i],b=al[j];if(ally(a,b))continue;let m=999;for(const x of alivePieces(G,b))m=Math.min(m,ds[a][x.r*N+x.c]);F+=Math.min(m,60)}
   return F;
 }
 // would sinking (r,c) leave a neighbouring piece with no open land beside it at all?
@@ -447,7 +527,7 @@ function landDistFrom(G,r,c){const D=new Int32Array(TILES.length).fill(-1);const
   for(let h=0;h<q.length;h++)for(const m of TILES[q[h]].nb){if(D[m]>=0)continue;const T=TILES[m];if(blocked(T.r,T.c,G))continue;D[m]=D[q[h]]+1;q.push(m)}return D}
 function causeway(G){
   const al=ALLP.filter(p=>G.alive[p]);let best=null;
-  for(let i=0;i<al.length;i++)for(let j=i+1;j<al.length;j++){const a=al[i],b=al[j];if(hasPact(G,a,b))continue;
+  for(let i=0;i<al.length;i++)for(let j=i+1;j<al.length;j++){const a=al[i],b=al[j];if(hasPact(G,a,b)||ally(a,b))continue;
     for(const x of alivePieces(G,a)){if(x.rank===0)continue;const LDd=landDistFrom(G,x.r,x.c);
       for(const y of alivePieces(G,b)){const d=hexDist(x.r,x.c,y.r,y.c);if(d<2)continue;const ld=LDd[tileOf(y.r,y.c).id];const gain=(ld<0?40:ld)-d;
         if(gain<3)continue;   // already a short walk apart over land: a causeway would add nothing
@@ -524,7 +604,7 @@ function quake(G){
 
 // ---------- knowledge ----------
 // Is piece x's rank visible to player v?
-const visibleTo=(x,v)=>x.p===v||x.revealed||x.known.includes(v);
+const visibleTo=(x,v)=>x.p===v||x.revealed||x.known.includes(v)||(!!TEAM&&v>=0&&TEAM[x.p]===TEAM[v]);
 // Probability distribution over ranks for an unknown piece from player v's point of view.
 function belief(G,x,v){
   const out={};
@@ -564,7 +644,7 @@ function leader(G){let b=-1,bv=-1,second=-1;for(let p=0;p<NP;p++)if(G.alive[p]){
 const credibility=(G,p)=>clamp(1-G.rep[p]*.22-(G.rumors&&G.rumors[p]||0)*.04,.2,1);
 // How much player a wants to hurt player d.
 function hostility(G,a,d,raw){
-  if(a===d||!G.alive[d])return 0;
+  if(a===d||!G.alive[d]||ally(a,d))return 0;
   const P=PERSONAS.find(x=>x.name===G.persona[a]);
   let h=.35+threat(G,d)*.55+(100-G.trust[a][d])/100*.5+G.accused[d]+G.grudge[a][d]*.35;
   h*=.6+P.aggr*.6;
@@ -577,6 +657,7 @@ function pactCount(G,p){let n=0;for(let q=0;q<NP;q++)if(hasPact(G,p,q))n++;retur
 function wouldAccept(G,d,a){
   if(!G.alive[d]||!G.alive[a])return{ok:false,why:'gone'};
   if(hasPact(G,d,a))return{ok:false,why:'already'};
+  if(ally(d,a))return{ok:false,why:'ally'};
   const P=PERSONAS.find(x=>x.name===G.persona[d]);
   const lead=leader(G);
   let s=G.trust[d][a]/100+(lead===a?-.45:.15)+(lead!==d&&lead!==a?.15:0)-G.rep[a]*.18+P.honor*.15-G.grudge[d][a]*.12-pactCount(G,d)*.15;
@@ -610,7 +691,7 @@ function plantRumor(G,id){
 // AI diplomacy at the start of its turn. Returns events (offers to humans etc.)
 function aiDiplomacy(G,a){
   const P=PERSONAS.find(x=>x.name===G.persona[a]);const out=[];
-  const al=ALLP.filter(q=>G.alive[q]&&q!==a);
+  const al=ALLP.filter(q=>G.alive[q]&&!ally(q,a));
   const lead=leader(G);
   // pacts
   G.pactCool=G.pactCool||ALLP.map(()=>Array(NP).fill(0));
@@ -623,8 +704,8 @@ function aiDiplomacy(G,a){
     }
   }
   // rumours
-  G.lastAccuse=G.lastAccuse||[-9,-9,-9,-9,-9];
-  if(rnd()<P.deceit*.18&&lead>=0&&lead!==a&&G.round-G.lastAccuse[a]>=6){G.lastAccuse[a]=G.round;accuse(G,a,lead)}
+  G.lastAccuse=G.lastAccuse||Array(NP).fill(-9);
+  if(rnd()<P.deceit*.18&&lead>=0&&!ally(lead,a)&&G.round-G.lastAccuse[a]>=6){G.lastAccuse[a]=G.round;accuse(G,a,lead)}
   if(rnd()<P.deceit*.08){const decoys=alivePieces(G,a).filter(x=>x.rank===0||x.rank===8||x.rank===7);if(decoys.length&&!alivePieces(G,a).some(x=>x.rumor&&x.alive))plantRumor(G,pick(decoys).id)}
   return out;
 }
@@ -646,7 +727,7 @@ function fightEV(G,a,x,t,B,host,deep){
 function danger(G,a,x,r,c){
   let d=0;
   for(const q of G.pieces){
-    if(!q.alive||q.p===a||q.rank===0&&visibleTo(q,a))continue;
+    if(!q.alive||ally(q.p,a)||q.rank===0&&visibleTo(q,a))continue;
     const dist=hexDist(q.r,q.c,r,c);if(dist>12)continue;
     const tq=tileOf(q.r,q.c),tt=tileOf(r,c);const ra=RAYAT[tq.id][tt.id];const adj=tq.nb.includes(tt.id),diag1=false;
     if(!adj&&!(ra&&ra.k<8&&scoutLine(G,q,r,c,a)))continue;
@@ -677,13 +758,13 @@ function aiChoose(G,a){
   const D=DIFF[G.diff[a]]||DIFF.normal;const P=PERSONAS.find(x=>x.name===G.persona[a])||PERSONAS[0];
   const host=ALLP.map(d=>hostility(G,a,d));
   const myLord=lordOf(G,a);const mine=alivePieces(G,a);
-  const alv=G.alive.filter(Boolean).length;
+  const alv=G.team?new Set(ALLP.filter(p=>G.alive[p]).map(p=>G.team[p])).size+1:G.alive.filter(Boolean).length;
   // late in the war, or with few pieces left, every ruler hunts
   const hunt=alv<=3||mine.length<=4||G.round>70||G.islandDone;
   const bold=(1+clamp((G.round-12)/20,0,2)+(mine.length<=4?.8:0))*(alv<=2?1:D.aggr)*(hunt?1.6:1);
   const lordDanger=myLord?danger(G,a,myLord,myLord.r,myLord.c):0;
   // what is worth hunting: likely Lords above all, Keeps for our Sapper, and weak pieces we know about
-  const targets=G.pieces.filter(q=>q.alive&&q.p!==a&&G.alive[q.p]).map(q=>{const B=belief(G,q,a);
+  const targets=G.pieces.filter(q=>q.alive&&!ally(q.p,a)&&G.alive[q.p]).map(q=>{const B=belief(G,q,a);
     return{q,B,w:host[q.p]*((B[9]||0)*6+(B[0]||0)*1.5+(q.rumor?1.5:0)+(q.revealed&&q.rank<5?.6:0)+.4)}});
   const scored=[];
   for(const m of moves){
@@ -745,11 +826,278 @@ function aiChoose(G,a){
   return best.m;
 }
 
-return {NP,ALLP,TILES,RAYS,nbrs,tileOf,DIAGS,stepFor,angled,M,DIRS,hexDist,inLine,cellXY,PENT,PENT_R,CELLS,ARMY,blocked,landConnected,quake,QUAKE_START,setG:g=>{CURG=g},N,TILE,RANK_NAME,RANK_SHORT,RANK_TIP,VALUE,DOMAINS,HOMES,PERSONAS,PACT_LEN,homeCells,WATER,isWater,inB,newGame,swapSetup,shuffleSetup,suggestSetup,startPlay,
+const API={nbrs,tileOf,DIAGS,stepFor,angled,M,DIRS,hexDist,inLine,cellXY,blocked,landConnected,quake,QUAKE_START,setG:g=>{CURG=g;TEAM=g?g.team||null:null;if(g&&g.cfg&&(g.cfg.shape!==CFG.shape||g.cfg.np!==CFG.np||g.cfg.army!==CFG.army||g.cfg.size!==CFG.size))configure(g.cfg)},
+  TILE,RANK_NAME,RANK_SHORT,VALUE,DOMAINS,PERSONAS,PACT_LEN,homeCells,isWater,inB,newGame,swapSetup,shuffleSetup,suggestSetup,startPlay,
   movesFor,allMoves,resolve,doMove,nextTurn,visibleTo,belief,threat,leader,hostility,attitude,wouldAccept,makePact,accuse,plantRumor,aiDiplomacy,aiChoose,
-  hasPact,breakPact,alivePieces,lordOf,at,strength,credibility,pactCount,setRandom,addLog};
+  hasPact,breakPact,alivePieces,lordOf,at,strength,credibility,pactCount,setRandom,addLog,configure,boardSize,ally,teamName,teamsFor,ARMIES,
+  onConfigure:f=>LISTENERS.push(f)};
+// board-dependent values are read live, because configure() rebuilds them for every new game
+for(const [k,g] of Object.entries({NP:()=>NP,ALLP:()=>ALLP,TILES:()=>TILES,RAYS:()=>RAYS,PENT:()=>PENT,PENT_R:()=>PENT_R,CELLS:()=>CELLS,ARMY:()=>ARMY,N:()=>N,HOMES:()=>HOMES,WATER:()=>WATER,CFG:()=>CFG,RANK_TIP:rankTips,SIDES:()=>SIDES}))Object.defineProperty(API,k,{get:g,enumerable:true});
+return API;
 })();
 if(typeof module!=='undefined')module.exports=LD;
+
+// ===================== The First Crown: world conquest, rules and AI =====================
+// The prequel. Before the domains and before the oath, warlords fought for the whole world. Whoever united it would
+// raise the drowned isle of Thalmar from the sea and set the First Crown upon it.
+// Pure logic, no DOM: the world map is computed here as a raster so the same code runs in the page and in tests.
+const CW=(()=>{
+const MW=384,MH=240;
+// ---------- the world ----------
+// Each continent is a union of round blobs with a ragged coastline; each territory is the part of its continent
+// nearest its seed. Sea lanes join territories across water.
+const CONTINENTS=[
+ {id:'nordhal',name:'Nordhal',bonus:3,terrain:'tundra',label:[62,110],
+  blobs:[[34,50,26],[70,40,28],[100,58,22],[48,80,24],[80,76,20],[22,72,14]],
+  ter:[['Frostfang',30,48],['Wolfmere',66,34],['Highcairn',100,52],['Greyholt',40,82],['Runewatch',82,76]]},
+ {id:'pearl',name:'The Pearl Isles',bonus:2,terrain:'isles',label:[188,76],
+  blobs:[[150,32,14],[187,22,13],[224,32,14],[192,56,11]],
+  ter:[['Coralhaven',150,32],['Saltspire',187,22],['Gullrock',224,32],['Moonreef',192,56]]},
+ {id:'verdance',name:'Verdance',bonus:3,terrain:'forest',label:[300,114],
+  blobs:[[284,46,26],[318,36,26],[352,52,22],[296,78,22],[330,74,22],[356,90,16]],
+  ter:[['Elderwood',278,46],['Thornvale',314,30],['Hartsong',352,46],['Mossgate',292,80],['Wyrmroot',326,70],['Brightfen',356,92]]},
+ {id:'ember',name:'Emberreach',bonus:3,terrain:'volcanic',label:[330,230],
+  blobs:[[312,146,22],[346,156,24],[326,186,24],[296,180,16],[362,182,14]],
+  ter:[['Cindermaw',310,142],['Ashfall',348,150],['Obsidian Gate',298,182],['Pyre Hollow',330,194],['Smoulderkeep',362,178]]},
+ {id:'sunmere',name:'Sunmere',bonus:3,terrain:'savanna',label:[200,234],
+  blobs:[[150,204,16],[180,198,22],[214,206,24],[248,198,20],[200,222,14]],
+  ter:[['Lionsreach',148,204],['Goldgrass',182,194],['Jadecoil',214,210],['Sunspire',250,196],['Dunmarrow',190,224]]},
+ {id:'ashkar',name:'Ashkar',bonus:3,terrain:'desert',label:[58,232],
+  blobs:[[46,162,24],[82,170,26],[50,200,22],[92,200,22],[110,158,16]],
+  ter:[['Sandgrave',40,158],['Mirage Wells',84,160],['Dustcrown',46,202],['Oasis of Ka',94,204],['Scorpion Pass',112,170]]},
+ {id:'thalmar',name:'Thalmar',bonus:3,terrain:'throne',label:[192,154],
+  blobs:[[192,118,18],[176,130,13],[208,130,13]],
+  ter:[['The Throne',192,114],['The Strand',176,132],['The Watch',208,132]]}];
+const LANES=[['Highcairn','Coralhaven'],['Coralhaven','Saltspire'],['Saltspire','Gullrock'],['Saltspire','Moonreef'],['Coralhaven','Moonreef'],['Gullrock','Moonreef'],
+ ['Gullrock','Elderwood'],['Brightfen','Ashfall'],['Obsidian Gate','Sunspire'],['Lionsreach','Oasis of Ka'],['Greyholt','Sandgrave'],
+ ['Runewatch','The Strand'],['Moonreef','The Throne'],['Mossgate','The Watch'],['Cindermaw','The Watch'],['Goldgrass','The Strand'],['Mirage Wells','The Strand'],['Jadecoil','The Watch']];
+const hash=(a,b)=>{let h=(a*374761393+b*668265263)|0;h=Math.imul(h^(h>>>13),1274126177);return((h^(h>>>16))>>>0)/4294967295};
+function vnoise(x,y){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi;const s=t=>t*t*(3-2*t);const a=hash(xi,yi),b=hash(xi+1,yi),c=hash(xi,yi+1),d=hash(xi+1,yi+1);const u=s(xf),v=s(yf);return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v}
+const T=[];CONTINENTS.forEach((C,ci)=>C.ter.forEach(([name,x,y])=>T.push({id:T.length,name,x,y,cont:ci,adj:new Set()})));
+const byName={};T.forEach(t=>byName[t.name]=t);
+CONTINENTS.forEach((C,ci)=>C.terr=T.filter(t=>t.cont===ci).map(t=>t.id));
+// raster: which territory each pixel belongs to (-1 = sea)
+const RAST=new Int16Array(MW*MH).fill(-1),CONT=new Int8Array(MW*MH).fill(-1);
+for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){
+  const n=.2*(vnoise(x/9,y/9)-.5)+.1*(vnoise(x/3.5+40,y/3.5)-.5);
+  let best=-1,bv=0;
+  CONTINENTS.forEach((C,ci)=>{let f=-9;for(const [bx,by,r] of C.blobs){const v=1-Math.hypot(x-bx,y-by)/r;if(v>f)f=v}f+=n;if(f>bv){bv=f;best=ci}});
+  if(best<0)continue;
+  const i=y*MW+x;CONT[i]=best;
+  let bt=-1,bd=1e9;for(const id of CONTINENTS[best].terr){const t=T[id];const d=Math.hypot(x-t.x,y-t.y)+7*(vnoise(x/8+id*17,y/8-id*5)-.5);if(d<bd){bd=d;bt=id}}
+  RAST[i]=bt;
+}
+// territories that touch across land
+for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){const a=RAST[y*MW+x];if(a<0)continue;
+  for(const [dx,dy] of [[1,0],[0,1]]){const xx=x+dx,yy=y+dy;if(xx>=MW||yy>=MH)continue;const b=RAST[yy*MW+xx];if(b>=0&&b!==a){T[a].adj.add(b);T[b].adj.add(a)}}}
+for(const [a,b] of LANES){const A=byName[a],B=byName[b];A.adj.add(B.id);B.adj.add(A.id);A.lanes=A.lanes||[];A.lanes.push(B.id)}
+// area and a label point (the seed, nudged onto its own land)
+for(const t of T){let n=0,sx=0,sy=0;for(let i=0;i<RAST.length;i++)if(RAST[i]===t.id){n++;sx+=i%MW;sy+=(i/MW)|0}t.area=n;
+  if(RAST[(t.y|0)*MW+(t.x|0)]!==t.id){t.x=Math.round(sx/n);t.y=Math.round(sy/n)}t.adj=[...t.adj].sort((a,b)=>a-b)}
+const THRONE=byName['The Throne'].id,THALMAR=CONTINENTS.findIndex(c=>c.id==='thalmar');
+
+// ---------- dice ----------
+// exact chances for one roll of a dice against d dice: [P(att loses 0..k)] where k = min(a,d) pieces are compared
+const ROLL={};
+for(let a=1;a<=3;a++)for(let d=1;d<=2;d++){const k=Math.min(a,d),cnt=Array(k+1).fill(0);let tot=0;
+  const rec=(dice,n)=>{if(dice.length===n){tot++;const A=dice.slice(0,a).sort((x,y)=>y-x),D=dice.slice(a).sort((x,y)=>y-x);let al=0;for(let i=0;i<k;i++)if(A[i]<=D[i])al++;cnt[al]++;return}for(let f=1;f<=6;f++){dice.push(f);rec(dice,n);dice.pop()}};
+  rec([],a+d);ROLL[a+'v'+d]=cnt.map(c=>c/tot)}
+// P(win) for A attacking armies (all of them may fight, one stays home separately) against D defenders, attacking to the end
+const WP=[];for(let A=0;A<=60;A++){WP[A]=[];for(let D=0;D<=60;D++){
+  if(D===0){WP[A][D]=1;continue}if(A===0){WP[A][D]=0;continue}
+  const a=Math.min(3,A),d=Math.min(2,D),k=Math.min(a,d),P=ROLL[a+'v'+d];let p=0;for(let al=0;al<=k;al++)p+=P[al]*WP[A-al][D-(k-al)];WP[A][D]=p}}
+const winChance=(att,def)=>WP[Math.min(60,Math.max(0,att-1))][Math.min(60,def)];
+
+// ---------- players ----------
+const DOMAINS=[{name:'Crimson',host:'the Ember Host'},{name:'Azure',host:'the Tide Fleet'},{name:'Verdant',host:'the Greenwood Band'},{name:'Golden',host:'the Sun Legion'},{name:'Violet',host:'the Dusk Order'},{name:'Teal',host:'the Reef Wardens'}];
+const START={2:28,3:22,4:18,5:15,6:13};
+const TRADE=[4,6,8,10,12,15];
+const tradeValue=n=>n<TRADE.length?TRADE[n]:15+5*(n-TRADE.length+1);
+const CARD_KIND=['Footman','Rider','Siege'];
+const VICTORY={world:{name:'World conquest',blurb:'Take every territory.'},throne:{name:'The Throne',blurb:'Hold all of Thalmar and any two other continents at the start of your turn.'},dominion:{name:'Dominion',blurb:'Hold 21 of the 33 territories at the start of your turn.'}};
+let rnd=Math.random;const setRandom=f=>{rnd=f};
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const roll=()=>1+Math.floor(rnd()*6);
+function addLog(G,t,p){G.log.push({t,p:p==null?-1:p,round:G.round});if(G.log.length>200)G.log.shift()}
+const ally=(G,a,b)=>a===b||(!!G.team&&a>=0&&b>=0&&G.team[a]===G.team[b]);
+const owned=(G,p)=>T.filter(t=>G.owner[t.id]===p).map(t=>t.id);
+const contOwned=(G,ci,p)=>CONTINENTS[ci].terr.every(id=>G.owner[id]===p);
+const contOwnedTeam=(G,ci,p)=>CONTINENTS[ci].terr.every(id=>ally(G,G.owner[id],p));
+
+// ---------- new game ----------
+function newGame(o){
+  const np=Math.max(2,Math.min(6,o.np||(o.ctrl?o.ctrl.length:4)));
+  const ctrl=(o.ctrl||['human']).slice(0,np);while(ctrl.length<np)ctrl.push('ai');
+  const k=o.teams;const team=k&&k>1&&np%k===0&&np>k?Array.from({length:np},(_,p)=>p%k):null;
+  const G={game:'crown',v:1,np,ctrl,diff:o.diff||Array(np).fill('normal'),team,victory:o.victory||'world',round:1,turn:0,phase:'deploy',
+    owner:Array(T.length).fill(-1),armies:Array(T.length).fill(0),reserve:Array(np).fill(0),alive:Array(np).fill(true),cards:Array.from({length:np},()=>[]),
+    deck:[],trades:0,conquered:false,placed:{},log:[],over:false,winner:null,stats:{battles:0,conquests:0,trades:0},elim:Array(np).fill(null),pendingMove:null,fortified:false,
+    deployMode:o.deploy||'auto'};
+  // deal the territories round the table, one army on each
+  // the deal runs backwards round the table, so spare territories go to those who move last, and later seats get a little extra
+  const ids=shuffle(T.map(t=>t.id));ids.forEach((id,i)=>{G.owner[id]=np-1-(i%np);G.armies[id]=1});
+  for(let p=0;p<np;p++)G.reserve[p]=START[np]+Math.round(p*(np===2?8:3)/np)-owned(G,p).length;
+  G.deck=shuffle(T.map(t=>({t:t.id,k:t.id%3})).concat([{t:-1,k:3},{t:-1,k:3}]));
+  addLog(G,`${np} warlords march for the First Crown${team?` in ${new Set(team).size} alliances`:''}. Victory: ${VICTORY[G.victory].name}.`);
+  return G;
+}
+// ---------- deployment ----------
+function autoDeploy(G,p,n){n=n==null?G.reserve[p]:n;for(let i=0;i<n;i++){const id=aiPlaceTarget(G,p);G.armies[id]++;G.reserve[p]--}}
+function deployDone(G){return G.reserve.every((r,p)=>r<=0||!G.alive[p])}
+function startPlay(G){G.phase='reinforce';G.turn=0;beginTurn(G);addLog(G,`The war begins. ${DOMAINS[0].name} moves first.`)}
+// ---------- turns ----------
+function income(G,p){
+  const n=owned(G,p).length;let a=Math.max(3,Math.floor(n/3));const conts=[];
+  CONTINENTS.forEach((C,ci)=>{if(contOwned(G,ci,p)){a+=C.bonus;conts.push(C.name)}});
+  if(G.owner[THRONE]===p)a+=1;
+  return{total:a,base:Math.max(3,Math.floor(n/3)),conts,throne:G.owner[THRONE]===p};
+}
+function beginTurn(G){
+  const p=G.turn;G.phase='reinforce';G.conquered=false;G.fortified=false;G.placed={};G.pendingMove=null;G.sel=null;
+  if(checkVictory(G,p))return;
+  const inc=income(G,p);G.reserve[p]=inc.total;G.lastIncome=inc;
+}
+// card sets: three of a kind, one of each, or any two with a wild
+function findSet(cards){
+  const n=cards.length;for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)for(let k=j+1;k<n;k++){const ks=[cards[i].k,cards[j].k,cards[k].k];const w=ks.filter(x=>x===3).length;const r=ks.filter(x=>x!==3);
+    if(w>=1||(r[0]===r[1]&&r[1]===r[2])||new Set(r).size===3)return[i,j,k]}
+  return null;
+}
+function tradeCards(G,p,idx){
+  idx=idx||findSet(G.cards[p]);if(!idx)return 0;
+  const cs=idx.map(i=>G.cards[p][i]);G.cards[p]=G.cards[p].filter((_,i)=>!idx.includes(i));
+  const v=tradeValue(G.trades);G.trades++;G.reserve[p]+=v;G.stats.trades++;
+  // two extra armies on a pictured territory you hold
+  const bonusT=cs.find(c=>c.t>=0&&G.owner[c.t]===p);if(bonusT){G.armies[bonusT.t]+=2}
+  G.deck.push(...cs);shuffle(G.deck);
+  addLog(G,`${DOMAINS[p].name} trades a set of cards for ${v} armies${bonusT?` (+2 on ${T[bonusT.t].name})`:''}.`,p);
+  return v;
+}
+function place(G,p,id,n){
+  if(G.owner[id]!==p)return 0;n=Math.min(n||1,G.reserve[p]);if(n<=0)return 0;
+  G.armies[id]+=n;G.reserve[p]-=n;G.placed[id]=(G.placed[id]||0)+n;return n;
+}
+function undoPlacement(G,p){for(const id in G.placed){G.armies[id]-=G.placed[id];G.reserve[p]+=G.placed[id]}G.placed={}}
+// round one is a truce: everyone gathers their armies before the first blow, so moving first is no great edge
+function canAttack(G,from,to){const p=G.owner[from];return G.round>1&&T[from].adj.includes(to)&&G.armies[from]>=2&&!ally(G,G.owner[to],p)}
+function attackTargets(G,from){return T[from].adj.filter(to=>canAttack(G,from,to))}
+// one roll; returns the dice and the losses
+function attackOnce(G,from,to,nd){
+  const p=G.owner[from],q=G.owner[to];
+  const a=Math.max(1,Math.min(nd||3,3,G.armies[from]-1)),d=Math.min(2,G.armies[to]);
+  const A=Array.from({length:a},roll).sort((x,y)=>y-x),D=Array.from({length:d},roll).sort((x,y)=>y-x);
+  let al=0,dl=0;for(let i=0;i<Math.min(a,d);i++){if(A[i]>D[i])dl++;else al++}
+  G.armies[from]-=al;G.armies[to]-=dl;G.stats.battles++;
+  const res={from,to,p,q,A,D,al,dl,conquered:false};
+  if(G.armies[to]<=0){res.conquered=true;conquer(G,from,to,a,res)}
+  return res;
+}
+function conquer(G,from,to,dice,res){
+  const p=G.owner[from],q=G.owner[to];
+  G.owner[to]=p;G.armies[to]=0;G.conquered=true;G.stats.conquests++;
+  const max=G.armies[from]-1,min=Math.min(dice,max);
+  G.pendingMove={from,to,min,max};
+  addLog(G,`${DOMAINS[p].name} takes ${T[to].name} from ${DOMAINS[q].name}.`,p);
+  if(owned(G,q).length===0){G.alive[q]=false;G.elim[q]=p;G.cards[p].push(...G.cards[q]);G.cards[q]=[];res.eliminated=q;
+    addLog(G,`${DOMAINS[q].name} is driven from the world${G.cards[p].length?'; '+DOMAINS[p].name+' seizes their cards':''}.`,p)}
+  if(to===THRONE)addLog(G,`${DOMAINS[p].name} seizes the Throne of Thalmar!`,p);
+}
+function moveIn(G,n){const m=G.pendingMove;if(!m)return;n=Math.max(m.min,Math.min(m.max,n==null?m.max:n));G.armies[m.from]-=n;G.armies[m.to]+=n;G.pendingMove=null;checkVictory(G,G.owner[m.to],true)}
+// keep attacking until the target falls or only a few armies are left
+function blitz(G,from,to,keep){keep=keep||1;const out=[];while(G.armies[from]>keep&&G.owner[to]!==G.owner[from]){const r=attackOnce(G,from,to,3);out.push(r);if(r.conquered)break;if(out.length>200)break}return out}
+// fortify: one move along a chain of your own territories
+function reachable(G,from){const p=G.owner[from],seen=new Set([from]),q=[from];for(let h=0;h<q.length;h++)for(const n of T[q[h]].adj)if(!seen.has(n)&&G.owner[n]===p){seen.add(n);q.push(n)}seen.delete(from);return[...seen]}
+function fortify(G,from,to,n){if(G.fortified||G.owner[from]!==G.turn)return false;if(!reachable(G,from).includes(to))return false;n=Math.max(1,Math.min(G.armies[from]-1,n));if(n<1)return false;G.armies[from]-=n;G.armies[to]+=n;G.fortified=true;addLog(G,`${DOMAINS[G.turn].name} moves ${n} armies from ${T[from].name} to ${T[to].name}.`,G.turn);return true}
+function endTurn(G){
+  const p=G.turn;
+  if(G.conquered&&G.deck.length){G.cards[p].push(G.deck.pop())}
+  let t=p;do{t=(t+1)%G.np;if(t===0)G.round++}while(!G.alive[t]);
+  G.turn=t;beginTurn(G);
+}
+function checkVictory(G,p,mid){
+  if(G.over)return true;
+  const alive=[...Array(G.np).keys()].filter(q=>G.alive[q]);
+  const sides=new Set(alive.map(q=>G.team?G.team[q]:q));
+  let win=sides.size<=1;
+  if(!win&&!mid){
+    if(G.victory==='throne'){const mine=ci=>G.team?contOwnedTeam(G,ci,p):contOwned(G,ci,p);if(mine(THALMAR)&&CONTINENTS.filter((C,ci)=>ci!==THALMAR&&mine(ci)).length>=2)win=true}
+    else if(G.victory==='dominion'){const n=T.filter(t=>ally(G,G.owner[t.id],p)).length;if(n>=21)win=true}
+  }
+  if(win){G.over=true;G.winner=p;G.winTeam=G.team?G.team[p]:null;
+    addLog(G,G.team?`${winners(G).map(q=>DOMAINS[q].name).join(' and ')} unite the world. The First Crown is theirs.`:`${DOMAINS[p].name} unites the world. Thalmar rises from the sea, and the First Crown is set upon it.`,p)}
+  return win;
+}
+const winners=G=>G.team?[...Array(G.np).keys()].filter(q=>G.team[q]===G.winTeam):[G.winner];
+
+// ---------- the computer warlords ----------
+const DIFF={easy:{noise:.9,ratio:1.1,care:.3},normal:{noise:.25,ratio:.62,care:.8},hard:{noise:.05,ratio:.68,care:1.2}};
+const enemyNb=(G,id)=>T[id].adj.filter(n=>!ally(G,G.owner[n],G.owner[id]));
+function threatOn(G,id){return enemyNb(G,id).reduce((s,n)=>s+G.armies[n],0)}
+// which continent is this warlord trying to hold?
+function goalContinent(G,p){
+  let best=-1,bv=-1e9;
+  CONTINENTS.forEach((C,ci)=>{const ids=C.terr;const mine=ids.filter(id=>G.owner[id]===p).length;const foes=ids.filter(id=>!ally(G,G.owner[id],p));
+    if(!foes.length&&!ids.some(id=>enemyNb(G,id).length))return;
+    const foeArmies=foes.reduce((s,id)=>s+G.armies[id],0);
+    const v=mine/ids.length*3+C.bonus/ids.length*2-foeArmies*.12-(foes.length)*.25+(ci===THALMAR&&G.victory==='throne'?1.5:0);
+    if(v>bv){bv=v;best=ci}});
+  return best;
+}
+function aiPlaceTarget(G,p){
+  const D=DIFF[G.diff[p]]||DIFF.normal;const goal=goalContinent(G,p);
+  let best=null,bv=-1e9;
+  for(const id of owned(G,p)){const en=enemyNb(G,id);if(!en.length)continue;
+    const thr=threatOn(G,id);const weak=Math.min(...en.map(n=>G.armies[n]));
+    const inGoal=T[id].cont===goal||en.some(n=>T[n].cont===goal);
+    const v=(inGoal?3:0)+thr*.15*D.care-G.armies[id]*.08+(en.some(n=>T[n].cont===goal)?2:0)+1/(1+weak)+(id===THRONE?1:0)+rnd()*D.noise*3;
+    if(v>bv){bv=v;best=id}}
+  return best==null?owned(G,p)[0]:best;
+}
+function aiReinforce(G,p){while(findSet(G.cards[p])&&(G.cards[p].length>=5||G.diff[p]!=='hard'||G.trades>=2))tradeCards(G,p);autoDeploy(G,p)}
+// the best attack worth making now, or null
+function aiBestAttack(G,p){
+  const D=DIFF[G.diff[p]]||DIFF.normal;const goal=goalContinent(G,p);let best=null,bv=0;
+  for(const from of owned(G,p)){if(G.armies[from]<2)continue;
+    for(const to of attackTargets(G,from)){const q=G.owner[to];
+      const w=winChance(G.armies[from],G.armies[to]);
+      let v=w-D.ratio;
+      if(T[to].cont===goal)v+=.18;
+      if(contOwned(G,T[to].cont,q))v+=.2;                       // break an enemy continent
+      if(CONTINENTS[T[to].cont].terr.filter(id=>G.owner[id]!==p).length===1)v+=.25; // completes one of ours
+      if(owned(G,q).length<=2)v+=.25;                            // finish a warlord, take their cards
+      if(to===THRONE)v+=.15+(G.victory==='throne'?.3:0);
+      if(!G.conquered)v+=.12;                                    // one conquest earns a card
+      v+=(rnd()-.5)*D.noise*.5;
+      if(v>bv){bv=v;best={from,to,w}}}}
+  return best;
+}
+// how many to march in after a conquest
+function aiMoveIn(G){const m=G.pendingMove;if(!m)return 0;const fromThreat=threatOn(G,m.from),toThreat=threatOn(G,m.to);
+  if(fromThreat===0)return m.max;if(toThreat===0)return m.min;const tot=m.max;return Math.max(m.min,Math.min(m.max,Math.round(tot*toThreat/(fromThreat+toThreat+.01))))}
+function aiFortify(G,p){
+  let best=null,bv=0;
+  for(const from of owned(G,p)){if(G.armies[from]<2)continue;const fromT=threatOn(G,from);if(fromT>0&&G.armies[from]<fromT*1.5)continue;
+    for(const to of reachable(G,from)){const tt=threatOn(G,to);if(tt===0)continue;const v=(tt-G.armies[to])+(fromT===0?G.armies[from]:0)*.6;if(v>bv){bv=v;best={from,to}}}}
+  if(best){const n=threatOn(G,best.from)===0?G.armies[best.from]-1:Math.floor((G.armies[best.from]-1)/2);if(n>0)fortify(G,best.from,best.to,n)}
+}
+// a whole computer turn, step by step for the screen: yields events
+function aiTurnSteps(G,p){
+  const ev=[];aiReinforce(G,p);ev.push({type:'reinforce',p});
+  let guard=0;
+  while(!G.over&&guard++<60){const a=aiBestAttack(G,p);if(!a)break;
+    const rolls=blitz(G,a.from,a.to,G.diff[p]==='easy'?1:Math.min(3,Math.max(1,threatOn(G,a.from)>0?2:1)));
+    ev.push({type:'attack',p,from:a.from,to:a.to,rolls});
+    if(G.pendingMove){const n=aiMoveIn(G);ev.push({type:'move',p,from:G.pendingMove.from,to:G.pendingMove.to,n});moveIn(G,n)}
+    if(G.over)break}
+  if(!G.over){aiFortify(G,p);ev.push({type:'fortify',p})}
+  return ev;
+}
+function stats(G,p){const ids=owned(G,p);return{terr:ids.length,armies:ids.reduce((s,id)=>s+G.armies[id],0),conts:CONTINENTS.filter((C,ci)=>contOwned(G,ci,p)).map(C=>C.name),cards:G.cards[p].length}}
+return {MW,MH,RAST,CONT,T,CONTINENTS,LANES,THRONE,THALMAR,DOMAINS,VICTORY,CARD_KIND,START,newGame,autoDeploy,deployDone,startPlay,income,beginTurn,findSet,tradeCards,tradeValue,place,undoPlacement,
+  canAttack,attackTargets,attackOnce,blitz,moveIn,reachable,fortify,endTurn,checkVictory,winners,ally,owned,contOwned,winChance,aiReinforce,aiBestAttack,aiMoveIn,aiFortify,aiTurnSteps,aiPlaceTarget,
+  threatOn,stats,setRandom,addLog,ROLL};
+})();
+if(typeof module!=='undefined')module.exports=CW;
 
 // ===================== Pixel art: palette, sprites, font =====================
 const PX=(()=>{
@@ -1089,30 +1437,31 @@ return{TIMES,TIME_NAME,PRESETS,apply,SEASONS,SEASON_NAME,HOLIDAYS,WEATHER_NAME,c
 // ===================== Renderer: board texture, Mode 7 field view, map view, battle scenes =====================
 const RD=(()=>{
 // ----- hex geometry in world pixels -----
-const HS=7.6;                       // pixels per hex radius
-const BW=256,BH=224,BX0=128,BY0=112; // board box and the hexagon centre inside it
+let HS=7.6;                         // pixels per board unit (rebuilt for every board)
+const BW=256,BH=224;let BX0=128,BY0=112; // board box and the board centre inside it
 const W=384,H=240,T=16,OFF=96,TX=Math.max(BW,BH)+OFF*2,BOARD=BW;
 const cv=document.getElementById('screen');cv.width=W;cv.height=H;
 const ctx=cv.getContext('2d');ctx.imageSmoothingEnabled=false;
 const V={mode:'map',cam:{ang:-Math.PI/2,want:-Math.PI/2,dist:218,h:100,f:210,H0:40,tilt:0},sel:null,legal:[],hover:null,swapSel:null,last:null,viewer:0,
   anims:{},parts:[],floats:[],shake:0,battle:null,title:false,setup:false,hideAll:false,t:0};
 const hash=(a,b)=>{let h=a*374761393+b*668265263;h=(h^(h>>13))*1274126177;return ((h^(h>>16))>>>0)/4294967295};
-const homeOwner={};for(let p=0;p<LD.NP;p++)for(const [r,c] of LD.homeCells(p))homeOwner[r+','+c]=p;
+let homeOwner={};
 const col=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
 const mix=(a,b,t)=>a.map((v,i)=>Math.round(v+(b[i]-v)*t));
 const rgb=a=>`rgb(${a[0]},${a[1]},${a[2]})`;
-const CX=OFF+BX0,CY=OFF+BY0;
+let CX=OFF+BX0,CY=OFF+BY0;
 // centre of a hex in world pixels (works for fractional r,c too, which the move animation uses)
 function cellWorld(r,c){const u=LD.cellXY(r,c);return{x:CX+u.x*HS,y:CY+u.y*HS}}
 function worldOf(r,c){return cellWorld(r,c)}
 // pentagon outline in world pixels, and point-in-pentagon
-const PENTW=LD.PENT.map(v=>({x:CX+v.x*HS,y:CY+v.y*HS}));
+let PENTW=[];
 function inPentW(x,y,grow){for(let k=0;k<PENTW.length;k++){const a=PENTW[k],b=PENTW[(k+1)%PENTW.length];const ex=b.x-a.x,ey=b.y-a.y,L=Math.hypot(ex,ey);if((ex*(y-a.y)-ey*(x-a.x))/L<-(grow||0))return false}return true}
 // ----- per-pixel cell map of the board texture: which hex each pixel belongs to -----
 const CELLMAP=new Int32Array(TX*TX).fill(-1),EDGE=new Uint8Array(TX*TX),BEACH=new Uint8Array(TX*TX);
-const CELLPIX=[];
+let CELLPIX=[];
 function inPoly(P,x,y){let pos=0,neg=0;for(let k=0;k<P.length;k++){const a=P[k],b=P[(k+1)%P.length];const cr=(b.x-a.x)*(y-a.y)-(b.y-a.y)*(x-a.x);if(cr>0)pos++;else if(cr<0)neg++;if(pos&&neg)return false}return true}
-(function buildCellMap(){
+function buildCellMap(){
+  CELLMAP.fill(-1);EDGE.fill(0);BEACH.fill(0);CELLPIX=[];
   for(const t of LD.TILES){const P=t.poly.map(p=>({x:CX+p.x*HS,y:CY+p.y*HS}));const id=t.r*LD.N+t.c;
     const x0=Math.floor(Math.min(...P.map(p=>p.x))),x1=Math.ceil(Math.max(...P.map(p=>p.x))),y0=Math.floor(Math.min(...P.map(p=>p.y))),y1=Math.ceil(Math.max(...P.map(p=>p.y)));
     for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){if(x<0||y<0||x>=TX||y>=TX)continue;const px=x+.5,py=y+.5;if(!inPentW(px,py)||!inPoly(P,px,py))continue;const i=y*TX+x;if(CELLMAP[i]<0)CELLMAP[i]=id}}
@@ -1123,7 +1472,20 @@ function inPoly(P,x,y){let pos=0,neg=0;for(let k=0;k<P.length;k++){const a=P[k],
     else if(inPentW(px,py,7))BEACH[i]=1;
     const id=CELLMAP[i];if(id>=0)(CELLPIX[id]=CELLPIX[id]||[]).push(i)}
   for(let y=1;y<TX-1;y++)for(let x=1;x<TX-1;x++){const i=y*TX+x,c=CELLMAP[i];if(c<0)continue;if(CELLMAP[i-1]!==c||CELLMAP[i+1]!==c||CELLMAP[i-TX]!==c||CELLMAP[i+TX]!==c)EDGE[i]=1}
-})();
+}
+// fit the current board into the board box, then rebuild every per-pixel map
+let boardKey='';
+function rebuild(){
+  const C=LD.CFG,k=C.shape+'|'+C.np+'|'+C.army+'|'+C.size;if(k===boardKey)return;boardKey=k;
+  const xs=LD.PENT.map(v=>v.x),ys=LD.PENT.map(v=>v.y);const w=Math.max(...xs)-Math.min(...xs),h=Math.max(...ys)-Math.min(...ys);
+  HS=Math.min((BW-6)/w,(BH-6)/h);
+  BX0=Math.round(BW/2-(Math.max(...xs)+Math.min(...xs))/2*HS);BY0=Math.round(BH/2-(Math.max(...ys)+Math.min(...ys))/2*HS);CX=OFF+BX0;CY=OFF+BY0;
+  PENTW=LD.PENT.map(v=>({x:CX+v.x*HS,y:CY+v.y*HS}));
+  homeOwner={};for(let p=0;p<LD.NP;p++)for(const [r,c] of LD.homeCells(p))homeOwner[r+','+c]=p;
+  buildCellMap();bases=null;texKey='';
+  // the camera stands further back from a bigger board
+  V.cam.dist=Math.round(150+Math.max(w,h)*HS*.3);V.cam.base=V.cam.dist;
+}
 const P32=(r,g,b)=>(0xff000000|(b<<16)|(g<<8)|r)>>>0;
 const hx32=h=>{const v=col(h);return P32(v[0],v[1],v[2])};
 // ---------- static world texture (4 water frames) ----------
@@ -1161,6 +1523,7 @@ function buildBase(frame,env){
   return {c,data};
 }
 let bases=null,baseKey='';
+LD.onConfigure(()=>{try{rebuild()}catch(e){}});
 function curEnv(){return V.title?V.titleEnv:(CUR.G&&CUR.G.env)||V.titleEnv||{season:'spring',holiday:null,weather:'clear',startTime:.3}}
 function curTime(){const e=curEnv();if(V.title)return V.titleTime;const G=CUR.G;return G?ENV.timeOf(e,G.round,G.phase==='play'?G.turn:0,e):e.startTime}
 function ensureBases(){const e=curEnv();const k=e.season+'|'+e.holiday;if(!bases||k!==baseKey){baseKey=k;bases=[0,1,2,3].map(f=>buildBase(f,e))}}
@@ -1181,6 +1544,7 @@ function drawTerrain(frame){
   }
 }
 const tex=PX.mk(TX,TX),tx=tex.getContext('2d');const texImg=new ImageData(TX,TX);let texData=new Uint32Array(texImg.data.buffer),texKey='';
+rebuild();
 function drawHighlights(t){
   const blink=Math.floor(t/250)%2;
   const yel=hx32('#fff060'),wht=hx32('#ffffff'),red=hx32('#ff4040'),org=hx32('#ffa040'),cream=hx32('#fff8c0');
@@ -1401,6 +1765,7 @@ function lightPass(t){
 }
 function frame(t){
   V.t=t;
+  if(V.ext){V.ext(t);return}   // another game (The First Crown) draws the screen
   // ease camera
   const C=V.cam;let d=C.want-C.ang;while(d>Math.PI)d-=Math.PI*2;while(d<-Math.PI)d+=Math.PI*2;C.ang+=d*.08;
   if(V.title){C.want+=.0025;V.titleTime=((V.titleTime||0)+.00018)%1}
@@ -1433,17 +1798,17 @@ function start(){if(!raf)raf=requestAnimationFrame(loop)}
 function setViewer(p){V.viewer=p}
 function faceDomain(p,instant){V.cam.want=homeAngle(p);if(instant)V.cam.ang=V.cam.want}
 function rotate(d){V.cam.want+=d}
-function zoom(k){V.cam.dist=Math.max(150,Math.min(340,V.cam.dist+k));V.cam.h=Math.max(60,Math.min(170,V.cam.h+k*.45))}
+function zoom(k){const b=V.cam.base||218;V.cam.dist=Math.max(b*.65,Math.min(b*1.5,V.cam.dist+k));V.cam.h=Math.max(60,Math.min(170,V.cam.h+k*.45))}
 function animMove(id,from,to,dur,lunge,frac){const a=cellWorld(from.r,from.c),b=cellWorld(to.r,to.c);const f=frac||1;V.anims[id]={fx:a.x,fy:a.y,tx:a.x+(b.x-a.x)*f,ty:a.y+(b.y-a.y)*f,t0:performance.now(),dur:dur||260,lunge}}
-return {cellWorld,cellAtWorld,curEnv,curTime,curLight,V,W,H,CUR,start,pick,project,MAP,OFF,setViewer,faceDomain,rotate,zoom,animMove,burst,floatText,worldOf,ctx,cv,homeAngle};
+return {rebuild,get HS(){return HS},cellWorld,cellAtWorld,curEnv,curTime,curLight,V,W,H,CUR,start,pick,project,MAP,OFF,setViewer,faceDomain,rotate,zoom,animMove,burst,floatText,worldOf,ctx,cv,homeAngle};
 })();
 
 // ===================== Battle cinematics and chiptune sound =====================
 const SND=(()=>{
-  let ac=null,on=true,musicOn=true,master=null,mbus=null,cur=null,timer=null,step=0,next=0,want=null;
-  const ctx=()=>{if(!ac){try{ac=new (window.AudioContext||window.webkitAudioContext)();master=ac.createGain();master.gain.value=.22;master.connect(ac.destination);mbus=ac.createGain();mbus.gain.value=1;mbus.connect(master)}catch(e){ac=null}}if(ac&&ac.state==='suspended')ac.resume();return ac};
-  function tone(f,d,type,vol,slide,when,bus){const a=ctx();if(!a)return;const t=a.currentTime+(when||0);const o=a.createOscillator(),g=a.createGain();o.type=type||'square';o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(30,slide),t+d);g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(vol||.3,t+.008);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(bus||master);o.start(t);o.stop(t+d+.03)}
-  function noise(d,vol,when,hp,bus){const a=ctx();if(!a)return;const t=a.currentTime+(when||0);const b=a.createBuffer(1,Math.max(1,Math.floor(a.sampleRate*d)),a.sampleRate);const ch=b.getChannelData(0);for(let i=0;i<ch.length;i++)ch[i]=(Math.random()*2-1)*(1-i/ch.length);const s=a.createBufferSource();s.buffer=b;const g=a.createGain();g.gain.value=vol||.3;const f=a.createBiquadFilter();f.type='highpass';f.frequency.value=hp||400;s.connect(f);f.connect(g);g.connect(bus||master);s.start(t)}
+  let ac=null,on=true,musicOn=true,master=null,mbus=null,sbus=null,vS=1,vM=1,cur=null,timer=null,step=0,next=0,want=null;
+  const ctx=()=>{if(!ac){try{ac=new (window.AudioContext||window.webkitAudioContext)();master=ac.createGain();master.gain.value=.22;master.connect(ac.destination);mbus=ac.createGain();mbus.gain.value=vM;mbus.connect(master);sbus=ac.createGain();sbus.gain.value=vS;sbus.connect(master)}catch(e){ac=null}}if(ac&&ac.state==='suspended')ac.resume();return ac};
+  function tone(f,d,type,vol,slide,when,bus){const a=ctx();if(!a)return;const t=a.currentTime+(when||0);const o=a.createOscillator(),g=a.createGain();o.type=type||'square';o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(30,slide),t+d);g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(vol||.3,t+.008);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(bus||sbus);o.start(t);o.stop(t+d+.03)}
+  function noise(d,vol,when,hp,bus){const a=ctx();if(!a)return;const t=a.currentTime+(when||0);const b=a.createBuffer(1,Math.max(1,Math.floor(a.sampleRate*d)),a.sampleRate);const ch=b.getChannelData(0);for(let i=0;i<ch.length;i++)ch[i]=(Math.random()*2-1)*(1-i/ch.length);const s=a.createBufferSource();s.buffer=b;const g=a.createGain();g.gain.value=vol||.3;const f=a.createBiquadFilter();f.type='highpass';f.frequency.value=hp||400;s.connect(f);f.connect(g);g.connect(bus||sbus);s.start(t)}
   const fx={
     select(){tone(880,.05,'square',.15)},
     move(){tone(220,.06,'triangle',.25);tone(330,.05,'triangle',.18,null,.05)},
@@ -1462,7 +1827,11 @@ const SND=(()=>{
     thunder(){noise(1.4,.5,0,60);noise(.5,.3,.1,300)},
     pop(){noise(.12,.18,0,1500);tone(900,.1,'square',.05,300)},
     rumble(){noise(1.2,.45,0,50);tone(55,1,'sawtooth',.2,35)},
-    splash(){noise(.5,.25,0,900)}
+    splash(){noise(.5,.25,0,900)},
+    dice(){for(let i=0;i<5;i++)noise(.03,.22,i*.055+Math.random()*.02,2500+Math.random()*2000)},
+    horn(){[392,523,659,784].forEach((f,i)=>tone(f,.2,'sawtooth',.12,null,i*.09));tone(196,.6,'triangle',.25,null,0)},
+    place(){tone(523,.04,'square',.1);tone(784,.05,'square',.08,null,.04)},
+    card(){[880,1175,1568].forEach((f,i)=>tone(f,.07,'square',.1,null,i*.05))}
   };
   // ----- five songs: tokens are eighth notes; '=' holds, '-' rests; drums k kick, s snare, h hat -----
   const SONGS={
@@ -1484,6 +1853,10 @@ const SND=(()=>{
      bass:'B1 B2 B1 B2 B1 B2 B1 B2 A1 A2 A1 A2 A1 A2 A1 A2 G1 G2 G1 G2 G1 G2 G1 G2 F#1 F#2 F#1 F#2 F#1 F#2 F#1 F#2 E2 E3 E2 E3 E2 E3 E2 E3 F#2 F#3 F#2 F#3 F#2 F#3 F#2 F#3 G2 G3 G2 G3 F#2 F#3 F#2 F#3 B1 B2 B1 B2 B1 - - -',drums:'k k s h k k s s'},
    last:{name:'The Last Lord',mood:'The final fight',bpm:148,wave:'square',lead:'C5 C5 D#5 C5 G5 C5 D#5 C5 A#4 A#4 D5 A#4 F5 A#4 D5 A#4 G#4 G#4 C5 G#4 D#5 G#4 C5 G#4 G4 G4 B4 G4 D5 G4 B4 D5 C5 C5 D#5 G5 C6 = G5 D#5 A#4 D5 F5 A#5 = F5 D5 A#4 G#4 C5 D#5 G#5 G5 F5 D#5 D5 C5 = G4 = C5 = - -',
      bass:'C2 C3 C2 C3 C2 C3 C2 C3 A#1 A#2 A#1 A#2 A#1 A#2 A#1 A#2 G#1 G#2 G#1 G#2 G#1 G#2 G#1 G#2 G1 G2 G1 G2 G1 G2 G1 G2 C2 C3 C2 C3 C2 C3 C2 C3 A#1 A#2 A#1 A#2 A#1 A#2 A#1 A#2 G#1 G#2 G#1 G#2 G1 G2 G1 G2 C2 C3 C2 C3 C2 - - -',drums:'k h s h k s s h'},
+   march:{name:'March of the First Crown',mood:'The First Crown',bpm:120,wave:'square',lead:'G4 = G4 B4 D5 = D5 = E5 D5 C5 B4 A4 = = = B4 = B4 D5 G5 = G5 = A5 G5 F#5 E5 D5 = = = E5 = E5 G5 C6 = B5 A5 G5 = D5 = E5 F#5 G5 = A5 = B5 A5 G5 F#5 E5 D5 C5 B4 A4 = D5 = G4 = = = - - - -',
+     bass:'G2 = D3 = G2 = D3 = C3 = G3 = D3 = A2 = G2 = D3 = G2 = D3 = E2 = B2 = D3 = A2 = C3 = G3 = C3 = G3 = B2 = D3 = E3 = B2 = C3 = A2 = D3 = F#2 = G2 = D3 = G2 = - -',drums:'k - h k s - h - k - h k s h s h'},
+   throne:{name:'The World Throne',mood:'The endgame',bpm:104,wave:'sawtooth',vol:.045,lead:'E5 = = B4 E5 = G5 = F#5 = E5 = D#5 = B4 = C5 = = A4 C5 = E5 = D5 = C5 = B4 = = = E5 = = B4 E5 = G5 = A5 = G5 = F#5 = E5 = D#5 = F#5 = A5 = G5 F#5 E5 = = = - - - -',
+     bass:'E2 = E3 = E2 = E3 = B1 = B2 = B1 = B2 = C2 = C3 = C2 = C3 = A1 = A2 = B1 = B2 = E2 = E3 = E2 = E3 = A1 = A2 = A1 = A2 = B1 = B2 = B1 = B2 = E2 = E3 = E2 = - -',drums:'k - - h s - k h k - k h s - h s'},
    crowned:{name:'Crowned at Last',mood:'Victory',bpm:92,wave:'square',lead:'C5 = = E5 G5 = = = A5 = G5 = E5 = = = F5 = = A5 G5 = E5 = D5 = = = - - - - C5 = = E5 G5 = = C6 B5 = A5 = G5 = = = A5 = F5 = E5 = D5 = C5 = = = = = - -',
      bass:'C3 = G2 = C3 = G2 = F2 = C3 = A2 = E2 = F2 = C3 = C3 = E2 = G2 = D3 = G2 = B2 = C3 = G2 = C3 = E3 = F2 = C3 = G2 = E2 = F2 = C3 = G2 = B2 = C3 = G2 = C3 = - -',drums:'k - s - k - s h',bells:true}
   };
@@ -1505,7 +1878,8 @@ const SND=(()=>{
   }
   function song(name,now){want=name;if(!musicOn)return;if(!ctx())return;if(!cur||(now&&cur!==name)){cur=name;step=0;next=ac.currentTime+.08}if(!timer)timer=setInterval(tick,60)}
   function stopMusic(){clearInterval(timer);timer=null;cur=null}
-  return{play(n){if(on&&fx[n])try{fx[n]()}catch(e){}},set(v){on=v},music(v){musicOn=v;if(v){if(want)song(want)}else stopMusic()},song,
+  function vols(s,m){if(s!=null)vS=s;if(m!=null)vM=m;if(sbus)sbus.gain.value=vS;if(mbus)mbus.gain.value=vM}
+  return{vols,play(n){if(on&&fx[n])try{fx[n]()}catch(e){}},set(v){on=v},music(v){musicOn=v;if(v){if(want)song(want)}else stopMusic()},song,
     get on(){return on},get musicOn(){return musicOn},get songName(){return cur?SONGS[cur].name:''},get wantName(){return want&&SONGS[want]?SONGS[want].name:''},unlock(){ctx();if(musicOn&&want&&!timer)song(want)},SONGS};
 })();
 
@@ -1665,7 +2039,9 @@ return{play,draw,skip,get active(){return !!B}};
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const store={get(k,d){try{const v=localStorage.getItem('lords-domains.'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('lords-domains.'+k,JSON.stringify(v))}catch(e){}}};
-const S=Object.assign({view:innerWidth<600?'map':'field',battle:'full',speed:'normal',sound:true,music:true,mode:'decisive',board:'random',theme:'auto',hints:true,tips:true},store.get('settings',{}));
+const S=Object.assign({view:innerWidth<600?'map':'field',battle:'full',speed:'normal',sound:true,music:true,mode:'decisive',board:'random',theme:'auto',hints:true,tips:true,confirmAttack:false},store.get('settings',{}));
+// the last Lords & Domains setup, so New game opens where you left it
+const LC=Object.assign({np:6,teams:0,shape:'hex',army:'full',seats:['human','normal','normal','normal','normal','normal']},store.get('lordsCfg',{}));
 const saveS=()=>store.set('settings',S);
 const V=RD.V;let G=null;let waiting=null;let busy=false;let token=0;
 const D=LD.DOMAINS,TM=PX.TEAM;
@@ -1700,7 +2076,7 @@ function musicFor(){
   if(L.night>.5||e.weather==='fog')return 'night';
   return e.season||'spring';
 }
-function cueMusic(){SND.song(S.songLock&&SND.SONGS[S.songLock]?S.songLock:musicFor());renderCorner()}
+function cueMusic(){if(crownOn())return;SND.song(S.songLock&&SND.SONGS[S.songLock]?S.songLock:musicFor());renderCorner()}
 // ---------- sound and music switches, always in the corner ----------
 function renderCorner(){
   const c=$('#corner');if(!c)return;
@@ -1724,45 +2100,82 @@ function _unusedCorner(){
 }
 // ---------- title ----------
 let titleTimer=null;
-function newTitleBoard(){V.titleEnv=ENV.create(Math.random()<.2?Object.keys(ENV.HOLIDAYS)[Math.random()*5|0]:'random');V.titleEnv.weather=V.titleEnv.holiday?V.titleEnv.weather:['clear','clear','cloudy','rain','snow','fog','storm'][Math.random()*7|0];
+const crownOn=()=>window.CR&&CR.active;
+let titleGame='lords';
+function newTitleBoard(){
+  if(window.CR&&Math.random()<.5){titleGame='crown';CR.titleDemo();return}
+  titleGame='lords';if(window.CR)CR.titleOff();V.title=true;
+  V.titleEnv=ENV.create(Math.random()<.2?Object.keys(ENV.HOLIDAYS)[Math.random()*5|0]:'random');V.titleEnv.weather=V.titleEnv.holiday?V.titleEnv.weather:['clear','clear','cloudy','rain','snow','fog','storm'][Math.random()*7|0];
   if(V.titleEnv.weather==='snow'&&V.titleEnv.season!=='winter')V.titleEnv.weather='rain';
-  V.titleTime=V.titleEnv.startTime;G=demoGame();RD.CUR.G=G;LD.setG(G);V.cam.want=Math.random()*Math.PI*2;}
+  V.titleTime=V.titleEnv.startTime;G=demoGame();RD.CUR.G=G;LD.setG(G);V.cam.want=Math.random()*Math.PI*2;$('#domBox h3').textContent='Domains';renderDomains();}
 function showTitle(){
+  if(window.CR)CR.stop();token++;waiting=null;
   V.title=true;V.mode='field';newTitleBoard();V.viewer=-1;V.sel=null;V.legal=[];V.last=null;
   clearInterval(titleTimer);titleTimer=setInterval(()=>{if(V.title){V.shake=6;newTitleBoard()}},20000);
   coachStop();cueMusic();
-  $('#titleMenu').hidden=false;{const sv=store.get('save',null);if(sv&&(!sv.alive||sv.alive.length!==LD.NP||!sv.v6)){store.set('save',null)}}$('#tCont').hidden=!store.get('save',null);
+  $('#titleMenu').hidden=false;{const sv=store.get('save',null);if(sv&&(!sv.alive||!sv.v7)){store.set('save',null)}}$('#tCont').hidden=!store.get('save',null);$('#tCCont').hidden=!store.get('crownSave',null);
   $('#diploBox').hidden=true;
-  $('#turnBox').innerHTML=`<h3>Welcome, ruler</h3><p>${LORE_SHORT}</p><p>Six domains share the island. Each hides its Lord among fourteen pieces. Protect yours, find theirs, and make friends you can betray later.</p><p class="muted">New here? Try the <b>Walkthrough</b>. Every visit to this screen shows a different battle.</p>`;
+  $('#turnBox').innerHTML=`<h3>Welcome, ruler</h3><p>${LORE_SHORT}</p><p>Two games share one world. In <b>Lords &amp; Domains</b>, up to six domains hide their Lords among their armies: protect yours, find theirs, and make friends you can betray later. In <b>The First Crown</b>, go back to the beginning and conquer the world to raise Thalmar and set the throne upon it.</p><p class="muted">New here? Try the <b>Walkthrough</b>. Every visit to this screen shows a different battle.</p>`;
   renderDomains();renderLog();
 }
-function demoGame(){const g=LD.newGame({ctrl:['ai','ai','ai','ai','ai','ai'],decisive:false});g.env=V.titleEnv;LD.setG(g);LD.startPlay(g);const n=20+Math.random()*120|0;for(let i=0;i<n;i++){const m=LD.aiChoose(g,g.turn);if(m)LD.doMove(g,m.id,m.r,m.c);LD.nextTurn(g);if(g.over)break}g.log=[];return g}
+function demoGame(){const cfgs=[{shape:'hex',np:6},{shape:'square',np:4},{shape:'hex',np:4,teams:2},{shape:'square',np:6,army:'full'},{shape:'square',np:5,army:'classic'},{shape:'hex',np:3}];const cf=cfgs[Math.random()*cfgs.length|0];const g=LD.newGame({...cf,ctrl:Array(cf.np).fill('ai'),decisive:false});g.env=V.titleEnv;LD.setG(g);LD.startPlay(g);const n=20+Math.random()*120|0;for(let i=0;i<n;i++){const m=LD.aiChoose(g,g.turn);if(m)LD.doMove(g,m.id,m.r,m.c);LD.nextTurn(g);if(g.over)break}g.log=[];return g}
 // ---------- new game ----------
+const TEAM_OPTS=np=>[[0,'Every domain for itself']].concat(np===4?[[2,'2 v 2']]:np===6?[[2,'3 v 3'],[3,'2 v 2 v 2']]:[]);
+const LORDS_PRESETS={
+  first:{name:'First Edition',blurb:'The original game: a 13 by 13 square field, ten pieces each, five domains, the island standing still.',np:5,teams:0,shape:'square',army:'classic',mode:'classic',size:13,seats:['human','normal','normal','normal','normal']},
+  duel:{name:'Duel',blurb:'One against one on a square field. Pure bluff.',np:2,teams:0,shape:'square',army:'full',mode:'decisive',seats:['human','normal']},
+  six:{name:'Six-way war',blurb:'Every domain on the six-sided island. Trust carefully.',np:6,teams:0,shape:'hex',army:'full',mode:'decisive',seats:['human','normal','normal','normal','normal','normal']},
+  teams:{name:'Team battle',blurb:'Three against three. Your allies\' pieces are shown to you.',np:6,teams:2,shape:'hex',army:'full',mode:'decisive',seats:['human','normal','normal','normal','normal','normal']},
+  quick:{name:'Quick skirmish',blurb:'Three domains on a small island. Over in minutes.',np:3,teams:0,shape:'hex',army:'classic',mode:'decisive',seats:['human','normal','normal']}};
+function cfgSummary(c){const sz=LD.boardSize({shape:c.shape,np:c.np,army:c.army,size:c.size});const n=LD.ARMIES[c.army].length;
+  return `${c.shape==='square'?`Square field, ${sz}×${sz}`:'Six-sided field of hexes'} · ${c.np===2?'1 v 1':c.np+' domains'}${c.teams?` · teams ${TEAM_OPTS(c.np).find(t=>t[0]===c.teams)[1]}`:''} · ${n} pieces each · ${c.mode==='classic'?'Classic':'Decisive'}`}
 function newGameModal(){
-  const opts=[['human','Human player'],['easy','Computer: Easy'],['normal','Computer: Normal'],['hard','Computer: Hard']];
-  const def=store.get('seats',['human','normal','normal','normal','normal','normal']);
-  const boards=[['random','Random season'],...ENV.SEASONS.map(x=>[x,ENV.SEASON_NAME[x]])];
-  modal(`<h2>New game</h2>
-  <h3 style="color:var(--gold);margin:6px 0">1 · Mode</h3>
-  <div class="modes2">
-   <label class="mcard"><input type="radio" name="mode" value="classic" ${S.mode==='classic'?'checked':''}><b>Classic</b><span>The island stands still. Pure bluff and battle. If nobody fights for 40 rounds, the strongest army is named High Lord.</span></label>
-   <label class="mcard"><input type="radio" name="mode" value="decisive" ${S.mode!=='classic'?'checked':''}><b>Decisive: the restless island</b><span>From round 6 the land sinks and rises every round, always forcing the armies together. Every war ends with a fallen Lord or a breached Keep.</span></label>
+  const opts=[['human','Human'],['easy','Computer · Easy'],['normal','Computer · Normal'],['hard','Computer · Hard']];
+  const c={...LC,mode:S.mode};c.seats=c.seats.slice();
+  const draw=m=>{
+    const seats=m.querySelector('#ngSeats');
+    seats.innerHTML=LD.DOMAINS.slice(0,c.np).map((d,p)=>`<div class="seat"><span class="sw" style="background:${TM[p].P}"></span><span>${d.name}${c.teams?` <span class="tm t${p%c.teams}">Team ${'ABC'[p%c.teams]}</span>`:''}</span><select data-seat="${p}" aria-label="${d.name}">${opts.map(([v,l])=>`<option value="${v}" ${(c.seats[p]||'normal')===v?'selected':''}>${l}</option>`).join('')}</select></div>`).join('');
+    seats.querySelectorAll('[data-seat]').forEach(sl=>sl.onchange=()=>{c.seats[+sl.dataset.seat]=sl.value;sum()});
+    const to=TEAM_OPTS(c.np);if(!to.some(t=>t[0]===c.teams))c.teams=0;
+    m.querySelector('#ngTeams').innerHTML=to.map(([v,l])=>`<button data-v="${v}" class="${c.teams===v?'on':''}">${l}</button>`).join('');
+    m.querySelectorAll('#ngNp button').forEach(b=>b.classList.toggle('on',+b.dataset.v===c.np));
+    m.querySelectorAll('#ngShape button').forEach(b=>b.classList.toggle('on',b.dataset.v===c.shape));
+    m.querySelectorAll('#ngArmy button').forEach(b=>b.classList.toggle('on',b.dataset.v===c.army));
+    m.querySelectorAll('[name=mode]').forEach(r=>r.checked=r.value===c.mode);
+    sum();
+  };
+  const sum=()=>{const m=$('#modal');const h=c.seats.slice(0,c.np).filter(x=>x==='human').length;
+    m.querySelector('#ngSum').innerHTML=`${esc(cfgSummary(c))}<br><span class="muted">${h===0?'You are watching the computers play.':h===1?'You against '+(c.np-1)+' computer ruler'+(c.np>2?'s':'')+'.':h+' players share this screen; the board hides between turns.'}</span>`};
+  modal(`<h2>Lords &amp; Domains · New game</h2>
+  <div class="pres">${Object.entries(LORDS_PRESETS).map(([k,p])=>`<button class="pcard2" data-pre="${k}"><b>${p.name}</b><span>${p.blurb}</span></button>`).join('')}</div>
+  <div class="ngrid">
+   <div><h3 class="sec">Domains</h3><span class="seg" id="ngNp">${[2,3,4,5,6].map(n=>`<button data-v="${n}">${n===2?'1 v 1':n}</button>`).join('')}</span></div>
+   <div><h3 class="sec">Teams</h3><span class="seg" id="ngTeams"></span></div>
+   <div><h3 class="sec">Board</h3><span class="seg" id="ngShape"><button data-v="hex">⬡ Hexagon</button><button data-v="square">▢ Square</button></span></div>
+   <div><h3 class="sec">Army</h3><span class="seg" id="ngArmy"><button data-v="full">Full army · 14</button><button data-v="classic">First Edition · 10</button></span></div>
   </div>
-  <h3 style="color:var(--gold);margin:10px 0 6px">2 · Board</h3>
-  <p class="muted" style="font-size:.85rem">Leave it on <b>Normal</b> for a surprise season with changing weather and time, or pick a look.</p>
+  <h3 class="sec">Rulers</h3><div class="seats" id="ngSeats"></div>
+  <h3 class="sec">Mode</h3>
+  <div class="modes2">
+   <label class="mcard"><input type="radio" name="mode" value="classic"><b>Classic</b><span>The island stands still. Pure bluff and battle. If nobody fights for 40 rounds, the strongest army is named High Lord.</span></label>
+   <label class="mcard"><input type="radio" name="mode" value="decisive"><b>Decisive: the restless island</b><span>From round 6 the land sinks and rises, and causeways rise between rivals. Every war ends with a fallen Lord or a breached Keep.</span></label>
+  </div>
+  <details class="look"><summary>Sky and season <span class="muted">(${S.board==='random'?'Normal: a surprise season':'chosen'})</span></summary>
   <div class="presets">${Object.entries(ENV.PRESETS).map(([k,v])=>`<button class="btn sm ${k==='normal'?'gold':''}" data-look="${k}">${v.name}</button>`).join('')}</div>
-  ${boardSelects()}
-  <div class="drow" hidden><select id="ngBoardOld" aria-label="Board">${boards.map(([v,l])=>`<option value="${v}" ${S.board===v?'selected':''}>${l}</option>`).join('')}<optgroup label="Holiday boards">${Object.entries(ENV.HOLIDAYS).map(([k,h])=>`<option value="${k}" ${S.board===k?'selected':''}>${h.name}</option>`).join('')}</optgroup></select><span class="muted" id="ngBoardTip" style="font-size:.85rem"></span></div>
-
-  <h3 style="color:var(--gold);margin:10px 0 6px">3 · Rulers</h3><p>Choose who rules each domain. Computer rulers each get a hidden personality: honourable, opportunist, warlike, schemer or cautious.</p>
-  <div class="presets"><button class="btn sm" data-pre="solo">Me vs 5 computers</button><button class="btn sm" data-pre="hot">6 players, one screen</button><button class="btn sm" data-pre="duo">2 players + 4 computers</button><button class="btn sm" data-pre="watch">Watch 6 computers</button></div>
-  <div class="seats">${D.map((d,p)=>`<div class="seat"><span style="width:16px;height:16px;background:${TM[p].P};border:2px solid #fff;border-radius:3px"></span><span>${d.name} <span class="muted" style="font-size:.85rem">· ${d.banner}</span></span><select data-seat="${p}" aria-label="${d.name}">${opts.map(([v,l])=>`<option value="${v}" ${def[p]===v?'selected':''}>${l}</option>`).join('')}</select></div>`).join('')}</div>
+  ${boardSelects()}</details>
+  <p class="sum" id="ngSum"></p>
   <div class="row"><button class="btn" data-x>Cancel</button><button class="btn gold" id="goNew">Begin</button></div>`,m=>{
     m.querySelector('[data-x]').onclick=closeModal;
-    m.querySelectorAll('[data-pre]').forEach(b=>b.onclick=()=>{const pre={solo:['human','normal','normal','normal','normal','normal'],hot:['human','human','human','human','human','human'],duo:['human','normal','normal','human','normal','normal'],watch:['normal','hard','normal','easy','hard','normal']}[b.dataset.pre];m.querySelectorAll('[data-seat]').forEach((s,i)=>s.value=pre[i])});
+    m.querySelectorAll('[data-pre]').forEach(b=>b.onclick=()=>{const P=LORDS_PRESETS[b.dataset.pre];Object.assign(c,{np:P.np,teams:P.teams,shape:P.shape,army:P.army,mode:P.mode,size:P.size||0,seats:P.seats.slice()});m.querySelectorAll('[data-pre]').forEach(x=>x.classList.toggle('on',x===b));draw(m);SND.play('select')});
+    m.querySelector('#ngNp').onclick=e=>{const b=e.target.closest('button');if(!b)return;c.np=+b.dataset.v;c.size=0;while(c.seats.length<c.np)c.seats.push('normal');draw(m)};
+    m.querySelector('#ngTeams').onclick=e=>{const b=e.target.closest('button');if(!b)return;c.teams=+b.dataset.v;draw(m)};
+    m.querySelector('#ngShape').onclick=e=>{const b=e.target.closest('button');if(!b)return;c.shape=b.dataset.v;c.size=0;draw(m)};
+    m.querySelector('#ngArmy').onclick=e=>{const b=e.target.closest('button');if(!b)return;c.army=b.dataset.v;c.size=0;draw(m)};
+    m.querySelectorAll('[name=mode]').forEach(r=>r.onchange=()=>{c.mode=r.value;sum()});
     wireBoardSelects(m);
     m.querySelectorAll('[data-look]').forEach(b=>b.onclick=()=>{const P=ENV.PRESETS[b.dataset.look];m.querySelector('#bdSeason').value=P.board;m.querySelector('#bdWeather').value=P.weather;m.querySelector('#bdTime').value=P.time;m.querySelectorAll('[data-look]').forEach(x=>x.classList.toggle('gold',x===b));wireBoardSelects(m)});
-    $('#goNew').onclick=()=>{const seats=[...m.querySelectorAll('[data-seat]')].map(s=>s.value);store.set('seats',seats);S.mode=m.querySelector('[name=mode]:checked').value;readBoardSelects(m);saveS();closeModal();begin(seats)};
+    draw(m);
+    $('#goNew').onclick=()=>{Object.assign(LC,{np:c.np,teams:c.teams,shape:c.shape,army:c.army,size:c.size||0,seats:c.seats.slice()});store.set('lordsCfg',LC);S.mode=c.mode;readBoardSelects(m);saveS();closeModal();begin(c.seats.slice(0,c.np))};
   });
 }
 // season / weather / time pickers, shared by the new game screen and Settings
@@ -1776,12 +2189,14 @@ function boardSelects(){
 function wireBoardSelects(m){const tip=()=>{const v=m.querySelector('#bdSeason').value;m.querySelector('#bdTip').textContent=ENV.HOLIDAYS[v]?ENV.HOLIDAYS[v].blurb:v==='random'?'A surprise season that turns as the war goes on.':`Always ${ENV.SEASON_NAME[v]}.`};m.querySelector('#bdSeason').onchange=tip;tip()}
 function readBoardSelects(m){S.board=m.querySelector('#bdSeason').value;S.weather=m.querySelector('#bdWeather').value;S.time=m.querySelector('#bdTime').value}
 function begin(seats,opt){
-  token++;SND.unlock();clearInterval(titleTimer);opt=opt||{};seats=LD.ALLP.map(i=>seats[i]||'normal');
+  token++;SND.unlock();clearInterval(titleTimer);opt=opt||{};if(window.CR&&CR.stop)CR.stop();
+  const cf=opt.cfg||LC;seats=Array.from({length:cf.np},(_,i)=>seats[i]||'normal');
   const ctrl=seats.map(s=>s==='human'?'human':'ai'),diff=seats.map(s=>s==='human'?'normal':s);
-  G=LD.newGame({ctrl,diff,decisive:(opt.mode||S.mode)!=='classic'});G.env=ENV.create(opt.board||S.board,opt.board?{}:{weather:S.weather,time:S.time});G.tutorial=!!opt.tutorial;LD.setG(G);seenQuake=0;
-  RD.CUR.G=G;V.title=false;V.cam.H0=40;$('#titleMenu').hidden=true;V.mode=S.view;V.sel=null;V.legal=[];V.last=null;
+  G=LD.newGame({ctrl,diff,decisive:(opt.mode||S.mode)!=='classic',shape:cf.shape,np:cf.np,army:cf.army,teams:cf.teams,size:cf.size||undefined});G.env=ENV.create(opt.board||S.board,opt.board?{}:{weather:S.weather,time:S.time});G.tutorial=!!opt.tutorial;LD.setG(G);seenQuake=0;
+  if(window.CR)CR.stop();
+  RD.CUR.G=G;V.title=false;V.cam.H0=40;$('#titleMenu').hidden=true;$('#domBox h3').textContent='Domains';V.mode=S.view;V.sel=null;V.legal=[];V.last=null;
   if(!opt.tutorial)coachStop();
-  LD.addLog(G,`${G.decisive?'Decisive mode. ':'Classic mode. '}${ENV.describe(G.env,G.env.startTime)}.`);
+  LD.addLog(G,`${G.decisive?'Decisive mode. ':'Classic mode. '}${cfgSummary({...cf,mode:G.decisive?'decisive':'classic'})}. ${ENV.describe(G.env,G.env.startTime)}.`);
   cueMusic();
   store.set('save',null);
   setupPhase();
@@ -1826,7 +2241,7 @@ async function turnLoop(my){
     const p=G.turn;renderAll();
     if(G.ctrl[p]==='ai'){
       setViewer();if(!humans().length)RD.faceDomain(p);
-      $('#turnBox').innerHTML=`<h3>${D[p].name} is thinking</h3><p class="muted">${humans().length?'Watch the field. Every clash is fought in the open.':'Six computer rulers fight it out.'}</p>`;
+      $('#turnBox').innerHTML=`<h3>${D[p].name} is thinking</h3><p class="muted">${humans().length?'Watch the field. Every clash is fought in the open.':`${['','','Two','Three','Four','Five','Six'][LD.NP]} computer rulers fight it out.`}</p>`;
       await sleep(aiDelay());if(my!==token)return;
       const before=G.log.length;
       LD.aiDiplomacy(G,p);
@@ -1865,7 +2280,7 @@ async function handleOffers(p){
     if(!G.alive[o.from]||LD.hasPact(G,p,o.from))continue;
     const yes=await ask('An envoy arrives',`<p>${dom(o.from)} offers a pact for ${LD.PACT_LEN} rounds: neither side attacks the other. As a sign of trust, each of you will be shown one of the other's pieces.</p><p class="muted">Attacking an ally breaks the pact, and every domain will remember it.</p>`,[{t:'Decline',v:false},{t:'Accept the pact',v:true,cls:'gold'}]);
     if(yes){const shown=LD.makePact(G,p,o.from);SND.play('pact');showTokens(shown,p)}
-    else{LD.addLog(G,`${D[p].name} turns away the envoy of ${D[o.from].name}.`,p);G.trust[o.from][p]=Math.max(0,G.trust[o.from][p]-6);G.pactCool=G.pactCool||[...Array(5)].map(()=>Array(5).fill(0));G.pactCool[o.from][p]=G.pactCool[p][o.from]=G.round+10}
+    else{LD.addLog(G,`${D[p].name} turns away the envoy of ${D[o.from].name}.`,p);G.trust[o.from][p]=Math.max(0,G.trust[o.from][p]-6);G.pactCool=G.pactCool||LD.ALLP.map(()=>Array(LD.NP).fill(0));G.pactCool[o.from][p]=G.pactCool[p][o.from]=G.round+10}
     renderAll();
   }
 }
@@ -1875,7 +2290,9 @@ function showTokens(shown,viewer){
 function humanTurn(p){
   return new Promise(res=>{
     V.sel=null;V.legal=[];
-    $('#turnBox').innerHTML=`<h3>${D[p].name}: your move</h3><p>Pick one of your pieces, then a highlighted space. A <span style="color:#ff8080">red frame</span> is an attack.${S.tips&&G.round<=2?' Unknown enemies appear as hooded figures until they fight.':''}</p><p class="kbd">V switch view · Q/E rotate · +/- zoom · Esc cancel</p>`;
+    $('#turnBox').innerHTML=`<h3>${D[p].name}: your move</h3><p>Pick one of your pieces, then a highlighted space. A <span style="color:#ff8080">red frame</span> is an attack.${S.tips&&G.round<=2?' Unknown enemies appear as hooded figures until they fight.':''}${G.team?' Allies\' pieces are shown to you, and you cannot attack them.':''}</p>
+     <div class="drow"><button class="btn sm" id="hHint" title="Show a good move (H)">💡 Hint</button><span class="kbd">V view · Q/E rotate · +/- zoom · H hint · Esc cancel</span></div>`;
+    $('#hHint').onclick=()=>showHint(p);
     renderDiplo(p);
     waiting={kind:'move',p,async click(hit){
       if(!hit)return;
@@ -1890,6 +2307,15 @@ function humanTurn(p){
       else{V.sel=null;V.legal=[];if(x)inspect(x)}
     }};
   });
+}
+// a hint: the move a careful ruler would make, shown on the board
+function showHint(p){
+  if(!waiting||waiting.kind!=='move')return;
+  const m=LD.aiChoose(G,p);if(!m){toast('No moves left.');return}
+  const x=G.pieces[m.id];V.sel=x.id;V.legal=LD.movesFor(G,x).filter(l=>l.r===m.r&&l.c===m.c);inspect(x);SND.play('select');
+  const w=RD.worldOf(m.r,m.c);RD.floatText(w.x,w.y,m.attack?'ATTACK!':'HERE','#ffe070');RD.burst(w.x,w.y,['#ffe070','#ffffff'],12,.8,2);
+  toast(`Try your <b>${LD.RANK_NAME[x.rank]}</b>${m.attack?' and <b style="color:#ff9090">attack</b>':''}. Click the marked space to do it, or pick another piece.`,3200);
+  setTimeout(()=>{if(V.sel===x.id)V.legal=LD.movesFor(G,x)},1600);
 }
 // ---------- performing moves with animation ----------
 async function perform(m){
@@ -1927,7 +2353,7 @@ async function perform(m){
       if(humans().length===1&&e.p===humans()[0]&&!G.over){
         const c=await ask('Your Lord has fallen',`<p>${dom(e.p)} is no more. The other domains fight on.</p>`,[{t:'Title screen',v:'title'},{t:'Watch the rest',v:'watch'},{t:'New game',v:'new',cls:'gold'}]);
         if(c==='title'){token++;waiting=null;store.set('save',null);showTitle();return}
-        if(c==='new'){begin(store.get('seats',['human','normal','normal','normal','normal','normal']));return}
+        if(c==='new'){begin(LC.seats.slice(0,LC.np));return}
         S.speed='fast';
       }
     }
@@ -1939,7 +2365,8 @@ async function perform(m){
 function renderDiplo(p){
   const box=$('#diploBox');if(!G||G.ctrl[p]!=='human'||G.phase!=='play'){box.hidden=true;return}
   box.hidden=false;
-  const others=LD.ALLP.filter(q=>q!==p&&G.alive[q]);
+  const others=LD.ALLP.filter(q=>!LD.ally(q,p)&&G.alive[q]);
+  if(!others.length){box.hidden=true;return}
   const used=G.actedDiplo;
   const sel=V.sel!=null?G.pieces[V.sel]:null;
   $('#diplo').innerHTML=`<p class="muted" style="font-size:.88rem">One diplomatic act per turn, before you move.${used?' <b style="color:#ffe070">Used this turn.</b>':''}</p>
@@ -1971,13 +2398,14 @@ function inspect(x){
 function renderDomains(){
   if(!G){$('#doms').innerHTML='';return}
   const v=V.viewer;
-  $('#doms').innerHTML=D.map((d,p)=>{
+  $('#doms').innerHTML=D.slice(0,LD.NP).map((d,p)=>{
     const pcs=G.pieces.filter(x=>x.p===p&&x.alive);
     const hidden=[];if(G.alive[p]&&v!==p){const left=LD.ARMY.slice();for(const x of G.pieces)if(x.p===p&&(!x.alive||LD.visibleTo(x,v<0?p:v))){const i=left.indexOf(x.rank);if(i>=0)left.splice(i,1)}hidden.push(...left.sort((a,b)=>b-a))}
     const who=G.ctrl[p]==='human'?(humans().length>1?'Human':'You'):`Computer · ${G.diff[p]}`;
-    const att=v>=0&&v<LD.NP&&v!==p&&G.alive[p]&&G.ctrl[p]==='ai'?`<span class="att ${LD.attitude(G,p,v)}">${LD.attitude(G,p,v)}</span>`:v>=0&&v<LD.NP&&LD.hasPact(G,p,v)?'<span class="att Allied">Allied</span>':'';
+    const att=v>=0&&v<LD.NP&&!LD.ally(v,p)&&G.alive[p]&&G.ctrl[p]==='ai'?`<span class="att ${LD.attitude(G,p,v)}">${LD.attitude(G,p,v)}</span>`:v>=0&&v<LD.NP&&LD.hasPact(G,p,v)?'<span class="att Allied">Allied</span>':'';
     const pact=LD.ALLP.filter(q=>LD.hasPact(G,p,q)).map(q=>D[q].name).join(', ');
-    return `<div class="dom ${G.alive[p]?'':'dead'} ${G.phase==='play'&&G.turn===p?'turn':''}"><span class="sw" style="background:${TM[p].P}"></span><span><b>${d.name}</b> <span class="muted" style="font-size:.8rem">${who}</span></span>${att}
+    const tm=G.team?` <span class="tm t${G.team[p]}">Team ${'ABC'[G.team[p]]}</span>`:'';
+    return `<div class="dom ${G.alive[p]?'':'dead'} ${G.phase==='play'&&G.turn===p?'turn':''}"><span class="sw" style="background:${TM[p].P}"></span><span><b>${d.name}</b>${tm} <span class="muted" style="font-size:.8rem">${who}</span></span>${att}
       <div class="meta">${G.alive[p]?`${pcs.length} pieces · ${G.kills[p]} victories${G.rep[p]?` · <span style="color:#ff9090">broke ${G.rep[p]} pact${G.rep[p]>1?'s':''}</span>`:''}${pact?` · pact: ${pact}`:''}
       ${hidden.length&&G.phase==='play'?`<br>Still hidden: <span class="chips">${hidden.map(k=>`<span class="chip ${k===9?'l':''}">${LD.RANK_SHORT[k]}</span>`).join('')}</span>`:''}`:`Fallen${G.fallenBy[p]!=null?' to '+D[G.fallenBy[p]].name:''}`}</div></div>`}).join('');
 }
@@ -2005,7 +2433,7 @@ function stageAttack(){
 function startWalkthrough(){
   closeModal();
   coach.steps=[
-   {title:'Welcome to Thalmar',t:`${LORE_SHORT} You rule <b>Crimson</b>, the red domain. Four computer rulers hold the rest. This walkthrough shows you everything in a real game.`},
+   {title:'Welcome to Thalmar',t:`${LORE_SHORT} You rule <b>Crimson</b>, the red domain. Five computer rulers hold the rest. This walkthrough shows you everything in a real game.`},
    {title:'Deploy your army',t:'Your fourteen pieces line up along your side of the six-sided field. Click one of your pieces, then another, to swap them. Your <b>Lord</b> is marked L: hide it where enemies will not look.',wait:'swap'},
    {title:'Ready for war',t:'When your army is arranged, press <b>Ready</b> below the board.',wait:'ready'},
    {title:'Two ways to look',t:'Press <b>View</b> at the top (or the V key) to switch between the low field view behind your army and the map from above. In the field view, ⟲ ⟳ rotate the island and ＋ − zoom.',wait:'view'},
@@ -2019,64 +2447,76 @@ function startWalkthrough(){
    {title:'Sky and seasons',t:'Time passes as you play: dawn, golden hour, night under the moon. Weather and seasons change too. Leave the board on Normal, or pick a season, weather, time of day or holiday board when you start, and change it any time in Settings. Tap the song name in the corner to choose the music; 🔊 and ♪ mute sound and music.'},
    {title:'Your war now',t:'That is everything. Protect your Lord and your Keep, find theirs, make friends you can betray later, and trust carefully.'}];
   coach.on=true;coach.i=0;
-  begin(['human','easy','easy','easy','easy','easy'],{mode:'decisive',board:'spring',tutorial:true});
+  begin(['human','easy','easy','easy','easy','easy'],{mode:'decisive',board:'spring',tutorial:true,cfg:{np:6,teams:0,shape:'hex',army:'full'}});
   coachShow();
 }
 // ---------- game over ----------
 function gameOver(){
   V.viewer=-1;V.sel=null;V.legal=[];renderAll();
-  const w=G.winner;const human=G.ctrl[w]==='human';const solo=humans().length===1;
+  const w=G.winner;const winners=G.team?LD.ALLP.filter(p=>G.team[p]===G.winTeam):[w];const human=winners.some(p=>G.ctrl[p]==='human');const solo=humans().length===1;
+  const wname=G.team?LD.teamName(G,G.winTeam):D[w].name;
   SND.play(human||!solo?'victory':'lose');setTimeout(cueMusic,2500);coachStop();
   const lords=G.pieces.filter(x=>x.rank===9);
-  modal(`<h2>${solo?(human?'Victory!':'Defeat'):`${D[w].name} wins`}</h2>
-   <p>${G.stalemate?`The war ground to a halt. ${dom(w)} held the strongest army.`:`${dom(w)} is the last domain standing.`}</p>
+  const wdom=winners.map(dom).join(' and ');
+  modal(`<h2>${solo?(human?'Victory!':'Defeat'):`${esc(wname)} win${winners.length>1?'':'s'}`}</h2>
+   <p>${G.stalemate?`The war ground to a halt. ${wdom} held the strongest army.`:G.team?`${wdom} stand together over the island.`:`${dom(w)} is the last domain standing.`}</p>
    <p class="muted">${G.round} rounds · ${G.stats.clashes} clashes · ${G.stats.betrayals} betrayals</p>
    <p>Every piece is now revealed on the field. The computer rulers were: ${LD.ALLP.filter(p=>G.ctrl[p]==='ai').map(p=>`${D[p].name} (${G.persona[p]})`).join(', ')||'none'}.</p>
    <div class="row"><button class="btn" data-a="menu">Title screen</button><button class="btn" data-a="look">Look at the board</button><button class="btn gold" data-a="again">Play again</button></div>`,m=>{
     m.querySelector('[data-a=menu]').onclick=()=>{closeModal();store.set('save',null);showTitle()};
     m.querySelector('[data-a=look]').onclick=closeModal;
-    m.querySelector('[data-a=again]').onclick=()=>{closeModal();begin(store.get('seats',['human','normal','normal','normal','normal','normal']))};
+    m.querySelector('[data-a=again]').onclick=()=>{closeModal();begin(LC.seats.slice(0,LC.np))};
   });
   store.set('save',null);
-  $('#turnBox').innerHTML=`<h3>The war is over</h3><p>${dom(w)} rules the island. Every piece is revealed.</p><div class="drow"><button class="btn gold" id="again2">Play again</button><button class="btn" id="title2">Title screen</button></div>`;
-  $('#again2').onclick=()=>begin(store.get('seats',['human','normal','normal','normal','normal','normal']));$('#title2').onclick=showTitle;
+  $('#turnBox').innerHTML=`<h3>The war is over</h3><p>${wdom} rule${winners.length>1?'':'s'} the island. Every piece is revealed.</p><div class="drow"><button class="btn gold" id="again2">Play again</button><button class="btn" id="title2">Title screen</button></div>`;
+  $('#again2').onclick=()=>begin(LC.seats.slice(0,LC.np));$('#title2').onclick=showTitle;
 }
 // ---------- save / continue ----------
-function save(){if(G&&!G.over&&G.phase==='play'){G.v6=1;store.set('save',G)}}
-function cont(){const g=store.get('save',null);if(!g)return;token++;clearInterval(titleTimer);coachStop();G=g;if(!G.env)G.env=ENV.create('random');LD.setG(G);seenQuake=G.lastQuake?G.lastQuake.n:0;RD.CUR.G=G;V.title=false;$('#titleMenu').hidden=true;V.mode=S.view;V.sel=null;V.legal=[];setViewer();if(humans().length===1)RD.faceDomain(humans()[0],true);renderAll();turnLoop(token)}
+function save(){if(G&&!G.over&&G.phase==='play'){G.v7=1;store.set('save',G)}}
+function cont(){const g=store.get('save',null);if(!g)return;token++;clearInterval(titleTimer);coachStop();if(window.CR)CR.stop();$('#domBox h3').textContent='Domains';G=g;if(!G.env)G.env=ENV.create('random');LD.setG(G);seenQuake=G.lastQuake?G.lastQuake.n:0;RD.CUR.G=G;V.title=false;$('#titleMenu').hidden=true;V.mode=S.view;V.sel=null;V.legal=[];setViewer();if(humans().length===1)RD.faceDomain(humans()[0],true);renderAll();turnLoop(token)}
 // ---------- rules ----------
 function rules(){
   const rows=[9,8,7,6,5,4,3,2,1,0].map(k=>`<img src="${sprURL(k,0)}" alt=""><div><b>${LD.RANK_NAME[k]}</b>${k!==9&&k!==0?` (${k})`:''} · ${LD.RANK_TIP[k]}</div>`).join('');
-  modal(`<h2>How to play</h2><div class="rules">
+  const crownFirst=crownOn()||(window.CR&&CR.V.title&&V.title);
+  modal(`<h2>How to play</h2><div class="tabs"><button class="btn sm ${crownFirst?'':'gold'}" data-tab="lords">⚔ Lords &amp; Domains</button><button class="btn sm ${crownFirst?'gold':''}" data-tab="crown">👑 The First Crown</button></div>
+  <div class="rules" id="rCrown" ${crownFirst?'':'hidden'}>${window.CR?CR.RULES:''}</div>
+  <div class="rules" id="rLords" ${crownFirst?'hidden':''}>
   <p>${LORE_SHORT}</p>
-  <p>Six domains share the island: Crimson, Azure, Verdant, Golden, Violet and Teal. Each has fourteen pieces, and one of them is its <b>Lord</b>. The island is a six-sided field of hexes, and each army starts along one side. You know where your own Lord is. Everyone else's is a mystery.</p>
+  <p>Two to six domains share the island: Crimson, Azure, Verdant, Golden, Violet and Teal. One of each army's pieces is its <b>Lord</b>. You know where your own Lord is. Everyone else's is a mystery.</p>
+  <h3>Setting up a game</h3><ul><li><b>Domains:</b> from a one-on-one duel up to six at once, any mix of humans and computers (Easy, Normal, Hard).</li><li><b>Teams:</b> with four domains you can play 2 v 2; with six, 3 v 3 or three teams of two. You see your allies' pieces, you cannot attack them, and a team wins together.</li><li><b>Board:</b> a six-sided field of hexes, or a square field of squares like the very first game.</li><li><b>Army:</b> the full army of 14 pieces, or the <b>First Edition</b> army of 10: Lord, Marshal, Knight, Captain, Guard, Raider, Scout, Spy, Sapper and Keep.</li><li><b>First Edition preset:</b> the original game exactly: square field, ten pieces each, five domains, Classic mode.</li></ul>
   <h3>Winning</h3><ul><li>If a Lord falls, its whole domain falls with it.</li><li>If a Sapper breaks a domain's Keep, that domain falls too.</li><li>The last domain standing wins.</li><li>Classic mode: if no one fights for 40 rounds (or after 200 rounds), the strongest remaining army wins.</li></ul>
   <h3>Modes</h3><ul><li><b>Classic:</b> the island stands still.</li><li><b>Decisive, the restless island:</b> from round 6, every round empty land far from the fighting sinks into the sea and seabed rises as new land where it brings rivals closer. It never sinks a space with a piece on it and never cuts any piece off from the rest. When the fighting stalls, a causeway, a whole line of seabed, rises between the nearest rivals for a few rounds and then sinks back. Nothing is ever isolated; the sea only makes obstacles. ${LORE_ISLAND}</li></ul>
-  <h3>Your turn</h3><ul><li>Every space is a hex. Move one piece to any of the six spaces that share a side with it. Scouts may run any distance in a straight line in any of the six directions. Keeps never move.</li><li>Water cannot be crossed.</li><li>Moving onto an enemy is an attack. Both pieces are revealed to everyone. The higher rank wins; equal ranks both fall.</li><li>Special fights: a <b>Spy</b> that strikes a Lord first kills it; a Lord that strikes a Spy first wins. Any attacker except a <b>Sapper</b> is destroyed by a <b>Keep</b>, and a Sapper who breaks a Keep topples that domain. A Lord who attacks another Lord wins, and the Lord who waits falls, so time your strike.</li><li>Each domain has 14 pieces: Lord, Marshal, Knight, Captain, Guard, Raider, four Scouts, two Spies, Sapper and Keep.</li></ul>
+  <h3>Your turn</h3><ul><li>Move one piece to a space that shares a side with it: six choices on the hex field, four on the square field. Scouts may run any distance in a straight line in any of those directions. Keeps never move.</li><li>Water cannot be crossed.</li><li>Moving onto an enemy is an attack. Both pieces are revealed to everyone. The higher rank wins; equal ranks both fall.</li><li>Special fights: a <b>Spy</b> that strikes a Lord first kills it; a Lord that strikes a Spy first wins. Any attacker except a <b>Sapper</b> is destroyed by a <b>Keep</b>, and a Sapper who breaks a Keep topples that domain. A Lord who attacks another Lord wins, and the Lord who waits falls, so time your strike.</li><li>The full army has 14 pieces: Lord, Marshal, Knight, Captain, Guard, Raider, four Scouts, two Spies, Sapper and Keep. The First Edition army has one Scout and one Spy, 10 pieces in all.</li></ul>
   <h3>Reading the field</h3><ul><li>Enemy pieces look like hooded figures until they fight or are shown to you.</li><li>Pieces that have moved show small footprints. Keeps never move, so an unmoved piece might be a Keep, or a Lord staying hidden.</li><li>The Domains panel lists each rival's ranks that are still hidden. Inspect any piece to see your best guess.</li></ul>
   <h3>Diplomacy</h3><ul><li><b>Offer a pact:</b> for ${LD.PACT_LEN} rounds neither side attacks the other. Each side is shown one of the other's pieces.</li><li><b>Point the finger:</b> turn the other domains against a rival.</li><li><b>Rumour:</b> crown one of your pieces so rivals think it is your Lord. A Keep makes a nasty surprise.</li><li>You can attack an ally, but that breaks the pact, and every domain trusts you less.</li><li>Computer rulers have hidden personalities. Some keep their word. Some do not.</li></ul>
   <h3>The pieces</h3><div class="rtbl">${rows}</div>
   <h3>Sky, seasons and holidays</h3><ul><li>Time passes as you play: a full day every ${ENV.DAY_ROUNDS} rounds, from dawn through golden hour to night.</li><li>Every game starts in a random season (or the one you pick), and the weather follows it: sun, cloud, rain, storms, snow and fog.</li><li>Holiday boards: ${Object.values(ENV.HOLIDAYS).map(h=>h.name).join(', ')}.</li><li>Music follows the mood: ten songs for the title, deploying, each season, night and fog, rain and storms, the last fight and victory.</li></ul>
   <h3>Views</h3><ul><li><b>Field</b> is the low view from behind your domain. Rotate with ⟲ ⟳ (Q/E) and zoom with + and −.</li><li><b>Map</b> is the view from above. Press V to switch.</li></ul>
-  </div><div class="row"><button class="btn gold" data-x>Close</button></div>`,m=>m.querySelector('[data-x]').onclick=closeModal);
+  </div><div class="row"><button class="btn gold" data-x>Close</button></div>`,m=>{m.querySelector('[data-x]').onclick=closeModal;
+    m.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{const c=b.dataset.tab==='crown';m.querySelector('#rCrown').hidden=!c;m.querySelector('#rLords').hidden=c;m.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('gold',x===b))})});
 }
 // ---------- settings ----------
 function seg(key,opts){return `<span class="seg" data-k="${key}">${opts.map(([v,l])=>`<button data-v="${v}" class="${String(S[key])===String(v)?'on':''}">${l}</button>`).join('')}</span>`}
 function settings(){
-  modal(`<h2>Settings</h2>
+  modal(`<h2>Options</h2>
+   <h3 class="sec">Display</h3>
    <div class="setrow"><span>View</span>${seg('view',[['field','Field'],['map','Map']])}</div>
    <div class="setrow"><span>Battle scenes</span>${seg('battle',[['full','Full'],['quick','Quick'],['off','Off']])}</div>
    <div class="setrow"><span>Computer speed</span>${seg('speed',[['slow','Slow'],['normal','Normal'],['fast','Fast']])}</div>
-   <div class="setrow"><span>Sound effects</span>${seg('sound',[[true,'On'],[false,'Off']])}</div>
-   <div class="setrow"><span>Music</span>${seg('music',[[true,'On'],[false,'Off']])}</div>
-   <div class="setrow"><span>Guess bars on unknown pieces</span>${seg('hints',[[true,'On'],[false,'Off']])}</div>
    <div class="setrow"><span>Page theme</span>${seg('theme',[['auto','Auto'],['light','Light'],['dark','Dark']])}</div>
-   <h3 style="color:var(--gold);margin:12px 0 4px">Board</h3><p class="muted" style="font-size:.85rem">${G&&!V.title?'Changes apply to this game straight away.':'Used for your next game.'}</p>${boardSelects()}
+   <h3 class="sec">Sound</h3>
+   <div class="setrow"><span>Sound effects</span><span class="vol">${seg('sound',[[true,'On'],[false,'Off']])}<input type="range" id="vS" min="0" max="100" value="${Math.round((S.volS??1)*100)}" aria-label="Sound effects volume"></span></div>
+   <div class="setrow"><span>Music</span><span class="vol">${seg('music',[[true,'On'],[false,'Off']])}<input type="range" id="vM" min="0" max="100" value="${Math.round((S.volM??1)*100)}" aria-label="Music volume"></span></div>
+   <h3 class="sec">Play</h3>
+   <div class="setrow"><span>Guess bars on unknown pieces</span>${seg('hints',[[true,'On'],[false,'Off']])}</div>
+   <h3 class="sec">Lords &amp; Domains board</h3><p class="muted" style="font-size:.85rem">${G&&!V.title?'Changes apply to this game straight away.':'Used for your next game.'}</p>${boardSelects()}
    <div class="row" style="justify-content:flex-start;margin-top:6px"><button class="btn sm" id="applyBoard">Apply board</button></div>
    <div class="setrow"><span>Watching computers: show all pieces</span>${seg('revealAll',[[true,'Yes'],[false,'No']])}</div>
    <div class="row"><button class="btn gold" data-x>Done</button></div>`,m=>{
     m.querySelector('[data-x]').onclick=closeModal;
     wireBoardSelects(m);
+    m.querySelector('#vS').oninput=e=>{S.volS=e.target.value/100;saveS();SND.vols(S.volS,null);SND.play('select')};
+    m.querySelector('#vM').oninput=e=>{S.volM=e.target.value/100;saveS();SND.vols(null,S.volM)};
     m.querySelector('#applyBoard').onclick=()=>{readBoardSelects(m);saveS();
       if(G&&!V.title&&G.env){const before=RD.curTime();ENV.apply(G.env,S.board,{weather:S.weather,time:S.time});
         if(G.env.lockTime==null){const el=((G.round-1)*6+(G.phase==='play'?G.turn:0))/(ENV.DAY_ROUNDS*6);G.env.startTime=((before-el)%1+1)%1}
@@ -2087,13 +2527,13 @@ function settings(){
       if(sg.dataset.k==='view'){V.mode=v;syncView()}if(sg.dataset.k==='sound')SND.set(v);if(sg.dataset.k==='music')SND.music(v);if(sg.dataset.k==='theme')applyTheme();if(sg.dataset.k==='revealAll'&&G){setViewer();renderAll()}});
   });
 }
-function syncView(){$('#bView').textContent='View: '+(V.mode==='field'?'Field':'Map');const f=V.mode==='field';['#bRotL','#bRotR','#bZoomIn','#bZoomOut'].forEach(s=>$(s).disabled=!f)}
+function syncView(){if(crownOn())return;$('#bView').textContent='View: '+(V.mode==='field'?'Field':'Map');const f=V.mode==='field';['#bRotL','#bRotR','#bZoomIn','#bZoomOut'].forEach(s=>$(s).disabled=!f)}
 // ---------- input ----------
 function toInternal(e){const r=RD.cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*RD.W,y:(e.clientY-r.top)/r.height*RD.H}}
 RD.cv.addEventListener('click',e=>{
   SND.unlock();
   if(BT.active){BT.skip();return}
-  if(V.title){newGameModal();return}
+  if(V.title||crownOn())return;
   if(!waiting||busy)return;
   const p=toInternal(e);const hit=RD.pick(p.x,p.y);
   if(!hit){if(waiting.kind==='move'){V.sel=null;V.legal=[]}return}
@@ -2101,7 +2541,7 @@ RD.cv.addEventListener('click',e=>{
   waiting.click(hit);
 });
 RD.cv.addEventListener('mousemove',e=>{
-  if(!G||V.title||BT.active)return;const p=toInternal(e);const hit=RD.pick(p.x,p.y);
+  if(!G||V.title||BT.active||crownOn())return;const p=toInternal(e);const hit=RD.pick(p.x,p.y);
   V.hover=hit?{r:hit.r,c:hit.c}:null;
   if(hit){const x=hit.id!=null?G.pieces[hit.id]:LD.at(G,hit.r,hit.c);if(x&&x.id!==lastInspect){lastInspect=x.id;inspect(x)}}
 });
@@ -2111,26 +2551,610 @@ addEventListener('keydown',e=>{
   if(!$('#modalBg').hidden){if(e.key==='Escape'&&!G?.over)closeModal();return}
   if(e.target.tagName==='SELECT'||e.target.tagName==='INPUT')return;
   const k=e.key.toLowerCase();
+  if(crownOn()){if(k==='v')CR.toggleView();if(k==='q')CR.rotate(-Math.PI/4);if(k==='e')CR.rotate(Math.PI/4);if(k==='+'||k==='=')CR.zoom(-20);if(k==='-')CR.zoom(20);return}
   if(k==='v'){V.mode=V.mode==='field'?'map':'field';S.view=V.mode;saveS();syncView();coachEmit('view')}
   if(k==='q')RD.rotate(-Math.PI/4);if(k==='e')RD.rotate(Math.PI/4);
   if(k==='+'||k==='=')RD.zoom(-20);if(k==='-')RD.zoom(20);
   if(k==='escape'){V.sel=null;V.legal=[];V.swapSel=null}
+  if(k==='h'&&G&&waiting&&waiting.kind==='move')showHint(waiting.p);
   if(k===' '&&BT.active){e.preventDefault();BT.skip()}
 });
-$('#bView').onclick=()=>{V.mode=V.mode==='field'?'map':'field';S.view=V.mode;saveS();syncView();coachEmit('view')};
-$('#bRotL').onclick=()=>RD.rotate(-Math.PI/4);$('#bRotR').onclick=()=>RD.rotate(Math.PI/4);
-$('#bZoomIn').onclick=()=>RD.zoom(-20);$('#bZoomOut').onclick=()=>RD.zoom(20);
+$('#bView').onclick=()=>{if(crownOn()){CR.toggleView();return}V.mode=V.mode==='field'?'map':'field';S.view=V.mode;saveS();syncView();coachEmit('view')};
+$('#bRotL').onclick=()=>crownOn()?CR.rotate(-Math.PI/4):RD.rotate(-Math.PI/4);$('#bRotR').onclick=()=>crownOn()?CR.rotate(Math.PI/4):RD.rotate(Math.PI/4);
+$('#bZoomIn').onclick=()=>crownOn()?CR.zoom(-20):RD.zoom(-20);$('#bZoomOut').onclick=()=>crownOn()?CR.zoom(20):RD.zoom(20);
 $('#bRules').onclick=rules;$('#tRules').onclick=rules;$('#bSettings').onclick=settings;$('#tSet').onclick=settings;
 $('#tNew').onclick=newGameModal;$('#tCont').onclick=cont;$('#tWalk').onclick=startWalkthrough;
-$('#bMenu').onclick=async()=>{if(G&&!V.title&&!G.over){const ok=await ask('Leave this game?','<p>Your game is saved after every turn. You can continue it from the title screen.</p>',[{t:'Stay',v:false},{t:'Title screen',v:true,cls:'gold'}]);if(!ok)return}token++;waiting=null;showTitle()};
+$('#tCrown').onclick=()=>CR.setupModal();$('#tCCont').onclick=()=>CR.cont();
+$('#bMenu').onclick=async()=>{if(crownOn()&&CR.G&&!CR.G.over){const ok=await ask('Leave this war?','<p>The First Crown is saved at the start of every turn. You can continue it from the title screen.</p>',[{t:'Stay',v:false},{t:'Title screen',v:true,cls:'gold'}]);if(!ok)return;showTitle();return}
+  if(crownOn()){showTitle();return}
+  if(G&&!V.title&&!G.over){const ok=await ask('Leave this game?','<p>Your game is saved after every turn. You can continue it from the title screen.</p>',[{t:'Stay',v:false},{t:'Title screen',v:true,cls:'gold'}]);if(!ok)return}token++;waiting=null;showTitle()};
 $('#modalBg').addEventListener('click',e=>{if(e.target.id==='modalBg'&&!$('#modal [data-i]'))closeModal()});
+// shared with The First Crown
+window.UI={esc,S,saveS,store,modal,closeModal,ask,toast,renderCorner,showTitle,newLords:newGameModal,
+  leaveLords(){token++;waiting=null;clearInterval(titleTimer);coachStop();V.title=false;V.sel=null;V.legal=[];$('#titleMenu').hidden=true;$('#diploBox').hidden=true;$('#coach').hidden=true}};
 // expose for tests
 window.LDG={get G(){return G},S,V,begin,perform,store,get waiting(){return waiting}};
-SND.music(S.music);renderCorner();
+SND.music(S.music);SND.vols(S.volS??1,S.volM??1);renderCorner();
 // first interaction unlocks audio in the browser
 addEventListener('pointerdown',()=>{SND.unlock();cueMusic()},{once:true});
 syncView();RD.start();showTitle();
 })();
+
+// ===================== The First Crown: world map, battles and turn controls =====================
+const CR=(()=>{
+const UI=window.UI,$=s=>document.querySelector(s),esc=UI.esc,S=UI.S;
+const W=RD.W,H=RD.H,ctx=RD.ctx,MW=CW.MW,MH=CW.MH,T=CW.T,CONT=CW.CONTINENTS,TM=PX.TEAM,D=CW.DOMAINS;
+let G=null,token=0,waiting=null,active=false,hintFn=null;
+const V={mode:'map',sel:null,targets:[],tkind:'attack',hover:-1,floats:[],parts:[],battle:null,shake:0,flash:{},
+  cam:{ang:-Math.PI/2,want:-Math.PI/2,dist:200,h:92,f:210,H0:40},title:false,arrow:null};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const delay=()=>({slow:1.6,normal:1,fast:.4}[S.speed]||1);
+const hash=(a,b)=>{let h=(a*374761393+b*668265263)|0;h=Math.imul(h^(h>>>13),1274126177);return((h^(h>>>16))>>>0)/4294967295};
+function vnoise(x,y){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi;const s=t=>t*t*(3-2*t);const a=hash(xi,yi),b=hash(xi+1,yi),c=hash(xi,yi+1),d=hash(xi+1,yi+1);const u=s(xf),v=s(yf);return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v}
+const P32=(r,g,b)=>(0xff000000|(b<<16)|(g<<8)|r)>>>0;
+const col=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+const hx=h=>{const c=col(h);return P32(c[0],c[1],c[2])};
+const mix32=(p,q,t)=>{const r=p&255,g=(p>>8)&255,b=(p>>16)&255,r2=q&255,g2=(q>>8)&255,b2=(q>>16)&255;return P32(r+(r2-r)*t|0,g+(g2-g)*t|0,b+(b2-b)*t|0)};
+// ---------- precomputed map structure ----------
+const R=CW.RAST,N=MW*MH;
+const TPIX=T.map(()=>[]),TEDGE=T.map(()=>[]),INNER=new Uint8Array(N),EDGE=new Uint8Array(N),SEAD=new Uint8Array(N).fill(9),LANDD=new Uint8Array(N).fill(9);
+for(let i=0;i<N;i++){const t=R[i];if(t<0)continue;TPIX[t].push(i);const x=i%MW,y=(i/MW)|0;
+  let e=false;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=MW||yy>=MH)continue;const u=R[yy*MW+xx];if(u!==t&&u>=0)e=true}
+  if(e){EDGE[i]=1;TEDGE[t].push(i)}}
+// a second ring inside each border, for the owner's coloured trim
+for(let i=0;i<N;i++){if(R[i]<0||EDGE[i])continue;const x=i%MW,y=(i/MW)|0;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const j=(y+dy)*MW+x+dx;if(j>=0&&j<N&&EDGE[j]&&R[j]===R[i]){INNER[i]=1;break}}}
+// distance to sea (for beaches) and to land (for shallows)
+{const q=[];for(let i=0;i<N;i++)if(R[i]<0){SEAD[i]=0}else{LANDD[i]=0}
+ for(const [D0,isSrc] of [[SEAD,i=>R[i]<0],[LANDD,i=>R[i]>=0]]){const qq=[];for(let i=0;i<N;i++)if(isSrc(i))qq.push(i);
+   for(let h=0;h<qq.length;h++){const i=qq[h],x=i%MW,y=(i/MW)|0;if(D0[i]>=8)continue;for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=MW||yy>=MH)continue;const j=yy*MW+xx;if(D0[j]>D0[i]+1){D0[j]=D0[i]+1;qq.push(j)}}}}}
+// ---------- terrain ----------
+const TERR={
+  tundra:{a:'#dce6f0',b:'#c4d2e2',d:'#2c5c48',e:'#8c94a4',beach:'#b8c8dc'},
+  isles:{a:'#6cc05c',b:'#58a848',d:'#2c7c34',e:'#a8e078',beach:'#ecdca4'},
+  forest:{a:'#3a8c44',b:'#2e7a3a',d:'#1a4c24',e:'#62b45a',beach:'#d8c890'},
+  volcanic:{a:'#5a4a50',b:'#4a3c44',d:'#ff7020',e:'#7a6c70',beach:'#3c3438'},
+  savanna:{a:'#cdb85c',b:'#bca44c',d:'#4c7c2c',e:'#8cb048',beach:'#e8d8a0'},
+  desert:{a:'#e6cf84',b:'#d6bb6e',d:'#c49c50',e:'#f4e2a8',beach:'#f0e0b0'},
+  throne:{a:'#68c464',b:'#52ac52',d:'#2c7c34',e:'#f0d060',beach:'#ecdca4'}};
+function terrainPix(i){
+  const x=i%MW,y=(i/MW)|0,t=R[i],C=CONT[T[t].cont],P=TERR[C.terrain],h=hash(x,y),n=vnoise(x/6,y/6),n2=vnoise(x/2.5+90,y/2.5);
+  if(SEAD[i]<=1)return hx(P.beach);
+  let c=hx(n>.5?P.a:P.b);
+  switch(C.terrain){
+    case 'tundra':if(n2>.78&&h>.5)c=hx(P.d);else if(h>.97)c=hx(P.e);break;
+    case 'isles':if(n2>.72)c=hx(P.d);else if(h>.95)c=hx(P.e);break;
+    case 'forest':if(n2>.6)c=hx(P.d);else if(n2>.55)c=hx(P.e);break;
+    case 'volcanic':if(Math.abs(vnoise(x/9+7,y/9)-.5)<.03)c=hx(h>.5?'#ffb030':P.d);else if(h>.93)c=hx(P.e);break;
+    case 'savanna':if(n2>.8)c=hx(P.d);else if(n>.62)c=hx(P.e);break;
+    case 'desert':if(Math.sin(x*.45+y*.15+vnoise(x/14,y/14)*8)>.85)c=hx(P.d);else if(h>.97)c=hx(P.e);break;
+    case 'throne':if(h>.94)c=hx('#a8e078');break;
+  }
+  return c;
+}
+const BASE_LAND=new Uint32Array(N);for(let i=0;i<N;i++)if(R[i]>=0)BASE_LAND[i]=terrainPix(i);
+// the sea, four frames of moving water
+const SEA=[0,1,2,3].map(f=>{const a=new Uint32Array(N);const deep=hx('#1c3a88'),deep2=hx('#22489c'),sh=hx('#3a74c4'),sh2=hx('#4c88d4'),foam=hx('#cfe4ff'),glint=hx('#6aa4ec');
+  for(let i=0;i<N;i++){if(R[i]>=0)continue;const x=i%MW,y=(i/MW)|0,d=LANDD[i];
+    let c=d<=1?((x+y+f)%4===0?foam:sh2):d<=4?sh:(vnoise(x/16,y/16)>.55?deep2:deep);
+    if(d>4&&((x+(y>>1)*3+f*3)%23===0)&&hash(x>>2,y>>2)>.6)c=glint;
+    a[i]=c}return a});
+// ---------- ownership layer ----------
+let OWN=new Uint32Array(N),ownKey='';
+function buildOwn(){
+  const k=G?G.owner.join(','):'';if(k===ownKey)return;ownKey=k;
+  const dark=hx('#1a1420');
+  for(let t=0;t<T.length;t++){const p=G?G.owner[t]:-1;const tc=p>=0?hx(TM[p].P):0,tl=p>=0?hx(TM[p].L):0;
+    for(const i of TPIX[t]){let c=BASE_LAND[i];if(p>=0)c=mix32(c,tc,.34);if(INNER[i]&&p>=0)c=mix32(c,tl,.55);if(EDGE[i])c=dark;OWN[i]=c}}
+}
+// ---------- the composed world texture ----------
+const TEX=new Uint32Array(N),texImg=new ImageData(MW,MH),tex32=new Uint32Array(texImg.data.buffer),texCv=PX.mk(MW,MH),texCtx=texCv.getContext('2d');
+function compose(t){
+  buildOwn();const f=Math.floor(t/350)%4,sea=SEA[f];
+  for(let i=0;i<N;i++)TEX[i]=R[i]>=0?OWN[i]:sea[i];
+  const blink=Math.floor(t/260)%2,wht=hx('#ffffff'),yel=hx('#ffe070'),red=hx('#ff4040'),grn=hx('#60f080');
+  if(V.hover>=0)for(const i of TPIX[V.hover])if(!EDGE[i])TEX[i]=mix32(TEX[i],wht,.16);
+  if(V.sel!=null){for(const i of TPIX[V.sel])if(!EDGE[i])TEX[i]=mix32(TEX[i],wht,.22);for(const i of TEDGE[V.sel])TEX[i]=blink?yel:wht}
+  const tc=V.tkind==='attack'?red:V.tkind==='place'?yel:grn;
+  for(const id of V.targets){for(const i of TPIX[id])if(!EDGE[i])TEX[i]=mix32(TEX[i],tc,.18);for(const i of TEDGE[id])TEX[i]=blink?tc:mix32(tc,0xff000000,.4)}
+  for(const id in V.flash){const v=V.flash[id];if(v.until<t){delete V.flash[id];continue}const k=(v.until-t)/v.len;for(const i of TPIX[id])TEX[i]=mix32(TEX[i],v.c,k*.5)}
+}
+// ---------- drawing helpers ----------
+const DIG={'0':'111101101101111','1':'010110010010111','2':'111001111100111','3':'111001011001111','4':'101101111001001','5':'111100111001111','6':'111100111101111','7':'111001010010010','8':'111101111101111','9':'111101111001111','+':'000010111010000','-':'000000111000000'};
+function digits(s,x,y,c,sh){for(const [k,ch] of [...String(s)].entries()){const g=DIG[ch];if(!g)continue;for(let i=0;i<15;i++)if(g[i]==='1'){if(sh){ctx.fillStyle=sh;ctx.fillRect(x+k*4+i%3+1,y+(i/3|0)+1,1,1)}ctx.fillStyle=c;ctx.fillRect(x+k*4+i%3,y+(i/3|0),1,1)}}}
+const digW=s=>String(s).length*4-1;
+function shield(x,y,p,n,big){
+  const w=Math.max(11,digW(n)+6),h=10;const X=Math.round(x-w/2),Y=Math.round(y-h/2);const T0=TM[p]||{P:'#888',Q:'#444',L:'#ccc'};
+  ctx.fillStyle='rgba(0,0,0,.45)';ctx.fillRect(X+1,Y+2,w,h);
+  ctx.fillStyle='#14101c';ctx.fillRect(X-1,Y-1,w+2,h+1);ctx.fillRect(X,Y+h,w,1);ctx.fillRect(X+2,Y+h+1,w-4,1);
+  ctx.fillStyle=T0.P;ctx.fillRect(X,Y,w,h);ctx.fillRect(X+1,Y+h,w-2,1);
+  ctx.fillStyle=T0.L;ctx.fillRect(X,Y,w,1);ctx.fillRect(X,Y,1,h-1);
+  ctx.fillStyle=T0.Q;ctx.fillRect(X+w-1,Y+1,1,h-1);
+  digits(n,Math.round(x-digW(n)/2),Y+3,'#ffffff','#000000');
+  if(big){ctx.fillStyle='#ffe070';ctx.fillRect(X-1,Y-2,w+2,1)}
+}
+function castle(x,y){
+  const c='#f0d060',d='#a07818',k='#3a2810';
+  ctx.fillStyle=k;ctx.fillRect(x-7,y-9,15,10);
+  ctx.fillStyle=c;ctx.fillRect(x-6,y-8,13,8);ctx.fillStyle=d;ctx.fillRect(x-6,y-1,13,1);
+  for(const dx of [-6,-2,2,6]){ctx.fillStyle=k;ctx.fillRect(x+dx-1,y-12,3,4);ctx.fillStyle=c;ctx.fillRect(x+dx,y-11,1,3)}
+  ctx.fillStyle=k;ctx.fillRect(x-1,y-4,3,4);ctx.fillStyle='#ff5050';ctx.fillRect(x,y-15,3,2);ctx.fillStyle=k;ctx.fillRect(x-1,y-15,1,4);
+}
+function lanes(ox,oy){
+  ctx.fillStyle='rgba(230,240,255,.55)';
+  for(const t of T)for(const b of t.lanes||[]){const B=T[b];const L=Math.hypot(B.x-t.x,B.y-t.y);for(let s=0;s<L;s+=3){const x=t.x+(B.x-t.x)*s/L,y=t.y+(B.y-t.y)*s/L;if(R[(y|0)*MW+(x|0)]>=0)continue;ctx.fillRect(Math.round(x+ox),Math.round(y+oy),1,1)}}
+}
+// ---------- camera for the field view ----------
+const CX=MW/2,CY=MH/2+4;
+function camPos(){const C=V.cam;const fx=Math.cos(C.ang),fy=Math.sin(C.ang);return{x:CX-fx*C.dist,y:CY-fy*C.dist,fx,fy,rx:-fy,ry:fx}}
+function project(wx,wy){const C=V.cam,P=camPos();const dx=wx-P.x,dy=wy-P.y;const z=dx*P.fx+dy*P.fy;if(z<8)return null;const lat=dx*P.rx+dy*P.ry;return{x:W/2+lat*C.f/z,y:C.H0+C.h*C.f/z,s:C.f/z,z}}
+const out=ctx.createImageData(W,H),o32=new Uint32Array(out.data.buffer);
+let env=null,sky=null,skyKey='';
+function curTime(){return env?ENV.timeOf(env,G?G.round:1,G?G.turn:0):.3}
+function light(){return env?ENV.light(env,curTime()):{tint:[255,255,255],night:0,fogAmt:0,fogStart:9999,fogCol:[0,0,0]}}
+function renderField(t){
+  const C=V.cam,P=camPos(),LT=light();const deep=[hx('#1c3a88'),hx('#22489c'),hx('#4c88d4')];
+  for(let y=C.H0+1;y<H;y++){const z=C.h*C.f/(y-C.H0);let wx=P.x+P.fx*z+P.rx*(-W/2)*z/C.f,wy=P.y+P.fy*z+P.ry*(-W/2)*z/C.f;const sx=P.rx*z/C.f,sy=P.ry*z/C.f;
+    const fog=Math.min(LT.fogAmt,Math.max(0,(z-LT.fogStart)/600));const fr=LT.fogCol[0]*fog,fg=LT.fogCol[1]*fog,fb=LT.fogCol[2]*fog,keep=1-fog;let i=y*W;
+    for(let x=0;x<W;x++,i++){const ix=wx|0,iy=wy|0;let p;if(ix>=0&&iy>=0&&ix<MW&&iy<MH)p=TEX[iy*MW+ix];else{const v=((ix>>3)*7+(iy>>3)*13+((t/350)|0))&15;p=v===0?deep[2]:v<7?deep[1]:deep[0]}
+      if(fog>0){const r=p&255,g=(p>>8)&255,b=(p>>16)&255;p=0xff000000|((b*keep+fb)<<16)|((g*keep+fg)<<8)|(r*keep+fr)}o32[i]=p;wx+=sx;wy+=sy}}
+  ctx.putImageData(out,0,0,0,C.H0+1,W,H-C.H0-1);
+  const tm=curTime();const k=env.season+'|'+env.weather+'|'+Math.round(tm*64);if(!sky||k!==skyKey){skyKey=k;sky=ENV.buildSky(env,tm,ENV.light(env,tm))}
+  const off=((C.ang/(Math.PI*2))*1024%1024+1024)%1024;
+  ctx.drawImage(sky,off,120-C.H0-1,Math.min(1024-off,W),C.H0+1,0,0,Math.min(1024-off,W),C.H0+1);
+  if(1024-off<W)ctx.drawImage(sky,0,120-C.H0-1,W-(1024-off),C.H0+1,1024-off,0,W-(1024-off),C.H0+1);
+}
+const rankFor=n=>n>=12?8:n>=7?7:n>=4?6:n>=2?5:4;
+function drawPieces(t){
+  if(!G)return;
+  if(V.mode==='map'){
+    lanes(0,0);
+    castle(T[CW.THRONE].x,T[CW.THRONE].y-6);
+    for(const tt of T){const p=G.owner[tt.id];const bob=(V.sel===tt.id)?Math.round(Math.sin(t/120)):0;shield(tt.x,tt.y+(tt.id===CW.THRONE?3:0)-bob,p,G.armies[tt.id],V.sel===tt.id)}
+  }else{
+    const list=[];for(const tt of T){const pr=project(tt.x,tt.y);if(!pr||pr.x<-30||pr.x>W+30)continue;list.push({tt,pr})}
+    list.sort((a,b)=>b.pr.z-a.pr.z);
+    for(const {tt,pr} of list){const p=G.owner[tt.id],n=G.armies[tt.id],s=pr.s*.95;const sp=PX.sprite(tt.id===CW.THRONE&&n>=1?9:rankFor(n),p);
+      const sw=Math.max(2,Math.round(16*s)),sh=Math.max(3,Math.round(24*s));const bob=V.sel===tt.id?Math.round(Math.sin(t/120)*2):0;
+      const bx=Math.round(pr.x-sw/2),by=Math.round(pr.y-sh-bob);
+      ctx.fillStyle='rgba(0,0,0,.35)';ctx.fillRect(Math.round(pr.x-6*s),Math.round(pr.y-1),Math.round(12*s),Math.max(1,Math.round(2*s)));
+      ctx.drawImage(sp,bx,by,sw,sh);
+      if(s>.55)shield(pr.x,by-6,p,n,V.sel===tt.id)}
+  }
+}
+function labels(){
+  if(V.mode!=='map')return;
+  for(const C of CONT){const s=`${C.name.toUpperCase()} +${C.bonus}`;const x=Math.round(C.label[0]-PX.textW(s)/2),y=C.label[1]-4;PX.text(ctx,s,x,y,G&&C.terr.every(id=>G.owner[id]===G.owner[C.terr[0]])?TM[G.owner[C.terr[0]]].L:'#d8e4ff',1,'#0c1440')}
+}
+function hud(t){
+  if(V.title||!G)return;
+  const p=G.turn,T0=TM[p];
+  if(!G.over){
+    const ph={deploy:'DEPLOY',reinforce:'REINFORCE',attack:'ATTACK',fortify:'FORTIFY'}[G.phase]||'';
+    const s=`${D[p].name.toUpperCase()} - ${ph}${(G.phase==='reinforce'||G.phase==='deploy')&&G.reserve[p]>0?' - '+G.reserve[p]+' TO PLACE':''}`;
+    const w=PX.textW(s)+12;ctx.fillStyle='rgba(8,12,40,.82)';ctx.fillRect(4,4,w+12,15);ctx.fillStyle=T0.P;ctx.fillRect(4,4,4,15);PX.text(ctx,s,14,8,'#fff',1,'#000');
+    const r=`ROUND ${G.round}`;PX.text(ctx,r,W-PX.textW(r)-6,8,'#e8e0c0',1,'#000');
+  }
+  if(V.hover>=0){const tt=T[V.hover];const s=`${tt.name.toUpperCase()} - ${CONT[tt.cont].name.toUpperCase()}`;ctx.fillStyle='rgba(8,12,40,.72)';ctx.fillRect(4,H-15,PX.textW(s)+8,12);PX.text(ctx,s,8,H-13,'#ffe070')}
+}
+function drawFloats(){
+  for(const f of V.floats){f.life--;let x=f.x,y=f.y;if(V.mode==='field'){const p=project(f.x,f.y);if(!p)continue;x=p.x;y=p.y-20*p.s}y-=(f.max-f.life)*.35;
+    PX.text(ctx,f.s,Math.round(x-PX.textW(f.s)/2),Math.round(y-12),f.c,1,'#000')}
+  V.floats=V.floats.filter(f=>f.life>0);
+  for(const q of V.parts){q.x+=q.vx;q.y+=q.vy;q.vy+=.08;q.life--;let x=q.x,y=q.y;if(V.mode==='field'){const p=project(q.x,q.y);if(!p)continue;x=p.x;y=p.y-(q.z||0)}ctx.fillStyle=q.c;ctx.fillRect(Math.round(x),Math.round(y),1,1)}
+  V.parts=V.parts.filter(q=>q.life>0);
+}
+function floatText(id,s,c){const t=T[id];V.floats.push({x:t.x,y:t.y,s,c,life:80,max:80})}
+function burst(id,cols,n){const t=T[id];for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,v=Math.random()*1.4+.3;V.parts.push({x:t.x,y:t.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-1,c:cols[i%cols.length],life:40+Math.random()*20})}}
+function flash(id,c,ms){V.flash[id]={c:hx(c),until:performance.now()+ms,len:ms}}
+// an arrow from one territory to another (attacks and marches)
+function drawArrow(t){
+  const a=V.arrow;if(!a||a.until<t)return;
+  let A={x:T[a.from].x,y:T[a.from].y},B={x:T[a.to].x,y:T[a.to].y};
+  if(V.mode==='field'){const p=project(A.x,A.y),q=project(B.x,B.y);if(!p||!q)return;A={x:p.x,y:p.y-8};B={x:q.x,y:q.y-8}}
+  const L=Math.hypot(B.x-A.x,B.y-A.y);const k=Math.min(1,(t-a.t0)/250);ctx.fillStyle=a.c;
+  for(let s=0;s<L*k;s+=1){const x=A.x+(B.x-A.x)*s/L,y=A.y+(B.y-A.y)*s/L;ctx.fillRect(Math.round(x),Math.round(y),2,2)}
+  if(k>=1){const ux=(B.x-A.x)/L,uy=(B.y-A.y)/L;for(let i=0;i<6;i++){ctx.fillRect(Math.round(B.x-ux*i-uy*i*.6),Math.round(B.y-uy*i+ux*i*.6),2,2);ctx.fillRect(Math.round(B.x-ux*i+uy*i*.6),Math.round(B.y-uy*i-ux*i*.6),2,2)}}
+}
+// ---------- the dice battle ----------
+const DIE_PIPS={1:[[1,1]],2:[[0,0],[2,2]],3:[[0,0],[1,1],[2,2]],4:[[0,0],[2,0],[0,2],[2,2]],5:[[0,0],[2,0],[1,1],[0,2],[2,2]],6:[[0,0],[2,0],[0,1],[2,1],[0,2],[2,2]]};
+function die(x,y,f,red,glow,dim){
+  x=Math.round(x);y=Math.round(y);
+  ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillRect(x+2,y+3,16,16);
+  ctx.fillStyle=glow?'#ffe070':'#14101c';ctx.fillRect(x-1,y-1,18,18);
+  ctx.fillStyle=red?'#d02c3c':'#f4f0e6';ctx.fillRect(x,y,16,16);
+  ctx.fillStyle=red?'#ff7080':'#ffffff';ctx.fillRect(x,y,16,2);ctx.fillRect(x,y,2,16);
+  ctx.fillStyle=red?'#8c1424':'#b8b0a0';ctx.fillRect(x+14,y+2,2,14);ctx.fillRect(x+2,y+14,14,2);
+  ctx.fillStyle=red?'#ffffff':'#20182c';for(const [a,b] of DIE_PIPS[f])ctx.fillRect(x+3+a*4,y+3+b*4,3,3);
+  if(dim){ctx.fillStyle='rgba(10,10,20,.55)';ctx.fillRect(x-1,y-1,18,18)}
+}
+function drawBattle(t){
+  const B=V.battle;if(!B)return;
+  const k=t-B.t0;
+  ctx.fillStyle='rgba(6,8,24,.72)';ctx.fillRect(0,0,W,H);
+  // banner strip
+  const g=ctx.createLinearGradient(0,40,0,200);g.addColorStop(0,'#283c94');g.addColorStop(1,'#0c1440');ctx.fillStyle=g;ctx.fillRect(0,36,W,170);
+  ctx.fillStyle='#f0f0ff';ctx.fillRect(0,36,W,2);ctx.fillRect(0,204,W,2);
+  const A=TM[B.p],Dd=TM[B.q];
+  ctx.fillStyle=A.P;ctx.fillRect(0,38,W/2,4);ctx.fillStyle=Dd.P;ctx.fillRect(W/2,38,W/2,4);
+  const an=`${D[B.p].name.toUpperCase()} - ${T[B.from].name.toUpperCase()}`,dn=`${T[B.to].name.toUpperCase()} - ${D[B.q].name.toUpperCase()}`;
+  PX.text(ctx,an,12,48,A.L,1,'#000');PX.text(ctx,dn,W-12-PX.textW(dn),48,Dd.L,1,'#000');
+  const r=B.rolls[B.i];const per=B.fast?260:780;const step=Math.min(B.rolls.length-1,Math.floor(k/per));if(step!==B.i){B.i=step;B.applied=false;SND.play('dice')}
+  const kk=k-B.i*per,tumble=kk<per*.45;const cur=B.rolls[B.i];
+  // armies left, counted down roll by roll
+  const fa=B.fa[B.i]-(tumble?0:cur.al),fd=B.fd[B.i]-(tumble?0:cur.dl);
+  const soldiers=(n,p,rank,x0,dir,lost)=>{const m=Math.min(n,8);for(let i=0;i<m;i++){const x=x0+dir*((i%4)*20),y=104+Math.floor(i/4)*26-(i%2)*3;ctx.drawImage(PX.sprite(rank,p),Math.round(x),y)}
+    if(n>8)PX.text(ctx,'+'+(n-8),x0+dir*86,128,'#fff',1,'#000')};
+  soldiers(fa,B.p,7,18,1);soldiers(fd,B.q,5,W-34,-1);
+  shield(64,92,B.p,Math.max(0,fa),true);shield(W-64,92,B.q,Math.max(0,fd),true);
+  // the dice
+  const show=(arr,red,x0)=>arr.forEach((f,i)=>{const face=tumble?1+Math.floor(Math.random()*6):f;const jx=tumble?(Math.random()-.5)*6:0,jy=tumble?(Math.random()-.5)*6-Math.sin(kk/40+i)*6:0;
+    const win=!tumble&&i<Math.min(cur.A.length,cur.D.length)&&(red?cur.A[i]>cur.D[i]:cur.A[i]<=cur.D[i]);const lose=!tumble&&i<Math.min(cur.A.length,cur.D.length)&&!win;
+    die(x0+jx,70+i*24+jy,face,red,win,lose)});
+  show(cur.A,true,W/2-40);show(cur.D,false,W/2+24);
+  if(!tumble){for(let i=0;i<Math.min(cur.A.length,cur.D.length);i++){const y=78+i*24;const aw=cur.A[i]>cur.D[i];ctx.fillStyle=aw?A.L:Dd.L;PX.text(ctx,aw?'>':'<',W/2-5,y-3,aw?'#ffe070':'#ffffff',1,'#000')}
+    if(cur.al)PX.text(ctx,'-'+cur.al,60,64,'#ff8080',1,'#000');if(cur.dl)PX.text(ctx,'-'+cur.dl,W-70,64,'#ff8080',1,'#000');
+    if(!B.applied){B.applied=true;if(cur.al||cur.dl){SND.play('clash');V.shake=4}}}
+  const last=B.i===B.rolls.length-1&&!tumble;
+  if(last){const end=B.rolls[B.rolls.length-1];const msg=end.conquered?'CONQUERED!':fa<=1?'THE ATTACK FAILS':'';
+    if(msg){const w=PX.textW(msg,2);ctx.fillStyle='rgba(8,12,40,.85)';ctx.fillRect(W/2-w/2-8,178,w+16,22);PX.text(ctx,msg,Math.round(W/2-w/2),182,end.conquered?'#ffe070':'#ff9090',2,'#000')}}
+  PX.text(ctx,'CLICK TO SKIP',W-PX.textW('CLICK TO SKIP')-6,H-10,'#8890c0');
+  if(k>B.rolls.length*per+(B.fast?300:900)||B.skip){const done=B.done;V.battle=null;done&&done()}
+}
+function playBattle(p,q,from,to,rolls,fa0,fd0){
+  return new Promise(res=>{if(!rolls.length)return res();
+    const fa=[],fd=[];let a=fa0,d=fd0;for(const r of rolls){fa.push(a);fd.push(d);a-=r.al;d-=r.dl}
+    const fast=S.battle==='quick'||rolls.length>3;
+    const sh=rolls.length>10?rolls.slice(-6):rolls;const off=rolls.length-sh.length;
+    V.battle={p,q,from,to,rolls:sh,fa:fa.slice(off),fd:fd.slice(off),i:-1,t0:performance.now(),fast,done:res};SND.play('swing')})
+}
+// ---------- the frame ----------
+function frame(t){
+  const C=V.cam;let d=C.want-C.ang;while(d>Math.PI)d-=Math.PI*2;while(d<-Math.PI)d+=Math.PI*2;C.ang+=d*.08;if(V.title)C.want+=.0022;
+  {const tg=V.title?62:40;if(C.H0!==tg)C.H0+=Math.sign(tg-C.H0)}
+  compose(t);
+  ctx.save();if(V.shake>0){ctx.translate(Math.round((Math.random()-.5)*V.shake),Math.round((Math.random()-.5)*V.shake));V.shake*=.85;if(V.shake<.5)V.shake=0}
+  const field=V.mode==='field'||V.title;const old=V.mode;if(V.title)V.mode='field';
+  if(field)renderField(t);else{tex32.set(TEX);texCtx.putImageData(texImg,0,0);ctx.fillStyle='#1c3a88';ctx.fillRect(0,0,W,H);ctx.drawImage(texCv,0,0)}
+  labels();drawPieces(t);drawArrow(t);drawFloats();
+  // time of day and weather over the world
+  const L=light();ctx.save();ctx.globalCompositeOperation='multiply';ctx.fillStyle=`rgb(${L.tint[0]},${L.tint[1]},${L.tint[2]})`;const top=field?C.H0+1:0;ctx.fillRect(0,top,W,H-top);ctx.restore();
+  if(env)ENV.ambience(ctx,W,H,env,L,t,field?C.H0:0);
+  V.mode=old;
+  hud(t);drawBattle(t);
+  if(V.title)titleText();
+  ctx.restore();
+}
+function titleText(){
+  ctx.fillStyle='rgba(6,8,30,.3)';ctx.fillRect(0,0,W,H);
+  const s1='THE FIRST',s2='CROWN';PX.text(ctx,s1,Math.round(W/2-PX.textW(s1,3)/2),34,'#ffffff',3,'#20184c');PX.text(ctx,s2,Math.round(W/2-PX.textW(s2,4)/2),62,'#ffe070',4,'#5a2c08');
+  const sub='CONQUER THE WORLD. RAISE THALMAR. SET THE THRONE.';PX.text(ctx,sub,Math.round(W/2-PX.textW(sub)/2),104,'#c8d8ff',1,'#000');
+}
+// ---------- picking ----------
+function worldAt(mx,my){
+  if(V.mode==='map')return{x:mx,y:my};
+  const C=V.cam,P=camPos();if(my<=C.H0+1)return null;const z=C.h*C.f/(my-C.H0);const lat=(mx-W/2)*z/C.f;return{x:P.x+P.fx*z+P.rx*lat,y:P.y+P.fy*z+P.ry*lat};
+}
+function pick(mx,my){
+  if(V.mode==='map'){for(const t of T){if(Math.abs(mx-t.x)<=7&&Math.abs(my-t.y)<=6)return t.id}}
+  const w=worldAt(mx,my);if(!w)return-1;const x=w.x|0,y=w.y|0;if(x<0||y<0||x>=MW||y>=MH)return-1;
+  const id=R[y*MW+x];if(id>=0)return id;
+  // a click just off the coast still finds the nearest territory
+  let best=-1,bd=8;for(const t of T){const d=Math.hypot(t.x-w.x,t.y-w.y);if(d<bd){bd=d;best=t.id}}return best;
+}
+// ---------- side panels ----------
+const dom=p=>`<b style="color:${TM[p].L}">${D[p].name}</b>`;
+const humans=()=>G?[...Array(G.np).keys()].filter(p=>G.ctrl[p]==='human'):[];
+function info(id){
+  if(id<0||!G){return}
+  const t=T[id],p=G.owner[id],C=CONT[t.cont];
+  const own=C.terr.filter(x=>G.owner[x]===p).length;
+  let odds='';
+  if(V.sel!=null&&G.phase==='attack'&&CW.canAttack(G,V.sel,id)){const w=CW.winChance(G.armies[V.sel],G.armies[id]);odds=`<div class="odds"><span>Chance to take it if you attack to the end:</span><b style="color:${w>.66?'#8ce07c':w>.4?'#ffe070':'#ff8080'}">${Math.round(w*100)}%</b><i style="width:${Math.round(w*100)}%"></i></div>`}
+  $('#infoBox').innerHTML=`<h3>${esc(t.name)}</h3>
+   <p>${dom(p)} · <b>${G.armies[id]}</b> ${G.armies[id]===1?'army':'armies'}${id===CW.THRONE?' · <span style="color:#ffe070">the Throne: +1 army a turn to whoever holds it</span>':''}</p>
+   <p class="muted">${esc(C.name)} (+${C.bonus} armies a turn to whoever holds all ${C.terr.length}) · ${dom(p)} holds ${own} of ${C.terr.length}</p>
+   <p class="muted" style="font-size:.84rem">Borders: ${t.adj.map(n=>`<span style="color:${TM[G.owner[n]].L}">${esc(T[n].name)}</span>`).join(', ')}</p>${odds}`;
+}
+function renderPlayers(){
+  if(!G){$('#doms').innerHTML='';return}
+  $('#domBox h3').textContent='Warlords';
+  $('#doms').innerHTML=[...Array(G.np).keys()].map(p=>{const st=CW.stats(G,p);const inc=G.alive[p]?CW.income(G,p).total:0;
+    const who=G.ctrl[p]==='human'?(humans().length>1?'Human':'You'):`Computer · ${G.diff[p]}`;
+    const tm=G.team?` <span class="tm t${G.team[p]}">Team ${'ABC'[G.team[p]]}</span>`:'';
+    return `<div class="dom ${G.alive[p]?'':'dead'} ${G.turn===p&&!G.over?'turn':''}"><span class="sw" style="background:${TM[p].P}"></span><span><b>${D[p].name}</b>${tm} <span class="muted" style="font-size:.8rem">${who}</span></span><span></span>
+     <div class="meta">${G.alive[p]?`${st.terr} territories · ${st.armies} armies · ${st.cards} card${st.cards===1?'':'s'} · +${inc} a turn${st.conts.length?`<br>Holds ${st.conts.map(esc).join(', ')}`:''}${G.owner[CW.THRONE]===p?' · <span style="color:#ffe070">holds the Throne</span>':''}`:`Driven out by ${D[G.elim[p]].name}`}</div></div>`}).join('');
+}
+function renderLog(){$('#log').innerHTML=G?G.log.slice(-40).reverse().map(l=>`<div style="border-color:${l.p>=0?TM[l.p].P:'transparent'}"><span class="muted">${l.round}</span> ${esc(l.t)}</div>`).join(''):''}
+function renderAll(){renderPlayers();renderLog()}
+const KIND_ICON=['⚔','🐎','🏹','★'];
+function cardsHTML(p){const cs=G.cards[p];if(!cs.length)return '<p class="muted" style="font-size:.85rem">No cards yet. Take at least one territory in a turn to earn a card.</p>';
+  return `<div class="cards">${cs.map(c=>`<span class="card k${c.k}" title="${c.k===3?'Wild':CW.CARD_KIND[c.k]}">${KIND_ICON[c.k]}<small>${c.t>=0?esc(T[c.t].name):'Wild'}</small></span>`).join('')}</div>
+   <p class="muted" style="font-size:.8rem">Trade three of a kind, one of each, or any two with a wild. The next set is worth <b>${CW.tradeValue(G.trades)}</b> armies.</p>`}
+// ---------- the turn ----------
+function setBox(html){$('#turnBox').innerHTML=html}
+function music(){if(!G||V.title)return;const tn=G.owner[CW.THRONE];const lead=Math.max(...[...Array(G.np).keys()].map(p=>CW.owned(G,p).length));SND.song(S.songLock&&SND.SONGS[S.songLock]?S.songLock:G.over?'crowned':lead>=22||G.alive.filter(Boolean).length<=2?'throne':'march');UI.renderCorner()}
+async function loop(my){
+  while(G&&!G.over&&my===token){
+    const p=G.turn;renderAll();music();
+    if(G.phase==='deploy'){await deployPhase(my);continue}
+    if(G.ctrl[p]==='ai')await aiTurn(p,my);else await humanTurn(p,my);
+    if(my!==token)return;
+    if(!G.over){CW.endTurn(G);ENV.advance(env,G.round);save()}
+  }
+  if(G&&G.over&&my===token)gameOver();
+}
+async function deployPhase(my){
+  for(let p=0;p<G.np;p++){if(my!==token)return;if(G.reserve[p]<=0)continue;
+    if(G.ctrl[p]==='ai'||G.deployMode==='auto'){CW.autoDeploy(G,p);continue}
+    G.turn=p;renderAll();await placing(p,my,true)}
+  if(my!==token)return;
+  CW.startPlay(G);renderAll();
+}
+function placing(p,my,first){
+  return new Promise(res=>{
+    const draw=()=>{const r=G.reserve[p];
+      setBox(`<h3>${D[p].name}: ${first?'deploy your armies':'reinforce'}</h3>
+       <p>${r>0?`Click your territories to place armies. <b>${r}</b> left to place.`:'All armies placed.'}${!first&&G.lastIncome?` <span class="muted">(${G.lastIncome.base} for territories${G.lastIncome.conts.length?' + '+G.lastIncome.conts.map(esc).join(', '):''}${G.lastIncome.throne?' + 1 for the Throne':''})</span>`:''}</p>
+       <div class="drow"><span class="muted">Each click places</span><span class="seg" id="amt">${[1,3,5,'all'].map(v=>`<button data-v="${v}" class="${String(S.crownAmt||1)===String(v)?'on':''}">${v==='all'?'All':'+'+v}</button>`).join('')}</span></div>
+       ${first?'':`<h3 style="margin-top:8px">Cards</h3>${cardsHTML(p)}`}
+       <div class="drow">${first?'':`<button class="btn sm" id="cTrade" ${CW.findSet(G.cards[p])?'':'disabled'}>Trade a set</button>`}<button class="btn sm" id="cAuto">Place for me</button><button class="btn sm" id="cUndo" ${Object.keys(G.placed).length?'':'disabled'}>Undo</button><span style="flex:1"></span><button class="btn gold" id="cDone" ${r>0?'disabled':''}>${first?'Done':'To battle ⚔'}</button></div>
+       ${!first&&G.cards[p].length>=5?'<p style="color:#ffe070;font-size:.85rem">You hold five cards: you must trade a set.</p>':''}`);
+      $('#amt').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.crownAmt=b.dataset.v==='all'?'all':+b.dataset.v;UI.saveS();draw()};
+      if($('#cTrade'))$('#cTrade').onclick=()=>{const v=CW.tradeCards(G,p);if(v){SND.play('card');UI.toast(`Cards traded for <b>${v}</b> armies.`);renderAll();draw()}};
+      $('#cAuto').onclick=()=>{const before=G.armies.slice();while(G.cards[p].length>=5&&CW.findSet(G.cards[p]))CW.tradeCards(G,p);CW.autoDeploy(G,p);for(const t of T)if(G.armies[t.id]>before[t.id]){G.placed[t.id]=(G.placed[t.id]||0)+G.armies[t.id]-before[t.id];floatText(t.id,'+'+(G.armies[t.id]-before[t.id]),'#ffe070')}SND.play('place');renderAll();draw()};
+      $('#cUndo').onclick=()=>{CW.undoPlacement(G,p);renderAll();draw()};
+      $('#cDone').onclick=()=>{if(G.reserve[p]>0)return;if(!first&&G.cards[p].length>=5){UI.toast('Trade a set of cards first.');return}waiting=null;V.targets=[];G.placed={};res()};
+    };
+    V.tkind='place';V.targets=CW.owned(G,p);V.sel=null;
+    waiting={click(id){if(id<0||G.owner[id]!==p)return;if(!first&&G.cards[p].length>=5&&CW.findSet(G.cards[p])){UI.toast('You hold five cards: trade a set first.');return}
+      const a=S.crownAmt==='all'?G.reserve[p]:S.crownAmt||1;const n=CW.place(G,p,id,a);if(n){floatText(id,'+'+n,'#ffe070');SND.play('place');info(id);renderAll();draw()}}};
+    draw();
+  });
+}
+async function humanTurn(p,my){
+  if(humans().length>1)UI.toast(`${dom(p)}'s turn.`,1600);
+  V.mode=S.crownView||V.mode;
+  await placing(p,my,false);if(my!==token)return;
+  G.phase='attack';await attacking(p,my);if(my!==token||G.over)return;
+  G.phase='fortify';await fortifying(p,my);
+}
+function attacking(p,my){
+  return new Promise(res=>{
+    let target=null;
+    const draw=()=>{
+      const s=V.sel,tg=target;
+      if(G.pendingMove){const m=G.pendingMove;
+        setBox(`<h3>${esc(T[m.to].name)} is yours!</h3><p>How many armies march in from ${esc(T[m.from].name)}?</p>
+          <div class="drow"><input type="range" id="mv" min="${m.min}" max="${m.max}" value="${m.max}" style="flex:1"><b id="mvn">${m.max}</b></div>
+          <div class="drow"><button class="btn sm" id="mvMin">${m.min}</button><button class="btn sm" id="mvHalf">Half</button><button class="btn sm" id="mvMax">All ${m.max}</button><span style="flex:1"></span><button class="btn gold" id="mvGo">March</button></div>`);
+        const r=$('#mv');r.oninput=()=>$('#mvn').textContent=r.value;
+        $('#mvMin').onclick=()=>{r.value=m.min;r.oninput()};$('#mvHalf').onclick=()=>{r.value=Math.max(m.min,Math.round(m.max/2));r.oninput()};$('#mvMax').onclick=()=>{r.value=m.max;r.oninput()};
+        $('#mvGo').onclick=()=>{const n=+r.value;const to=m.to;CW.moveIn(G,n);SND.play('move');floatText(to,'+'+n,'#ffffff');V.sel=G.armies[to]>=2&&CW.attackTargets(G,to).length?to:null;target=null;V.targets=V.sel!=null?CW.attackTargets(G,V.sel):[];renderAll();if(G.over){waiting=null;res();return}draw()};
+        return}
+      if(s!=null&&tg!=null){const a=Math.min(3,G.armies[s]-1);const w=CW.winChance(G.armies[s],G.armies[tg]);
+        setBox(`<h3>Attack ${esc(T[tg].name)}</h3><p>${esc(T[s].name)} (<b>${G.armies[s]}</b>) against ${esc(T[tg].name)} (<b>${G.armies[tg]}</b>, ${dom(G.owner[tg])}). Chance to take it if you fight to the end: <b>${Math.round(w*100)}%</b>.</p>
+         <div class="drow"><span class="muted">Dice</span><span class="seg" id="dice">${[1,2,3].map(n=>`<button data-v="${n}" ${n>a?'disabled':''} class="${Math.min(a,S.crownDice||3)===n?'on':''}">${n}</button>`).join('')}</span></div>
+         <div class="drow"><button class="btn sm" id="aCancel">Cancel</button><span style="flex:1"></span><button class="btn" id="aRoll">🎲 Roll</button><button class="btn gold" id="aBlitz" title="Keep rolling until it falls or you have one army left">⚔ Blitz</button></div>`);
+        $('#dice').onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;S.crownDice=+b.dataset.v;UI.saveS();draw()};
+        $('#aCancel').onclick=()=>{target=null;draw()};
+        $('#aRoll').onclick=()=>doAttack(false);$('#aBlitz').onclick=()=>doAttack(true);
+        return}
+      setBox(`<h3>${D[p].name}: attack</h3><p>${s==null?'Pick one of your territories with at least 2 armies, then a neighbouring enemy (framed in red).':`Attacking from <b>${esc(T[s].name)}</b>. Pick a target framed in red, or another of your territories.`}</p>
+       <p class="muted" style="font-size:.85rem">${G.conquered?'You have earned a card this turn.':'Take at least one territory to earn a card.'} Attacking is optional.</p>
+       <div class="drow"><button class="btn sm" id="aHint" title="Suggest a good attack (H)">💡 Suggest an attack</button><span style="flex:1"></span><button class="btn gold" id="aEnd">End attacks →</button></div>`);
+      $('#aEnd').onclick=()=>{waiting=null;hintFn=null;V.sel=null;V.targets=[];res()};
+      $('#aHint').onclick=hint;
+    };
+    const hint=()=>{const d=G.diff[p];G.diff[p]='hard';const a=CW.aiBestAttack(G,p);G.diff[p]=d;
+      if(!a){UI.toast('No attack looks worth it right now. Holding your ground is fine.',2400);return}
+      V.sel=a.from;V.targets=CW.attackTargets(G,a.from);target=a.to;SND.play('select');info(a.to);V.arrow={from:a.from,to:a.to,t0:performance.now(),until:performance.now()+1600,c:'#ffe070'};draw()};
+    hintFn=hint;
+    const doAttack=async blitz=>{
+      const s=V.sel,tg=target;if(s==null||tg==null||!CW.canAttack(G,s,tg))return;
+      const q=G.owner[tg],fa=G.armies[s],fd=G.armies[tg];V.arrow={from:s,to:tg,t0:performance.now(),until:performance.now()+1500,c:TM[p].L};
+      const rolls=blitz?CW.blitz(G,s,tg,1):[CW.attackOnce(G,s,tg,S.crownDice||3)];
+      waiting.busy=true;
+      if(S.battle!=='off')await playBattle(p,q,s,tg,rolls,fa,fd);else{SND.play('dice');await sleep(200)}
+      waiting.busy=false;
+      const last=rolls[rolls.length-1];
+      if(last.conquered){SND.play('horn');burst(tg,[TM[p].P,TM[p].L,'#fff'],24);flash(tg,TM[p].L,800);V.shake=6;if(last.eliminated!=null)UI.toast(`<b style="color:${TM[last.eliminated].L}">${D[last.eliminated].name}</b> is driven from the world!`,3000);
+        if(tg===CW.THRONE)UI.toast(`<b>You seize the Throne of Thalmar!</b> It is worth one extra army a turn.`,2600);
+        if(G.pendingMove&&G.pendingMove.min===G.pendingMove.max){const to=G.pendingMove.to;CW.moveIn(G,G.pendingMove.max);V.sel=G.armies[to]>=2?to:null;target=null}}
+      else if(G.armies[s]<2||!blitz){if(G.armies[s]<2){V.sel=null;target=null}}
+      if(!last.conquered&&blitz){target=null}
+      V.targets=V.sel!=null?CW.attackTargets(G,V.sel):[];renderAll();info(tg);
+      if(G.over){waiting=null;res();return}
+      draw();
+    };
+    V.tkind='attack';V.sel=null;V.targets=[];
+    waiting={click(id){if(this.busy||G.pendingMove)return;if(id<0)return;
+      if(G.owner[id]===p){if(G.armies[id]<2){UI.toast('You need at least 2 armies to attack from there.',1600);V.sel=null;V.targets=[];target=null;draw();return}
+        if(G.round<=1){UI.toast('The first round is a truce: no one may attack until round 2.',2200);return}
+        V.sel=V.sel===id?null:id;target=null;V.targets=V.sel!=null?CW.attackTargets(G,V.sel):[];SND.play('select');if(V.sel!=null&&!V.targets.length)UI.toast('No enemies border that territory.',1600);draw();info(id);return}
+      if(V.sel!=null&&V.targets.includes(id)){if(target===id){doAttack(false);return}target=id;SND.play('select');draw();info(id);return}
+      info(id)}};
+    if(G.round<=1){setBox(`<h3>Round one: a truce</h3><p>No one attacks in the first round. Every warlord gathers their armies first.</p><div class="drow"><span style="flex:1"></span><button class="btn gold" id="aEnd">Continue →</button></div>`);$('#aEnd').onclick=()=>{waiting=null;res()};return}
+    draw();
+  });
+}
+function fortifying(p,my){
+  return new Promise(res=>{
+    let target=null;
+    const draw=()=>{const s=V.sel;
+      if(s!=null&&target!=null){const max=G.armies[s]-1;
+        setBox(`<h3>March to ${esc(T[target].name)}</h3><p>Move armies from ${esc(T[s].name)} along your own lands. This ends your turn.</p>
+          <div class="drow"><input type="range" id="fv" min="1" max="${max}" value="${max}" style="flex:1"><b id="fvn">${max}</b></div>
+          <div class="drow"><button class="btn sm" id="fCancel">Cancel</button><span style="flex:1"></span><button class="btn gold" id="fGo">March and end turn</button></div>`);
+        const r=$('#fv');r.oninput=()=>$('#fvn').textContent=r.value;$('#fCancel').onclick=()=>{target=null;draw()};
+        $('#fGo').onclick=()=>{const n=+r.value;CW.fortify(G,s,target,n);SND.play('move');floatText(target,'+'+n,'#80ff90');V.arrow={from:s,to:target,t0:performance.now(),until:performance.now()+1200,c:'#80ff90'};waiting=null;V.sel=null;V.targets=[];renderAll();res()};
+        return}
+      setBox(`<h3>${D[p].name}: fortify</h3><p>${s==null?'You may make one march: pick a territory with spare armies, then one of your own territories it connects to (framed in green).':`From <b>${esc(T[s].name)}</b>: pick where to march.`}</p>
+        <div class="drow"><span style="flex:1"></span><button class="btn gold" id="fEnd">End turn</button></div>`);
+      $('#fEnd').onclick=()=>{waiting=null;V.sel=null;V.targets=[];res()};
+    };
+    V.tkind='fort';V.sel=null;V.targets=[];
+    waiting={click(id){if(id<0)return;
+      if(V.sel!=null&&V.targets.includes(id)){target=id;draw();return}
+      if(G.owner[id]===p&&G.armies[id]>=2){V.sel=V.sel===id?null:id;target=null;V.targets=V.sel!=null?CW.reachable(G,V.sel):[];SND.play('select');draw();info(id);return}
+      info(id)}};
+    draw();
+  });
+}
+async function aiTurn(p,my){
+  const k=delay();const watch=humans().length>0;
+  setBox(`<h3>${D[p].name} is thinking</h3><p class="muted">${esc(D[p].host)} gathers its strength.</p>`);
+  await sleep(350*k);if(my!==token)return;
+  const before=G.armies.slice(),tr=G.trades;CW.aiReinforce(G,p);
+  if(G.trades>tr){SND.play('card');UI.toast(`${dom(p)} trades a set of cards.`,1600)}
+  for(const t of T)if(G.armies[t.id]>before[t.id]){floatText(t.id,'+'+(G.armies[t.id]-before[t.id]),TM[p].L);flash(t.id,TM[p].L,500)}
+  SND.play('place');renderAll();await sleep(650*k);if(my!==token)return;
+  G.phase='attack';let guard=0;
+  while(!G.over&&guard++<60&&my===token){
+    const a=CW.aiBestAttack(G,p);if(!a)break;
+    const q=G.owner[a.to],fa=G.armies[a.from],fd=G.armies[a.to];
+    V.arrow={from:a.from,to:a.to,t0:performance.now(),until:performance.now()+900*k,c:TM[p].L};
+    await sleep(380*k);if(my!==token)return;
+    const keep=G.diff[p]==='easy'?1:Math.min(3,Math.max(1,CW.threatOn(G,a.from)>0?2:1));
+    const rolls=CW.blitz(G,a.from,a.to,keep);
+    const humanSide=G.ctrl[q]==='human';
+    if(rolls.length&&S.battle==='full'&&(humanSide||(watch&&rolls[rolls.length-1].conquered&&a.to===CW.THRONE)))await playBattle(p,q,a.from,a.to,rolls,fa,fd);
+    else{SND.play('dice');await sleep(220*k)}
+    const last=rolls[rolls.length-1];
+    if(last&&last.conquered){SND.play('horn');burst(a.to,[TM[p].P,TM[p].L,'#fff'],16);flash(a.to,TM[p].L,700);V.shake=4;
+      const n=CW.aiMoveIn(G);CW.moveIn(G,n);
+      if(last.eliminated!=null)UI.toast(`<b style="color:${TM[last.eliminated].L}">${D[last.eliminated].name}</b> is driven from the world by ${dom(p)}.`,2600);
+      else if(a.to===CW.THRONE)UI.toast(`${dom(p)} seizes the Throne of Thalmar!`,2200);
+      else if(humanSide)UI.toast(`${dom(p)} takes <b>${esc(T[a.to].name)}</b> from you.`,1800)}
+    renderAll();await sleep(300*k);
+  }
+  if(G.over||my!==token)return;
+  G.phase='fortify';const b2=G.armies.slice();CW.aiFortify(G,p);
+  const from=T.find(t=>G.armies[t.id]<b2[t.id]),to=T.find(t=>G.armies[t.id]>b2[t.id]);
+  if(from&&to){V.arrow={from:from.id,to:to.id,t0:performance.now(),until:performance.now()+800*k,c:'#80ff90'};SND.play('move');await sleep(500*k)}
+  renderAll();
+}
+function gameOver(){
+  V.sel=null;V.targets=[];renderAll();music();
+  const ws=CW.winners(G),human=ws.some(p=>G.ctrl[p]==='human'),solo=humans().length===1;
+  SND.play(human||!solo?'victory':'lose');
+  const names=ws.map(dom).join(' and ');
+  UI.modal(`<h2>${solo?(human?'You are the First Lord!':'The world is lost'):`${ws.map(p=>esc(D[p].name)).join(' and ')} win${ws.length>1?'':'s'}`}</h2>
+   <p>${names} ${ws.length>1?'unite':'unites'} the world${G.victory==='throne'?', holding Thalmar and two continents':G.victory==='dominion'?', holding most of it':''}.</p>
+   <p class="lore">${human&&solo?'The world kneels. You raise the drowned isle of Thalmar from the sea and set the World Throne upon it, and you bind its stones with an oath: the land will stand for as long as one Lord rules it. Ages later, when the last High Lord drowns without an heir, the domains will fight over your throne.':'Thalmar rises from the sea, and the First Crown is set upon it. The oath is sworn: the land will stand for as long as one Lord rules it.'}</p>
+   <p class="muted">${G.round} rounds · ${G.stats.battles} battles · ${G.stats.conquests} conquests · ${G.stats.trades} card trades</p>
+   <div class="row"><button class="btn" data-a="menu">Title screen</button><button class="btn" data-a="look">Look at the world</button><button class="btn" data-a="lords">Play Lords &amp; Domains</button><button class="btn gold" data-a="again">Play again</button></div>`,m=>{
+    m.querySelector('[data-a=menu]').onclick=()=>{UI.closeModal();stop();UI.showTitle()};
+    m.querySelector('[data-a=look]').onclick=UI.closeModal;
+    m.querySelector('[data-a=lords]').onclick=()=>{UI.closeModal();stop();UI.newLords()};
+    m.querySelector('[data-a=again]').onclick=()=>{UI.closeModal();start(CC.seats.slice(0,CC.np))};
+  });
+  UI.store.set('crownSave',null);
+  setBox(`<h3>The world is won</h3><p>${names} ${ws.length>1?'hold':'holds'} the First Crown.</p><div class="drow"><button class="btn gold" id="cAgain">Play again</button><button class="btn" id="cTitle">Title screen</button></div>`);
+  $('#cAgain').onclick=()=>start(CC.seats.slice(0,CC.np));$('#cTitle').onclick=()=>{stop();UI.showTitle()};
+}
+// ---------- setup ----------
+const CC=Object.assign({np:4,teams:0,victory:'world',deploy:'auto',seats:['human','normal','normal','normal','normal','normal']},UI.store.get('crownCfg',{}));
+const PRESETS={
+  classic:{name:'World war',blurb:'Four warlords, the whole world at stake.',np:4,teams:0,victory:'world',seats:['human','normal','normal','normal']},
+  duel:{name:'Duel',blurb:'One against one for every continent.',np:2,teams:0,victory:'world',seats:['human','normal']},
+  throne:{name:'Race for the Throne',blurb:'Hold Thalmar and two continents to win. Shorter and fierce.',np:4,teams:0,victory:'throne',seats:['human','normal','normal','normal']},
+  six:{name:'Six warlords',blurb:'Every colour on the map.',np:6,teams:0,victory:'world',seats:['human','normal','normal','normal','normal','normal']},
+  allies:{name:'Alliances',blurb:'Three against three. Allies cannot attack each other.',np:6,teams:2,victory:'world',seats:['human','normal','normal','normal','normal','normal']}};
+const TEAM_OPTS=np=>[[0,'Every warlord for itself']].concat(np===4?[[2,'2 v 2']]:np===6?[[2,'3 v 3'],[3,'2 v 2 v 2']]:[]);
+function setupModal(){
+  const opts=[['human','Human'],['easy','Computer · Easy'],['normal','Computer · Normal'],['hard','Computer · Hard']];
+  const c={...CC,seats:CC.seats.slice()};
+  const draw=m=>{
+    m.querySelector('#cnSeats').innerHTML=D.slice(0,c.np).map((d,p)=>`<div class="seat"><span class="sw" style="background:${TM[p].P}"></span><span>${d.name} <span class="muted" style="font-size:.8rem">· ${esc(d.host)}</span>${c.teams?` <span class="tm t${p%c.teams}">Team ${'ABC'[p%c.teams]}</span>`:''}</span><select data-seat="${p}">${opts.map(([v,l])=>`<option value="${v}" ${(c.seats[p]||'normal')===v?'selected':''}>${l}</option>`).join('')}</select></div>`).join('');
+    m.querySelectorAll('[data-seat]').forEach(sl=>sl.onchange=()=>{c.seats[+sl.dataset.seat]=sl.value});
+    const to=TEAM_OPTS(c.np);if(!to.some(t=>t[0]===c.teams))c.teams=0;
+    m.querySelector('#cnTeams').innerHTML=to.map(([v,l])=>`<button data-v="${v}" class="${c.teams===v?'on':''}">${l}</button>`).join('');
+    m.querySelectorAll('#cnNp button').forEach(b=>b.classList.toggle('on',+b.dataset.v===c.np));
+    m.querySelectorAll('#cnVic button').forEach(b=>b.classList.toggle('on',b.dataset.v===c.victory));
+    m.querySelectorAll('#cnDep button').forEach(b=>b.classList.toggle('on',b.dataset.v===c.deploy));
+    m.querySelector('#cnVicTip').textContent=CW.VICTORY[c.victory].blurb;
+  };
+  UI.modal(`<h2>The First Crown · New game</h2>
+   <p class="lore">Before the domains and before the oath, the world was a quarrel of realms. Whoever united it would raise the drowned isle of Thalmar from the sea and set the First Crown upon it.</p>
+   <div class="pres">${Object.entries(PRESETS).map(([k,p])=>`<button class="pcard2" data-pre="${k}"><b>${p.name}</b><span>${p.blurb}</span></button>`).join('')}</div>
+   <div class="ngrid">
+    <div><h3 class="sec">Warlords</h3><span class="seg" id="cnNp">${[2,3,4,5,6].map(n=>`<button data-v="${n}">${n===2?'1 v 1':n}</button>`).join('')}</span></div>
+    <div><h3 class="sec">Teams</h3><span class="seg" id="cnTeams"></span></div>
+    <div><h3 class="sec">Victory</h3><span class="seg" id="cnVic">${Object.entries(CW.VICTORY).map(([k,v])=>`<button data-v="${k}">${v.name}</button>`).join('')}</span><p class="muted" id="cnVicTip" style="font-size:.82rem;margin:4px 0 0"></p></div>
+    <div><h3 class="sec">Starting armies</h3><span class="seg" id="cnDep"><button data-v="auto">Placed for you</button><button data-v="manual">Place them yourself</button></span></div>
+   </div>
+   <h3 class="sec">Rulers</h3><div class="seats" id="cnSeats"></div>
+   <div class="row"><button class="btn" data-x>Cancel</button><button class="btn gold" id="cnGo">March!</button></div>`,m=>{
+    m.querySelector('[data-x]').onclick=UI.closeModal;
+    m.querySelectorAll('[data-pre]').forEach(b=>b.onclick=()=>{const P=PRESETS[b.dataset.pre];Object.assign(c,{np:P.np,teams:P.teams,victory:P.victory,seats:P.seats.slice()});m.querySelectorAll('[data-pre]').forEach(x=>x.classList.toggle('on',x===b));draw(m);SND.play('select')});
+    m.querySelector('#cnNp').onclick=e=>{const b=e.target.closest('button');if(!b)return;c.np=+b.dataset.v;while(c.seats.length<c.np)c.seats.push('normal');draw(m)};
+    m.querySelector('#cnTeams').onclick=e=>{const b=e.target.closest('button');if(!b)return;c.teams=+b.dataset.v;draw(m)};
+    m.querySelector('#cnVic').onclick=e=>{const b=e.target.closest('button');if(!b)return;c.victory=b.dataset.v;draw(m)};
+    m.querySelector('#cnDep').onclick=e=>{const b=e.target.closest('button');if(!b)return;c.deploy=b.dataset.v;draw(m)};
+    draw(m);
+    m.querySelector('#cnGo').onclick=()=>{Object.assign(CC,c);UI.store.set('crownCfg',CC);UI.closeModal();start(c.seats.slice(0,c.np))};
+  });
+}
+function enter(){
+  active=true;RD.V.ext=frame;RD.V.title=false;V.title=false;$('#titleMenu').hidden=true;$('#diploBox').hidden=true;
+  document.body.classList.add('crown');$('#bView').textContent='View: '+(V.mode==='field'?'Field':'Map');
+}
+function start(seats){
+  token++;UI.leaveLords();SND.unlock();
+  const ctrl=seats.map(s=>s==='human'?'human':'ai'),diff=seats.map(s=>s==='human'?'normal':s);
+  G=CW.newGame({np:seats.length,ctrl,diff,teams:CC.teams,victory:CC.victory,deploy:CC.deploy});
+  env=ENV.create('random');G.env=env;
+  V.mode=S.crownView||'map';V.sel=null;V.targets=[];V.hover=-1;
+  enter();
+  $('#infoBox').innerHTML=`<h3>The world</h3><p class="muted">Hover over or tap a territory to read about it. Holding a whole continent earns its bonus every turn.</p>`;
+  UI.store.set('crownSave',null);renderAll();music();
+  loop(token);
+}
+function save(){if(G&&!G.over&&G.phase!=='deploy'){UI.store.set('crownSave',G)}}
+function cont(){const g=UI.store.get('crownSave',null);if(!g)return;token++;UI.leaveLords();G=g;env=G.env||ENV.create('random');G.env=env;V.mode=S.crownView||'map';V.sel=null;V.targets=[];enter();renderAll();
+  // resume at the start of the saved turn
+  CW.beginTurn(G);loop(token)}
+function stop(){token++;waiting=null;active=false;V.battle=null;if(RD.V.ext===frame||RD.V.ext===titleFrame)RD.V.ext=null;document.body.classList.remove('crown')}
+// a world at war for the title screen
+function titleFrame(t){frame(t)}
+function titleDemo(){
+  const np=3+Math.floor(Math.random()*4);
+  G=CW.newGame({np,ctrl:Array(np).fill('ai')});for(let p=0;p<np;p++)CW.autoDeploy(G,p);CW.startPlay(G);
+  const n=np*(2+Math.floor(Math.random()*6));for(let i=0;i<n&&!G.over;i++){CW.aiTurnSteps(G,G.turn);if(!G.over)CW.endTurn(G)}
+  env=ENV.create('random');G.env=env;V.title=true;V.cam.want=Math.random()*Math.PI*2;V.sel=null;V.targets=[];V.hover=-1;RD.V.ext=titleFrame;renderAll();$('#log').innerHTML='';
+}
+function titleOff(){V.title=false;if(RD.V.ext===titleFrame)RD.V.ext=null}
+// ---------- input ----------
+function toInternal(e){const r=RD.cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H}}
+RD.cv.addEventListener('click',e=>{
+  if(!active||V.title)return;e.stopImmediatePropagation();SND.unlock();
+  if(V.battle){V.battle.skip=true;return}
+  if(!waiting)return;const p=toInternal(e);waiting.click(pick(p.x,p.y));
+},true);
+RD.cv.addEventListener('mousemove',e=>{if(!active||V.title||V.battle)return;const p=toInternal(e);const id=pick(p.x,p.y);if(id!==V.hover){V.hover=id;if(id>=0)info(id)}},true);
+RD.cv.addEventListener('mouseleave',()=>{if(active)V.hover=-1});
+addEventListener('keydown',e=>{
+  if(!active||!$('#modalBg').hidden||e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;
+  const k=e.key.toLowerCase();
+  if(k===' '&&V.battle){e.preventDefault();V.battle.skip=true;return}
+  if(k==='escape'){V.sel=null;V.targets=[]}
+  if(k==='h'&&G&&G.phase==='attack'&&hintFn&&waiting)hintFn();
+  if(k==='enter'){const b=$('#turnBox .btn.gold');if(b&&!b.disabled){e.preventDefault();b.click()}}
+},true);
+function toggleView(){V.mode=V.mode==='field'?'map':'field';S.crownView=V.mode;UI.saveS();$('#bView').textContent='View: '+(V.mode==='field'?'Field':'Map')}
+function rotate(d){V.cam.want+=d}
+function zoom(k){V.cam.dist=Math.max(130,Math.min(300,V.cam.dist+k));V.cam.h=Math.max(60,Math.min(150,V.cam.h+k*.4))}
+const RULES=`<h3>The First Crown</h3>
+ <p>The prequel to Lords &amp; Domains. Before the domains and before the oath, warlords fought for the whole world. Whoever united it would raise the drowned isle of Thalmar and set the First Crown upon it.</p>
+ <h3>The world</h3><ul><li>33 territories on seven continents: Nordhal, the Pearl Isles, Verdance, Emberreach, Sunmere, Ashkar, and Thalmar in the middle of the sea.</li><li>Dotted lines are sea lanes: territories joined by one border each other.</li><li>Hold a whole continent at the start of your turn to earn its bonus. Whoever holds <b>the Throne</b> earns one extra army.</li></ul>
+ <h3>A turn</h3><ol><li><b>Reinforce.</b> You get a third of your territories (at least 3), plus continent bonuses, plus the Throne. Place them on your territories. Trade card sets for more.</li><li><b>Attack</b> as often as you like from any territory with 2 or more armies. You roll up to 3 dice (one fewer than your armies), the defender up to 2. The highest dice are compared in pairs; the higher wins each pair and <b>ties go to the defender</b>. <b>Blitz</b> keeps rolling until the territory falls or you are down to one army. The odds are shown before you attack.</li><li>When a territory falls, march in at least as many armies as dice you rolled.</li><li><b>Fortify:</b> one march along a chain of your own territories, then your turn ends.</li></ol>
+ <h3>Cards</h3><ul><li>Take at least one territory in a turn and you earn a card: Footman ⚔, Rider 🐎, Siege 🏹 or Wild ★.</li><li>Trade three of a kind, one of each, or any two with a wild, for 4, 6, 8, 10, 12, 15 armies, then 5 more each time. A card showing a territory you hold adds 2 armies there.</li><li>With five cards you must trade. Drive a warlord out and you take their cards.</li></ul>
+ <h3>Winning</h3><ul><li><b>World conquest:</b> take every territory.</li><li><b>The Throne:</b> hold all of Thalmar and any two other continents at the start of your turn.</li><li><b>Dominion:</b> hold 21 of the 33 territories at the start of your turn.</li><li>With teams, allies cannot attack each other and win together.</li></ul>
+ <h3>Fair play</h3><ul><li>The first round is a truce, so moving first is no great edge. Later seats start with a few extra armies.</li></ul>
+ <h3>Controls</h3><ul><li>Click your territories to place armies (choose +1, +3, +5 or All). Click an attacker, then a red-framed target; click the target again to roll. Enter presses the gold button. V switches between the map and the field view.</li></ul>`;
+return {start,setupModal,cont,stop,titleDemo,titleOff,toggleView,rotate,zoom,get active(){return active},get G(){return G},V,RULES,hasSave:()=>!!UI.store.get('crownSave',null)};
+})();
+window.CR=CR;
 
 </script>
 </body>

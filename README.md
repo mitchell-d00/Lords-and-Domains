@@ -1,116 +1,148 @@
 # Lords & Domains
 
-A six-player hidden-Lord strategy game, inspired by games like Stratego but built around alliances, deception, and figuring out who everyone really is.
+Two strategy games in one little HTML file, set in the same world.
 
-> Long ago the First Crown raised the isle of Thalmar from the sea and bound its stones with an oath: the land would stand for as long as one Lord ruled it. The last High Lord drowned without an heir, and now six domains claim the crown.
+- **Lords & Domains** is the hidden-Lord board game. It takes its ideas from games like Stratego, but it's built around alliances, bluffs and betrayals. Each domain hides its Lord among its own pieces, and you have to find theirs before they find yours.
+- **The First Crown** is the prequel, a world conquest game in the spirit of Risk. Long before the domains, warlords fought for the whole world. Whoever united it would raise the drowned isle of Thalmar from the sea and set the First Crown on it.
 
-The island is a six-sided field made of hexes, and each of the six domains (Crimson, Azure, Verdant, Golden, Violet and Teal) starts along one side. Each domain hides its Lord somewhere among its own pieces. You know where your Lord is. Everyone else's is a mystery. Protect yours, hunt theirs, make friends, and decide when to turn on them.
-
-Trust carefully.
+> Long ago the First Crown raised the isle of Thalmar from the sea and bound its stones with an oath: the land would stand for as long as one Lord ruled it. The last High Lord drowned without an heir, and now the domains claim the crown.
 
 ## Play
 
-Open `index.html` in any modern browser. It is one self-contained file: no install, no build tools, no sign-up, and it works offline. (The pixel font loads from Google Fonts when you are online; offline it falls back to a monospace font.)
+Open `index.html` in any modern browser. There's nothing to install and no sign-up, and it works offline. The pixel font loads from Google Fonts when you're online; offline it falls back to a monospace font.
 
-New to the game? Press **Walkthrough** on the title screen. It plays a real game with you, step by step.
+On the title screen, pick **⚔ Lords & Domains** or **👑 The First Crown**. New to Lords & Domains? Press **Walkthrough** and it plays a real game with you, step by step.
 
-## Modes
+---
 
-You choose a mode at the start of every game.
+## Lords & Domains
 
-- **Classic:** the island stands still. It's pure bluff and battle. If nobody fights for 40 rounds, the strongest army is named High Lord.
-- **Decisive, the restless island:** from round 6 the island reshapes itself every round.
-  - Empty land far from the fighting sinks into the sea.
-  - Seabed rises as new land wherever it brings rival domains closer together.
-  - The island never sinks a space with a piece on it and never cuts any piece off from the rest. If a piece is ever stranded, the seabed rises to bridge it back.
-  - When the fighting stalls, a causeway rises: a whole line of cobbled seabed between the nearest rivals that the sea keeps apart. It lasts six rounds, flickers with foam when it is about to go, then sinks back. The sea makes obstacles, never prisons.
-  - The island never drowns more than half of itself.
-  - It takes no side. It only wants the oath kept, and the oath can only be kept when a single Lord stands. Every war ends with a fallen Lord or a breached Keep.
+### Setting up a game
 
-Players can be any mix of humans and computers (Easy, Normal, Hard):
+The setup screen has quick presets and full options:
 
-- **Me vs 5 computers.**
-- **6 players, one screen (hotseat):** the board hides between turns.
-- **2 players + 4 computers.**
-- **Watch 6 computers.**
+- **Presets:** First Edition, Duel, Six-way war, Team battle and Quick skirmish.
+- **Domains:** 2 to 6 domains, anything from a 1 v 1 duel to a six-way war. Each one can be a human or a computer on Easy, Normal or Hard. When several humans play on one screen (hotseat), the board hides between turns.
+- **Teams:**
+  - Every domain for itself.
+  - 2 v 2 with four domains.
+  - 3 v 3 or 2 v 2 v 2 with six.
+
+  You see your allies' pieces, you can't attack them, and your team wins together.
+- **Board:** a six-sided field of hexes, or a square field of squares. The board grows or shrinks with the number of domains.
+- **Army:**
+  - The full army of 14 pieces.
+  - The **First Edition** army of 10 pieces: Lord, Marshal (8), Knight (7), Captain (6), Guard (5), Raider (4), Scout (3), Spy (2), Sapper (1) and Keep.
+- **First Edition preset:** the original rules. A 13 × 13 square field, ten pieces each, five domains, and the island standing still.
+- **Mode:**
+  - **Classic:** the island stands still. If nobody fights for 40 rounds, the strongest army is named High Lord.
+  - **Decisive, the restless island:** from round 6 the island reshapes itself every round.
+    - Quiet land sinks and seabed rises between rivals.
+    - When the fighting stalls, a causeway (a whole line of seabed) rises between the nearest rivals, then sinks back a few rounds later.
+    - Nothing is ever cut off; the sea only makes obstacles.
+- **Sky and season:** leave it on Normal for a surprise season with changing weather and time of day. You can also pick a season, weather, time of day, a holiday board, or a preset such as Rainy day or Snowy night.
+
+### Rules
+
+- **The full army (14 pieces):** Lord, Marshal (8), Knight (7), Captain (6), Guard (5), Raider (4), four Scouts (3), two Spies (2), Sapper (1) and Keep.
+- **Before the battle:** each human arranges their own pieces in secret.
+- **Moving:** move one piece to a space that shares a side with it. That's six choices on the hex field and four on the square field.
+  - Scouts run any distance in a straight line.
+  - Keeps never move.
+  - Water can't be crossed.
+- **Fighting:** moving onto an enemy is an attack. Both pieces are revealed, the higher rank wins, and equal ranks both fall.
+- **Special fights:**
+  - A Spy that strikes a Lord first kills it. A Lord that strikes a Spy first wins.
+  - A Lord who strikes another Lord wins, and the Lord who waits falls, so timing is everything.
+  - A Keep destroys any attacker except a Sapper. A Sapper who breaks a Keep topples that whole domain.
+- **Winning:** if a Lord falls, its whole domain falls with it. The last domain (or team) standing wins.
+
+### Diplomacy
+
+You get one diplomatic act per turn, before you move:
+
+- **Offer a pact:** neither side attacks the other for 6 rounds, and each side is shown one of the other's pieces.
+- **Point the finger:** turn the other domains against a rival.
+- **Spread a rumour:** crown one of your own pieces so rivals think it's your Lord.
+- **Betray an ally:** you can break a pact, but every domain will trust you less afterwards.
 
 Each computer ruler has a hidden personality: Honourable, Opportunist, Warlike, Schemer, Cautious or Hunter.
 
-## Rules
+### Help while you play
 
-- **The board:** a six-sided field of 271 hexes with lakes. Each army starts in two rows along its own side of the hexagon.
-- **Your army:** each domain has 14 pieces: Lord, Marshal (8), Knight (7), Captain (6), Guard (5), Raider (4), four Scouts (3), two Spies (2), Sapper (1) and Keep.
-- **Before the battle:** each human ruler arranges their own pieces in secret.
-- **Moving:** on your turn, move one piece to any of the six spaces that share a side with it. Scouts run any distance in a straight line in any of the six directions. Keeps never move. Water can't be crossed.
-- **Fights:** moving onto an enemy is an attack. Both pieces are revealed to everyone. The higher rank wins, and equal ranks both fall.
-- **Special fights:**
-  - A Spy that strikes a Lord first kills it. A Lord that strikes a Spy first wins.
-  - A Lord who strikes another Lord first wins, and the Lord who waits falls. Lord against Lord is all about timing the attack.
-  - A Keep destroys any attacker except a Sapper.
-- **How a domain falls:** if its Lord falls, or if a Sapper breaks its Keep, the whole domain falls with it.
-- **Winning:** the last domain standing wins.
+- **💡 Hint** (or the H key) shows the move a careful ruler would make.
+- **Inspect** any unknown piece to see your spies' best guess at what it is, worked out from everything that has been revealed.
+- **The Domains panel** lists the ranks each rival still has hidden.
 
-## Diplomacy
+---
 
-You can make one diplomatic move per turn, before you move a piece.
+## The First Crown
 
-- **Offer a pact:** for 6 rounds neither side attacks the other. As a sign of trust, each side is shown one of the other's pieces.
-- **Point the finger:** turn the other domains against a rival.
-- **Rumour:** crown one of your pieces so rivals think it is your Lord.
-- **Betrayal:** attacking an ally breaks the pact, and every domain trusts you less afterwards.
+### The world
 
-## The computer rulers
+- There are 33 territories on seven continents: Nordhal, the Pearl Isles, Verdance, Emberreach, Sunmere, Ashkar, and Thalmar in the middle of the sea.
+- Dotted lines are sea lanes. Two territories joined by a lane count as neighbours.
+- Hold a whole continent at the start of your turn to earn its bonus.
+- Whoever holds **the Throne** on Thalmar earns one extra army each turn.
 
-The computer rulers don't just pick the biggest number. On every turn they:
+### A turn
 
-- **Read the field:** they track which ranks each rival still hides, which pieces have never moved (a Keep, or a Lord lying low), and what every fight has revealed.
-- **Weigh every attack:** the chance of winning against the risk of losing the piece.
-- **Look one move ahead:** before moving, they check what the enemy could hit next and how exposed their Lord, Keep and best pieces would be.
-- **Hunt when it counts:** when few domains remain or the war drags on, they stop guarding and go for Lords. A Lord that spots a rival Lord within reach strikes first, because the Lord who waits falls.
-- **Send the right piece:** Spies stalk suspected Lords, Sappers go for Keeps, Scouts probe unknown pieces.
-- **Play politics:** they make pacts, point fingers, spread rumours and, depending on their personality, betray.
+1. **Reinforce.**
+   - You get a third of your territories (at least 3), plus your continent bonuses, plus the Throne.
+   - Click your territories to place the armies, +1, +3, +5 or All at a time, or press **Place for me**.
+   - You can trade a set of cards for more armies.
+2. **Attack.**
+   - Attack from any territory with 2 or more armies into a neighbouring enemy territory.
+   - You roll up to 3 dice and the defender rolls up to 2. The highest dice are compared in pairs, and ties go to the defender.
+   - **Roll** rolls once. **Blitz** keeps rolling until the territory falls or you're down to one army.
+   - Your chance of taking a territory is shown before you attack. **💡 Suggest an attack** points out a good one.
+3. **March in.** When a territory falls, choose how many armies move into it.
+4. **Fortify.** Make one march along a chain of your own territories, and your turn ends.
 
-Easy rulers make careless mistakes, Normal ones think ahead, and Hard ones rarely miss a chance.
+### Cards
 
-## Sky, seasons and holidays
+- **Earning cards:** take at least one territory in a turn and you earn a card. Each card is a Footman, Rider, Siege or Wild.
+- **Trading sets:** trade three of a kind, one of each, or any two with a wild. Sets are worth 4, 6, 8, 10, 12 and then 15 armies, and 5 more each time after that.
+- **Bonus armies:** a traded card that shows a territory you hold puts 2 extra armies there.
+- **Must-trade rule:** with five cards you must trade.
+- **Seizing cards:** drive a warlord out of the world and you take their cards.
 
-- **Normal board:** leave the board on Normal and every game starts in a random season, with the time of day and the weather changing as you play.
-- **Choosing a look:** pick a season, a weather (clear, cloudy, rain, thunderstorm, snow, fog) and a time of day (dawn, midday, golden hour, dusk, night).
-- **Presets:** one tap for Rainy day, Summer storm, Golden autumn, Foggy dawn, Snowy night or Starry night.
-- **Changing it mid-game:** use Settings to change the board's look while a game is running.
-- **Time of day:** when it passes, a full day takes 10 rounds, from dawn through golden hour to night under the moon and stars.
-- **Holiday boards:**
-  - **Harvest Night:** pumpkins, candles and bats.
-  - **Midwinter Lights:** snow, little pines and coloured lights.
-  - **Lantern Festival:** red lanterns and cherry blossom.
-  - **Hearts Day:** roses and floating hearts.
-  - **Fireworks Night:** bunting and fireworks.
-- **Title screen:** shows a different random battle, season and sky every time.
+### Setting up
+
+- **Presets:** World war, Duel, Race for the Throne, Six warlords, Alliances.
+- **Warlords:** 2 to 6, any mix of humans and computers (Easy, Normal, Hard).
+- **Teams:** 2 v 2, 3 v 3 or 2 v 2 v 2. Allies can't attack each other, and they win together.
+- **Victory:**
+  - **World conquest:** take every territory.
+  - **The Throne:** hold all of Thalmar and any two other continents at the start of your turn.
+  - **Dominion:** hold 21 of the 33 territories at the start of your turn.
+- **Starting armies:** placed for you, or placed yourself.
+- **Fair play:**
+  - The first round is a truce, so moving first isn't a big edge.
+  - Later seats start with a few extra armies.
+  - In a two-player game, the second player gets enough extra to make it an even contest.
+
+---
 
 ## Look and sound
 
-- **Field view:** a low, Mode 7-style view from behind your domain. Rotate it with ⟲ ⟳ (Q/E) and zoom with + and −.
-- **Map view:** the board from above. Press V to switch views.
-- **Battle scenes:** every clash cuts to a cinematic pixel-art battle. Each side's colours sweep in, the rank match-up pops up (8 > 5, STRIKE!, KEEP!), the attacker charges with afterimages and dust, and the hit freezes the frame with a zoom, a shockwave and sparks. All of it plays under the current sky and weather. Set battle scenes to Full, Quick or Off in Settings.
-- **Music:** ten chiptune songs that follow the mood and the season:
-  - *The Restless Isle* (title)
-  - *Banners at Dawn* (deployment)
-  - *Blossom Road* (spring)
-  - *Six Crowns* (summer)
-  - *Falling Leaves* (autumn)
-  - *Frost on the Keep* (winter)
-  - *Night Watch* (night and fog)
-  - *Thunder over Thalmar* (rain and storms)
-  - *The Last Lord* (the final fight)
-  - *Crowned at Last* (victory)
-
-  The song that's playing is shown next to the mute buttons. Tap its name to pick any of the ten songs, or choose Auto to let the music follow the mood again.
-- **Mute buttons:** sound and music each have their own mute button, always in the bottom-right corner.
-- **Saving:** the game saves after every turn, so you can continue later from the title screen.
+- **Two views in both games:**
+  - **Field:** a low, Mode 7-style view across the island or the world. Rotate it with ⟲ ⟳ (Q/E) and zoom with + and −.
+  - **Map:** the view from above. Press V to switch.
+- **Battles:**
+  - In Lords & Domains, every clash cuts to a pixel-art battle scene.
+  - In The First Crown, attacks are fought out with dice, soldiers on both sides, and the losses counted roll by roll.
+  - Battle scenes can be Full, Quick or Off.
+- **Sky:** time of day, weather and seasons change as you play.
+- **Music:** twelve chiptune songs. Ten follow the mood and season of Lords & Domains. *March of the First Crown* and *The World Throne* play in the prequel. Tap the song name to pick one yourself.
+- **Options:**
+  - Separate volume sliders for sound and music, and corner mute buttons.
+  - Page theme, view, battle scenes, computer speed, and guess bars.
+- **Saving:** both games save as you play, so you can continue later from the title screen.
 
 ## Files
 
-- `index.html`: the complete game.
+- `index.html`: both games.
 - `logo.svg`: the icon.
 - `LICENSE`: MIT.
 
